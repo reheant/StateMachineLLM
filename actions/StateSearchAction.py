@@ -1,10 +1,10 @@
 from sherpa_ai.actions.base import BaseAction
 
-class StateSearch(BaseAction):
-    name: str = "state_search_action"
+class StateSearchAction(BaseAction):
+    name: str = "do_search_states"
     args: dict = {}
-    usage: str = "Identify all states in the system"
+    usage: str = "identify states in microwave system"
 
     def execute(self):
-        print("The states are: On, Off")
-        return "The states are: On, Off"
+        print(f"Hello do_search_states")
+        return f"On, Off"
