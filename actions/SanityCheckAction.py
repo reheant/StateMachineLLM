@@ -17,8 +17,8 @@ class SanityCheckAction(BaseAction):
         for sentence in problem_description_sentences:
         
             prompt = f"""
-                      You are an AI assistant specialized in creating UML state machines. You will be provided with a single sentence from the problem description. Additionally, you will be provided with a table containing states, a table containing transitions, and a table containing concurrent states of a UML State Machine.
-                      Your task is to ensure that the provided sentence is encapsulated by at least one state, transition, guard, action, hierarchical state, and/or history state from the provided tables. If there is no entry in a table that encapsulates the provided sentence, propose a new UML state machine component that will encapsulate the sentence, and add it to its corresponding table.
+                      You are an AI assistant specialized in creating UML state machines. You will be provided with a single sentence from the problem description. Additionally, you will be provided with a table containing states and events, a table containing parallel states, and a table containing transitions of a UML State Machine.
+                      Your task is to ensure that the provided sentence is encapsulated by at least one state, transition, guard, action, hierarchical state, and/or history state from the provided tables. If there is no entry in a table that encapsulates the provided sentence, propose a new UML state machine component that will encapsulate the sentence, and add it to its corresponding table. Then, output the updated states and events, parallel states, and transitions tables.
                       The single sentence is:
                       {sentence}
                       The table describing states and events is:
