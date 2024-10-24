@@ -42,7 +42,7 @@ def extract_table_using_headers_from_llm_response(llm_response, headers):
         current_table_headers = [th.get_text().strip() for th in table.find_all('th')]
         
         if all(header in current_table_headers for header in headers):
-            return str(table)
+            return table
     
     return None
 
@@ -53,8 +53,14 @@ def extract_states_events_table_from_llm_response(llm_response):
     return states_events_table
 
 def extract_parallel_states_table_from_llm_response(llm_response):
-    states_events_table_headers = ["Parallel State", "Substate", "Reference from Problem Description"]
-    states_events_table = extract_table_using_headers_from_llm_response(llm_response=llm_response,
-                                                                        headers=states_events_table_headers)
-    return states_events_table
+    parallel_states_table_headers = ["Parallel State", "Substate", "Reference from Problem Description"]
+    parallel_states_table = extract_table_using_headers_from_llm_response(llm_response=llm_response,
+                                                                          headers=parallel_states_table_headers)
+    return parallel_states_table
+
+def extract_transitions_guards_table_from_llm_response(llm_response):
+    transitions_guards_table_headers = ["From State", "To State", "Event", "Guard"]
+    transitions_guards_table = extract_table_using_headers_from_llm_response(llm_response=llm_response,
+                                                                             headers=transitions_guards_table_headers)
+    return transitions_guards_table
     
