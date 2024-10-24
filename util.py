@@ -33,11 +33,7 @@ def extract_html_tables_from_llm_response(llm_response):
     
     return tables
 
-def extract_states_events_table_from_llm_response(llm_response):
-    
-    states_events_table_headers = ["Current State",
-                                   "Event",
-                                   "Next State(s)"]
+def extract_table_using_headers_from_llm_response(llm_response, headers):
     
     # find all tables in the response
     tables = extract_html_tables_from_llm_response(llm_response=llm_response)
@@ -45,8 +41,20 @@ def extract_states_events_table_from_llm_response(llm_response):
     for table in tables:
         current_table_headers = [th.get_text().strip() for th in table.find_all('th')]
         
-        if all(header in current_table_headers for header in states_events_table_headers):
+        if all(header in current_table_headers for header in headers):
             return str(table)
     
     return None
+
+def extract_states_events_table_from_llm_response(llm_response):
+    states_events_table_headers = ["Current State", "Event", "Next State(s)"]
+    states_events_table = extract_table_using_headers_from_llm_response(llm_response=llm_response,
+                                                                        headers=states_events_table_headers)
+    return states_events_table
+
+def extract_parallel_states_table_from_llm_response(llm_response):
+    states_events_table_headers = ["Parallel State", "Substate", "Reference from Problem Description"]
+    states_events_table = extract_table_using_headers_from_llm_response(llm_response=llm_response,
+                                                                        headers=states_events_table_headers)
+    return states_events_table
     
