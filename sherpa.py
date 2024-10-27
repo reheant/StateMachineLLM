@@ -5,8 +5,7 @@ from sherpa_ai.models import SherpaChatOpenAI
 from sherpa_ai.policies.react_policy import ReactPolicy
 from sherpa_ai.agents.qa_agent import QAAgent
 from sherpa_ai.events import Event, EventType
-from actions.StateSearchAction import StateSearchAction
-from actions.EventSearchAction import EventSearchAction
+from actions.StateEventSearchAction import StateEventSearchAction
 from actions.ParallelRegionSearchAction import ParallelStateSearchAction
 from actions.TransitionsGuardsSearchAction import TransitionsGuardsSearchAction
 from actions.ActionSearchAction import ActionSearchAction
@@ -16,8 +15,7 @@ from actions.SanityCheckAction import SanityCheckAction
 from smf_transitions import transitions
 
 belief = Belief()
-search_state_action = StateSearchAction(usage="identifying states in problem description for state machine", belief=belief)
-event_state_action = EventSearchAction(usage="identifying events in problem description for state machine", belief=belief)
+state_event_state_action = StateEventSearchAction(usage="identifying events in problem description for state machine", belief=belief)
 parallel_state_action = ParallelStateSearchAction(usage="identifying parallel regions in problem description for state machine", belief=belief)
 transitions_guards_action = TransitionsGuardsSearchAction(usage="identifying transitions and guards in problem description for state machine", belief=belief)
 action_search_action = ActionSearchAction(usage="identifying actions in problem description for state machine", belief=belief)
@@ -26,8 +24,7 @@ history_state_action = HistoryStateSearchAction(usage="identifying history state
 sanity_check_action = SanityCheckAction(usage="compare generated state machine with problem description", belief=belief)
 
 action_map = {
-    search_state_action.name: search_state_action,
-    event_state_action.name: event_state_action,
+    state_event_state_action.name: state_event_state_action,
     parallel_state_action.name: parallel_state_action,
     transitions_guards_action.name: transitions_guards_action,
     action_search_action.name: action_search_action,
