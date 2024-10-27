@@ -8,6 +8,7 @@ class HierarchicalStateSearchAction(BaseAction):
 
     def execute(self):
         hierarchical_state = []
+        hierarchical_states = self.belief.get('')
         for state in hierarchical_states:
             prompt = f'''You are an AI assistant specialized in creating state machines. Given the following problem description {problem_desc}: 
             Determine if the hierarchical state {state} requires a history state to remember a past state after a transition.

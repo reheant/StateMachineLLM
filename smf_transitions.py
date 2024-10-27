@@ -4,12 +4,14 @@ parallel_regions = {
     "dest": "TransitionsGuards",
     "before": "parallel_state_search_action",
 }
+
 transitions = [{
     "trigger": "start_state_event_search",
     "source": "SearchStatesEvents",
-    "dest": "TransitionsGuards",
+    "dest": "ParallelRegions",
     "before": "state_event_search_action",
-},{
+},parallel_regions
+,{
     "trigger": "start_transition_guards",
     "source": "TransitionsGuards",
     "dest": "FiguringActions",
