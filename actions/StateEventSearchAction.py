@@ -9,7 +9,7 @@ class StateEventSearchAction(BaseAction):
     usage: str = "Identify all states and their associated events that trigger transitions in the system"
 
     def execute(self, description):
-        print(f"Hello state_event_search_action")
+        print(f"Running {self.name}...")
         states_response_in_html = call_gpt4(f"""
             Given the following system:
             {description}
@@ -24,9 +24,7 @@ class StateEventSearchAction(BaseAction):
         """)
         
         system_name = re.search(r"System:\s*\"(.*?)\"", states_response_in_html).group(1)
-        # print(system_name)
 
         res = extract_states_events_table(states_response_in_html)
-        # print(res)
 
         return (system_name, res)
