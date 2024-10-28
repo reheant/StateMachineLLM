@@ -8,7 +8,7 @@ class TransitionsGuardsSearchAction(BaseAction):
         }
     usage: str = "Identify all transitions and guards of the state machine from the system description"
 
-    def multiplePrompting():
+    def multiplePrompting(self, description):
         transitions = []
         modeled_system, statesAndEvents = self.belief.get('state_event_search_action')
         states = extractColumn(statesAndEvents, 0)
@@ -42,11 +42,11 @@ class TransitionsGuardsSearchAction(BaseAction):
         for i in range(len(transitions)):
             mid_table =  extract_transitions_guards_table(transitions[i], i == 0)
             final_transition_table = appendTables(final_transition_table, mid_table)
-        print(final_transition_table)
+
         return final_transition_table
     
     def execute(self, description):
-        print(f"Hello transitions_guards_search_action")
+        print(f"Running {self.name}...")
         modeled_system, statesAndEvents = self.belief.get('state_event_search_action')
         statesAndEvents, parallelRegions = self.belief.get('parallel_state_search_action')
         prompt = f'''
@@ -67,8 +67,7 @@ class TransitionsGuardsSearchAction(BaseAction):
         <tr> <td rowspan="3"> State1 </td> <td> State2 </td> <td> Event1 </td> <td> Condition1 </td> </tr>
         <tr> <td rowspan="3"> State3 </td> <td> State4 </td> <td> Event2 </td> <td> NONE </td> </tr> </table> ```
         '''
+
         response = call_gpt4(prompt)
-        print(response)
         transition_guard_table = extract_transitions_guards_table(response, True)
-        print(transition_guard_table)
         return transition_guard_table
