@@ -22,7 +22,7 @@ transition_guards = {
 actions = {
     "trigger": "start_finding_actions",
     "source": "FiguringActions",
-    "dest": "SanityCheck",
+    "dest": "HierarchicalStates",
     "before": "action_search_action",
 }
 
