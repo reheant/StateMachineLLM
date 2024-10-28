@@ -59,9 +59,7 @@ class ParallelStateSearchAction(BaseAction):
             # extract tables
 
             updated_parallel_state_table = extract_parallel_states_table(llm_response=response)
-            print(updated_parallel_state_table)
             updated_tables = (updated_state_event_table, updated_parallel_state_table)
-            print(updated_state_event_table)
             # if any of the tables are not provided, try again
             if None in updated_tables:
                 retry = True
@@ -77,10 +75,9 @@ class ParallelStateSearchAction(BaseAction):
         the execute function for the parallel state prompt. calls the send_parallel_state_search function and applies the updates to event and states 
         table while also generating the output table for the parallel states
         """
+        print(f"Running {self.name}...")
         system, state_event_table = self.belief.get('state_event_search_action')
-        print(system)
-        print(state_event_table)
-
+        
         updated_tables = self.send_parallel_state_search(description, system, state_event_table)
 
         if (updated_tables[0] and updated_tables[1]) is None:
