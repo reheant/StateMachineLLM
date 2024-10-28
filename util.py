@@ -9,7 +9,7 @@ def call_gpt4(prompt, model="gpt-4o-mini", max_tokens=300, temperature=0.5):
     response = openai.chat.completions.create(
         model=model,
         messages=[{"role": "user", "content": prompt}],
-        max_tokens=max_tokens, temperature=temperature
+        temperature=temperature
     )
 
     return response.choices[0].message.content
@@ -69,22 +69,61 @@ def extract_transitions_guards_table(llm_response : str, includeHeader : bool) -
             first_row.decompose()
     return transitions_guards_table
 
+def extract_history_state_table(llm_response : str, includeHeader: bool) -> Tag:
+    history_table_headers = ["From State", "Event", "Guard"]
+    history_table = extract_table_using_headers(llm_response=llm_response,
+                                                           headers=history_table_headers)
+    if not includeHeader:
+        first_row = history_table.find('th')
+        if first_row:
+            first_row.decompose()
+    return history_table
+
+def extract_hierarchical_state_table(llm_response : str) -> Tag:
+    history_table_headers = ["Superstate", "Substate"]
+    history_table = extract_table_using_headers(llm_response=llm_response,
+                                                headers=history_table_headers)
+    return history_table
+
 def appendTables(table1 : Tag, table2 : Tag) -> Tag:
     for row in table2.find_all('tr'):
         table1.append(row)
     return table1
 
-def extractColumn(table : Tag, column_id : int) -> list[str]:
-    column_data = []
-    rows = table.find_all('tr')
-    for row in rows:
-        cells = row.find_all('td')
-        if len(cells) > column_id:  # Ensure the row has enough cells
-            column_data.append(cells[column_id].get_text())
-    return column_data
+def addColumn(table : Tag, headerName : str, columnIdx : int, placeholderValue : str):
+    soup = BeautifulSoup(str(table), 'html.parser')
+
+    # Add a new header for the new column
+    if headerName:
+        new_header = soup.new_tag('th')
+        new_header.string = headerName
+        header_row = table.find('tr')
+        header_row.insert(columnIdx, new_header)
+
+    # Add new column data to each row
+    for row in table.find_all('tr')[1 if headerName else 0:]:  # Skip the header row
+        new_col = soup.new_tag('td')
+        new_col.string = placeholderValue
+        row.insert(columnIdx, new_col)
+
+    return table
+
+def extractColumn(table : Tag, columnIdx : int):
+    column_list = []
+    # soup = BeautifulSoup(str(table), 'html.parser')
+
+    # # Find the table
+    # table = soup.find('table', {'id': 'myTable'})
+
+    # Add new column data to each row
+    for row in table.find_all('tr')[1:]:  # Skip the header row=
+        cols = row.find_all('td')
+        column_list.append(cols[columnIdx].get_text())
+
+    return column_list
 
 def extract_transitions_guards_actions_table(llm_response : str) -> Tag:
-    transitions_guards_table_events_headers = ["From State", "To State", "Event", "Guard", "Entry Action", "Exit Action"]
+    transitions_guards_table_events_headers = ["From State", "To State", "Event", "Guard", "Action"]
     transitions_guards_actions_table = extract_table_using_headers(llm_response=llm_response,
                                                                    headers=transitions_guards_table_events_headers)
     return transitions_guards_actions_table
