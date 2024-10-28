@@ -11,7 +11,7 @@ from actions.TransitionsGuardsSearchAction import TransitionsGuardsSearchAction
 from actions.ActionSearchAction import ActionSearchAction
 from actions.HierarchicalStateSearchAction import HierarchicalStateSearchAction
 from actions.HistoryStateSearchAction import HistoryStateSearchAction
-from actions.SanityCheckAction import SanityCheckAction
+from actions.FinalSanityCheckAction import FinalSanityCheckAction
 from smf_transitions import transitions
 
 description = """
@@ -50,7 +50,7 @@ transitions_guards_action = TransitionsGuardsSearchAction(usage="identifying tra
 action_search_action = ActionSearchAction(usage="identifying actions in problem description for state machine", belief=belief, description=description)
 hierarchical_state_action = HierarchicalStateSearchAction(usage="identifying hierarchical states in problem description for state machine", belief=belief, description=description)
 history_state_action = HistoryStateSearchAction(usage="identifying history states in problem description for state machine", belief=belief, description=description)
-sanity_check_action = SanityCheckAction(usage="compare generated state machine with problem description", belief=belief, description=description)
+sanity_check_action = FinalSanityCheckAction(usage="compare generated state machine with problem description", belief=belief, description=description)
 
 action_map = {
     state_event_state_action.name: state_event_state_action,
@@ -59,7 +59,7 @@ action_map = {
     action_search_action.name: action_search_action,
     # hierarchical_state_action.name: hierarchical_state_action,
     # history_state_action.name: history_state_action,
-    # sanity_check_action.name: sanity_check_action
+    sanity_check_action.name: sanity_check_action
 }
 
 states = ["SearchStatesEvents", "ParallelRegions", "TransitionsGuards", "FiguringActions", "HierarchicalStates", "HistoryStates", "SanityCheck", "Done"]
