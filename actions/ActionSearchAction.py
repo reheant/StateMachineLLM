@@ -10,7 +10,7 @@ class ActionSearchAction(BaseAction):
     usage: str = "Identify all actions for transitions between states in the system"
 
     def execute(self, system_description : str):
-        
+        print(f"Running {self.name}...")
         transition_table = self.belief.get("transitions_guards_search_action")
 
 
@@ -39,8 +39,8 @@ class ActionSearchAction(BaseAction):
 
         response = call_gpt4(prompt=prompt)
 
-        print(response)
+
 
         transitions_guards_actions_table = extract_transitions_guards_actions_table(response)
-        print(transitions_guards_actions_table)
+
         return transitions_guards_actions_table
