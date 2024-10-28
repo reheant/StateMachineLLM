@@ -54,8 +54,7 @@ class FinalSanityCheckAction(BaseAction):
                 retry = False
             
             retries += 1
-        
-        print(response)
+
         return updated_table
         
 
@@ -65,16 +64,16 @@ class FinalSanityCheckAction(BaseAction):
         applies updates to state/event, parallel states, and transitions table as advised by the LLM
         """
 
-        print(f"Hello {self.name}")
+        print(f"Running {self.name}...")
         
-        state_event_table = self.belief.get("state_event_search_action")
+        hierarchical_state_table = self.belief.get("hierarchical_state_search_action")
         parallel_state_table = self.belief.get("parallel_state_search_action")
         transitions_table = self.belief.get("action_search_action")
 
 
-        updated_state_event_table = self.send_sanity_check(description=description,
-                                                           table=state_event_table,
-                                                           table_name="States and Events")
+        updated_hierarchical_state_table = self.send_sanity_check(description=description,
+                                                           table=hierarchical_state_table,
+                                                           table_name="Hierarchical States")
         updated_parallel_state_table = self.send_sanity_check(description=description,
                                                               table=parallel_state_table,
                                                               table_name="Parallel States")
@@ -82,5 +81,4 @@ class FinalSanityCheckAction(BaseAction):
                                                            table=transitions_table,
                                                            table_name="Transitions")
 
-        print(updated_state_event_table, updated_parallel_state_table, updated_transitions_table)
-        return updated_state_event_table, updated_parallel_state_table, updated_transitions_table
+        return updated_hierarchical_state_table, updated_parallel_state_table, updated_transitions_table
