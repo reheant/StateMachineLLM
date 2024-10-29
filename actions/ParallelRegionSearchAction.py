@@ -28,8 +28,6 @@ class ParallelStateSearchAction(BaseAction):
 
             Note that a state machine may not have parallel states so ensure that the parallel state that you are outputting is one that follows the guidelines above and is not already encapsulated by a state, furthermore make sure that the state that you are outputting makes sense in the context about the object that you are modeling. 
             If you have identified the need for a parallel state then after identifying the events that take place concurrently, place the states that the events are being performed on under a parallel state with a state name that encompasses the behavior of such a state and identify the events that causes the state machine to enter and leave the parallel state. 
-            
-            Finally, if there is no need for parallel states then output the string EMPTY otherwise if you are able identify the need for parallel states your task is to output your answer in the following HTML table format and update the original input table with the new parallel states bulisting them updating all the columns with the necessary changes based on these new parallel states but keep the original headings from the original state and event table
 
             The system description:
             {description}
@@ -37,6 +35,9 @@ class ParallelStateSearchAction(BaseAction):
             {system_name}
             The table descibing the states and events is:
             {state_event_table}
+
+            Finally, if there is no need for parallel states then output the string EMPTY otherwise if you are able identify the need for parallel states your task is to output your answer in the following HTML table format:
+            Note that parallel states are not common and should be used sparingly, and ONLY if needed.
 
             The event and state table output format in HTML form:
             ```html <table border="1"> <tr> <th>Current State</th> <th>Event</th> <th>Next State(s)</th> </tr> <tr> <td rowspan="2">S0</td> <td>Event 1</td> <td>S0, S1</td> </tr> <tr> <td>Event 2</td> <td>S2</td> </tr> <tr> <td rowspan="2">S1</td> <td>Event 3</td> <td>S2</td> </tr> <tr> <td>Event 4</td> <td>S3</td> </tr> <tr> <td>S2</td> <td>Event 5</td> <td>S1, S3</td> </tr> <tr> <td>S3</td> <td>Event 6</td> <td>S0</td> </tr> </table> ```                                        
