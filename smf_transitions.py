@@ -29,7 +29,7 @@ actions = {
 hierarchical_states = {
     "trigger": "start_hierarchical_states",
     "source": "HierarchicalStates",
-    "dest": "HistoryStates",
+    "dest": "SanityCheck",
     "before": "hierarchical_state_search_action",
 }
 
@@ -47,4 +47,4 @@ sanity_check = {
     "before": "sanity_check_action",
 }
 
-transitions = [states_events, parallel_regions, transition_guards, actions, hierarchical_states, history_states, sanity_check]
+transitions = [states_events, parallel_regions, transition_guards, actions, hierarchical_states, sanity_check]

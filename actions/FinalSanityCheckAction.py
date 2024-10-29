@@ -66,8 +66,7 @@ class FinalSanityCheckAction(BaseAction):
 
         print(f"Running {self.name}...")
         
-        hierarchical_state_table, _ = self.belief.get("hierarchical_state_search_action")
-        transitions_table = self.belief.get("history_state_search_action")
+        hierarchical_state_table, transitions_table = self.belief.get("hierarchical_state_search_action")
         parallel_state_table = self.belief.get("parallel_state_search_action")
 
 
