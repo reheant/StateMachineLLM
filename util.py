@@ -63,17 +63,17 @@ def extract_transitions_guards_table(llm_response : str, includeHeader : bool) -
     transitions_guards_table_headers = ["From State", "To State", "Event", "Guard"]
     transitions_guards_table = extract_table_using_headers(llm_response=llm_response,
                                                            headers=transitions_guards_table_headers)
-    if not includeHeader:
+    if not includeHeader and transitions_guards_table:
         first_row = transitions_guards_table.find('th')
         if first_row:
             first_row.decompose()
     return transitions_guards_table
 
 def extract_history_state_table(llm_response : str, includeHeader: bool) -> Tag:
-    history_table_headers = ["From State", "Event", "Guard"]
+    history_table_headers = ["From State", "Event", "Guard", "Action"]
     history_table = extract_table_using_headers(llm_response=llm_response,
                                                            headers=history_table_headers)
-    if not includeHeader:
+    if not includeHeader and history_table:
         first_row = history_table.find('th')
         if first_row:
             first_row.decompose()
