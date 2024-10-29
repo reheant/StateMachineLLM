@@ -74,4 +74,4 @@ policy = ReactPolicy(role_description="Help the user finish the task", output_in
 
 qa_agent = QAAgent(llm=llm, belief=belief, num_runs=10, policy=policy)
 
-print(qa_agent.run())
+qa_agent.run()
