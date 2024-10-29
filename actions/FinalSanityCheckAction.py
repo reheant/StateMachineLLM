@@ -1,6 +1,6 @@
 from sherpa_ai.actions.base import BaseAction
 from util import call_gpt4
-from util import extract_states_events_table
+from util import extract_hierarchical_state_table
 from util import extract_parallel_states_table
 from util import extract_transitions_guards_actions_table
 
@@ -41,8 +41,8 @@ class FinalSanityCheckAction(BaseAction):
             response = call_gpt4(prompt)
             
             # extract table based on table name
-            if table_name == "States and Events":
-                updated_table = extract_states_events_table(llm_response=response)
+            if table_name == "Hierarchical States":
+                updated_table = extract_hierarchical_state_table(llm_response=response)
             elif table_name == "Parallel States":
                 updated_table = extract_parallel_states_table(llm_response=response)
             else:
@@ -66,9 +66,9 @@ class FinalSanityCheckAction(BaseAction):
 
         print(f"Running {self.name}...")
         
-        hierarchical_state_table = self.belief.get("hierarchical_state_search_action")
+        hierarchical_state_table, _ = self.belief.get("hierarchical_state_search_action")
+        transitions_table = self.belief.get("history_state_search_action")
         parallel_state_table = self.belief.get("parallel_state_search_action")
-        transitions_table = self.belief.get("action_search_action")
 
 
         updated_hierarchical_state_table = self.send_sanity_check(description=description,
@@ -80,5 +80,9 @@ class FinalSanityCheckAction(BaseAction):
         updated_transitions_table = self.send_sanity_check(description=description,
                                                            table=transitions_table,
                                                            table_name="Transitions")
+        
+        print(updated_hierarchical_state_table)
+        print(updated_parallel_state_table)
+        print(updated_transitions_table)
 
         return updated_hierarchical_state_table, updated_parallel_state_table, updated_transitions_table
