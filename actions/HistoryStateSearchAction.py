@@ -35,10 +35,8 @@ class HistoryStateSearchAction(BaseAction):
             '''
             answer = call_gpt4(prompt)
             raw_table = extract_history_state_table(answer, False)
-            print(raw_table)
             if raw_table:
                 tmp = addColumn(raw_table, None, 1, f'{hierarchical_states[i]}.H')
-                print(tmp)
                 history_state_table = tmp if not areThereHistoryStates else appendTables(history_state_table, tmp)
                 areThereHistoryStates = True
         

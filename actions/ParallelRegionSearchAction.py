@@ -36,13 +36,13 @@ class ParallelStateSearchAction(BaseAction):
             The table descibing the states and events is:
             {state_event_table}
 
-            Finally, if there is no need for parallel states then output the string EMPTY otherwise if you are able identify the need for parallel states your task is to output your answer in the following HTML table format:
+            Finally, if there is no need for parallel states then output the string EMPTY. Otherwise, if you are able identify the need for parallel states your task is to output your two HTML tables: one for events and states, and one for parallel states.
             Note that parallel states are not common and should be used sparingly, and ONLY if needed.
 
-            The event and state table output format in HTML form:
+            The event and state table output format in HTML form is below. You MUST provide the event and state table in your response.
             ```html <table border="1"> <tr> <th>Current State</th> <th>Event</th> <th>Next State(s)</th> </tr> <tr> <td rowspan="2">S0</td> <td>Event 1</td> <td>S0, S1</td> </tr> <tr> <td>Event 2</td> <td>S2</td> </tr> <tr> <td rowspan="2">S1</td> <td>Event 3</td> <td>S2</td> </tr> <tr> <td>Event 4</td> <td>S3</td> </tr> <tr> <td>S2</td> <td>Event 5</td> <td>S1, S3</td> </tr> <tr> <td>S3</td> <td>Event 6</td> <td>S0</td> </tr> </table> ```                                        
 
-            The parallel state table output format in HTML form:
+            The parallel state table output format in HTML form is below. You MUST provide the parallel state table in your response.
             ```html <table border="1"> <tr> <th>Parallel State</th> <th>Substate</th> </tr> <tr> <td rowspan="3">Parallel State 1</td> <td>S0</td> </tr> <tr> <td>S1</td> </tr> <tr> <td>S2</td> </tr> <tr> <td rowspan="2">Parallel State 2</td> <td>SS0</td> </tr> <tr> <td>SS1</td> </tr> <tr> <td rowspan="4">Parallel State 3</td> <td>X0</td> </tr> <tr> <td>X1</td> </tr> <tr> <td>X2</td> </tr> <tr> <td>X3</td> </tr> </table>
         """
         
