@@ -4,12 +4,10 @@ from util import extract_transitions_guards_actions_table
 
 class ActionSearchAction(BaseAction):
     name: str = "action_search_action"
-    args: dict = {
-                    "system_description": "A detailed paragraph description of the system that the generated UML state machine represents (str)"
-                 }
+    args: dict = {}
     usage: str = "Identify all actions for transitions between states in the system"
-
-    def execute(self, system_description : str):
+    description: str = ""
+    def execute(self):
         print(f"Running {self.name}...")
         transition_table = self.belief.get("transitions_guards_search_action")
 
@@ -34,7 +32,7 @@ class ActionSearchAction(BaseAction):
                      {transition_table}
                      
                      The problem description is: 
-                     {system_description}
+                     {self.description}
                   """
 
         response = call_gpt4(prompt=prompt)

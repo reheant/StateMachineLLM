@@ -1,7 +1,7 @@
 states_events = {
     "trigger": "start_state_event_search",
     "source": "SearchStatesEvents",
-    "dest": "ParallelRegions",
+    "dest": "TransitionsGuards",
     "before": "state_event_search_action",
 }
 
@@ -47,4 +47,4 @@ sanity_check = {
     "before": "sanity_check_action",
 }
 
-transitions = [states_events, parallel_regions, transition_guards, actions, hierarchical_states, sanity_check]
+transitions = [states_events, transition_guards, actions, hierarchical_states, sanity_check]

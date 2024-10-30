@@ -44,8 +44,9 @@ description = """
               """
 
 belief = Belief()
+belief.set("description", description)
 state_event_state_action = StateEventSearchAction(usage="identifying events in problem description for state machine", belief=belief, description=description)
-parallel_state_action = ParallelStateSearchAction(usage="identifying parallel regions in problem description for state machine", belief=belief, description=description)
+# parallel_state_action = ParallelStateSearchAction(usage="identifying parallel regions in problem description for state machine", belief=belief, description=description)
 transitions_guards_action = TransitionsGuardsSearchAction(usage="identifying transitions and guards in problem description for state machine", belief=belief, description=description)
 action_search_action = ActionSearchAction(usage="identifying actions in problem description for state machine", belief=belief, description=description)
 hierarchical_state_action = HierarchicalStateSearchAction(usage="identifying hierarchical states in problem description for state machine", belief=belief, description=description)
@@ -54,14 +55,14 @@ sanity_check_action = FinalSanityCheckAction(usage="compare generated state mach
 
 action_map = {
     state_event_state_action.name: state_event_state_action,
-    parallel_state_action.name: parallel_state_action,
+    # parallel_state_action.name: parallel_state_action,
     transitions_guards_action.name: transitions_guards_action,
     action_search_action.name: action_search_action,
     hierarchical_state_action.name: hierarchical_state_action,
     history_state_action.name: history_state_action,
     sanity_check_action.name: sanity_check_action
 }
-
+ 
 states = ["SearchStatesEvents", "ParallelRegions", "TransitionsGuards", "FiguringActions", "HierarchicalStates", "HistoryStates", "SanityCheck", "Done"]
 initial = "SearchStatesEvents"
 

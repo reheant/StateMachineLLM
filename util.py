@@ -5,11 +5,12 @@ from bs4 import BeautifulSoup, Tag
 
 openai.api_key = os.environ.get("OPENAI_API_KEY")
 
-def call_gpt4(prompt, model="gpt-4o-mini", max_tokens=300, temperature=1):
+def call_gpt4(prompt, model="gpt-4o", max_tokens=1200, temperature=0.3):
     response = openai.chat.completions.create(
         model=model,
         messages=[{"role": "user", "content": prompt}],
-        temperature=temperature
+        temperature=temperature,
+        max_tokens=max_tokens
     )
 
     return response.choices[0].message.content

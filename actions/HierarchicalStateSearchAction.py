@@ -3,12 +3,11 @@ from util import call_gpt4, extract_hierarchical_state_table, extract_transition
 
 class HierarchicalStateSearchAction(BaseAction):
     name: str = "hierarchical_state_search_action"
-    args: dict = {
-                    "description": "A detailed paragraph description of the system that the generated UML state machine represents (str)"
-                 }
+    args: dict = {}
     usage: str = "Identify all hierarchical states in the system"
+    description: str = ""
 
-    def execute(self, description : str):
+    def execute(self):
         print(f"Running {self.name}...")
 
         modeled_system, _ = self.belief.get('state_event_search_action')
@@ -21,7 +20,7 @@ class HierarchicalStateSearchAction(BaseAction):
         Consider guard conditions that apply to multiple transitions for child states this will help determine the parent states.
         
         The system description:
-        {description}
+        {self.description}
         The system you are modeling: 
         {modeled_system}
         Input transitions table:

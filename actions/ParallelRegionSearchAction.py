@@ -6,12 +6,11 @@ from util import extract_parallel_states_table
 
 class ParallelStateSearchAction(BaseAction):
     name: str = "parallel_state_search_action"
-    args: dict = {
-                  "description": "A detailed paragraph description of the system that the generated UML state machine represents (str)", 
-                 }
+    args: dict = {}
     usage: str = "Identify all parallel regions of the state machine from the system description"
+    description: str = ""
     
-    def send_parallel_state_search(self, description : str, system_name :str, state_event_table: str):
+    def send_parallel_state_search(self, system_name :str, state_event_table: str):
         """
         send the parallel states prompt to GPT 4 for a given system and problem description alongside the state and events tables. 
         maximum retries indicates the amount of times that the prompt should be resent in the event that one of the tables are not provided
@@ -30,7 +29,7 @@ class ParallelStateSearchAction(BaseAction):
             If you have identified the need for a parallel state then after identifying the events that take place concurrently, place the states that the events are being performed on under a parallel state with a state name that encompasses the behavior of such a state and identify the events that causes the state machine to enter and leave the parallel state. 
 
             The system description:
-            {description}
+            {self.description}
             The system you are modeling: 
             {system_name}
             The table descibing the states and events is:
@@ -71,7 +70,7 @@ class ParallelStateSearchAction(BaseAction):
         
         return updated_tables
     
-    def execute(self, description: str):
+    def execute(self):
         """
         the execute function for the parallel state prompt. calls the send_parallel_state_search function and applies the updates to event and states 
         table while also generating the output table for the parallel states
@@ -79,10 +78,10 @@ class ParallelStateSearchAction(BaseAction):
         print(f"Running {self.name}...")
         system, state_event_table = self.belief.get('state_event_search_action')
         
-        updated_tables = self.send_parallel_state_search(description, system, state_event_table)
+        updated_tables = self.send_parallel_state_search(system, state_event_table)
 
         if (updated_tables[0] and updated_tables[1]) is None:
-            raise Exception(f"Max retries reach for ParallelRegionSearchAction for problem description: {description}")
+            raise Exception(f"Max retries reach for ParallelRegionSearchAction for problem description: {self.description}")
         
         if updated_tables[1] is None:
             print(f"No parallel states found")

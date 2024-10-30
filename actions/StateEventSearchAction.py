@@ -5,14 +5,15 @@ import re
 
 class StateEventSearchAction(BaseAction):
     name: str = "state_event_search_action"
-    args: dict = {'description': 'Description of the system'}
+    args: dict = {} # provided from the LLM
     usage: str = "Identify all states and their associated events that trigger transitions in the system"
+    description: str = ""
 
-    def execute(self, description):
+    def execute(self):
         print(f"Running {self.name}...")
         states_response_in_html = call_gpt4(f"""
             Given the following system:
-            {description}
+            {self.belief.get("description")}
                                             
             Identify what the states and events are and make sure not to include any redundant states or events by making sure that you parse the output for any states or events that might be redundant. Ensure that the states are defined specifically in the context of the object being modeled. It’s important to note that a complete state machine has an initial state and that states might have multiple events occurring on them resulting in multiple transitions from the current state to other states. 
             

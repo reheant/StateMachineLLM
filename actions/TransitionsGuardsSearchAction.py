@@ -3,10 +3,9 @@ from util import call_gpt4, extract_transitions_guards_table, appendTables, extr
 
 class TransitionsGuardsSearchAction(BaseAction):
     name: str = "transitions_guards_search_action"
-    args: dict = {
-        "description": "A detailed paragraph description of the system that the generated UML state machine represents (str)", 
-        }
+    args: dict = {}
     usage: str = "Identify all transitions and guards of the state machine from the system description"
+    description: str = ""
 
     def multiplePrompting(self, description):
         transitions = []
@@ -45,17 +44,17 @@ class TransitionsGuardsSearchAction(BaseAction):
 
         return final_transition_table
     
-    def execute(self, description):
+    def execute(self):
         print(f"Running {self.name}...")
         modeled_system, statesAndEvents = self.belief.get('state_event_search_action')
-        statesAndEvents, parallelRegions = self.belief.get('parallel_state_search_action')
+        # statesAndEvents, parallelRegions = self.belief.get('parallel_state_search_action')
         prompt = f'''
-        You are an AI assistant specialized in identifying the guards and transitions for a state machine. Given a problem description, a table of all the states and events: {statesAndEvents}, and a table of the parallel states and their substrates {parallelRegions}, note that the parallel state table input is optional so if user doesn’t provide one, assume that there is not parallel states in the state machine.
+        You are an AI assistant specialized in identifying the guards and transitions for a state machine. Given a problem description, a table of all the states and events: {statesAndEvents}.
         Parse through each state in the states table and identify if there exists any missing events from the table. Parse through each state in the states table to identify whether the event triggers transitions to another state. If the state is a substate then there can only exist a transition inside the parallel region and from and to the parent state.
         Definition: A transition shows a path between states that indicates that a change of state is occurring. A trigger, a guard condition, and an effect are the three parts of a transition, all of which are optional.
         
         The system description:
-        {description}
+        {self.description}
         The system you are modeling: 
         {modeled_system}
         
