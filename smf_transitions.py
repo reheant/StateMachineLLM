@@ -22,7 +22,7 @@ transition_guards = {
 actions = {
     "trigger": "start_finding_actions",
     "source": "FiguringActions",
-    "dest": "Done",
+    "dest": "HierarchicalStates",
     "before": "action_search_action",
 }
 
@@ -52,7 +52,7 @@ transitions = [
                 parallel_regions, 
                 transition_guards, 
                 actions, 
-                #hierarchical_states,
+                hierarchical_states,
                 #history_states,
                 #sanity_check
                ]
