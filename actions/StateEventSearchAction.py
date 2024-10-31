@@ -20,12 +20,12 @@ class StateEventSearchAction(BaseAction):
             Output the name of the system in the following format:  
             System: "System Name" 
             
-            Then produce the HTML table that summarizes the states and events using the following format: 
-            ```html <table border="1"> <tr> <th>Current State</th> <th>Event</th> <th>Next State(s)</th> </tr> <tr> <td rowspan="2">S0</td> <td>Event 1</td> <td>S0, S1</td> </tr> <tr> <td>Event 2</td> <td>S2</td> </tr> <tr> <td rowspan="2">S1</td> <td>Event 3</td> <td>S2</td> </tr> <tr> <td>Event 4</td> <td>S3</td> </tr> <tr> <td>S2</td> <td>Event 5</td> <td>S1, S3</td> </tr> <tr> <td>S3</td> <td>Event 6</td> <td>S0</td> </tr> </table> ```                                        
+            Then produce the HTML table that summarizes the states and events MUST use these table headers:
+            ```html <table border="1"> <tr> <th>Current State</th> <th>Event</th> <th>Next State(s)</th> </tr> </table> ```
         """)
         
         system_name = re.search(r"System:\s*\"(.*?)\"", states_response_in_html).group(1)
 
-        res = extract_states_events_table(states_response_in_html)
+        state_events_table = extract_states_events_table(states_response_in_html)
 
-        return (system_name, res)
+        return (system_name, state_events_table)
