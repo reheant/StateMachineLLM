@@ -46,10 +46,10 @@ class TransitionsGuardsSearchAction(BaseAction):
     
     def execute(self):
         print(f"Running {self.name}...")
-        modeled_system, statesAndEvents = self.belief.get('state_event_search_action')
-        # statesAndEvents, parallelRegions = self.belief.get('parallel_state_search_action')
+        modeled_system, _ = self.belief.get('state_event_search_action')
+        statesAndEvents, parallelRegions = self.belief.get('parallel_state_search_action')
         prompt = f'''
-        You are an AI assistant specialized in identifying the guards and transitions for a state machine. Given a problem description, a table of all the states and events: {statesAndEvents}.
+        You are an AI assistant specialized in identifying the guards and transitions for a state machine. Given a problem description, a table of all the states and events: {statesAndEvents}, and a table of the parallel states and their substates {parallelRegions if parallelRegions is not None else "NO PARALLEL STATES"}. Note that the parallel state table input is optional so if user doesn’t provide one, assume that there is not parallel states in the state machine.
         Parse through each state in the states table and identify if there exists any missing events from the table. Parse through each state in the states table to identify whether the event triggers transitions to another state. If the state is a substate then there can only exist a transition inside the parallel region and from and to the parent state.
         Definition: A transition shows a path between states that indicates that a change of state is occurring. A trigger, a guard condition, and an effect are the three parts of a transition, all of which are optional.
         
@@ -60,7 +60,6 @@ class TransitionsGuardsSearchAction(BaseAction):
         
         If one or more transitions should be triggered for each state because of an event, then you should also specify if there are any conditions or guards that must happen so that the event for the transition is triggered.
         Finally, your job is to summarize your output in an HTML transition table that specifies the your answer in a table format with the following format:
-
         Output your answer in HTML form:
         ```html <table border="1"> <tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> </tr>
         <tr> <td rowspan="3"> State1 </td> <td> State2 </td> <td> Event1 </td> <td> Condition1 </td> </tr>
@@ -69,4 +68,6 @@ class TransitionsGuardsSearchAction(BaseAction):
 
         response = call_gpt4(prompt)
         transition_guard_table = extract_transitions_guards_table(response, True)
+
+        print(f"Transitions guard table: {transition_guard_table}")
         return transition_guard_table
