@@ -4,16 +4,15 @@ from bs4 import Tag
 
 class HistoryStateSearchAction(BaseAction):
     name: str = "history_state_search_action"
-    args: dict = {
-                    "description": "A detailed paragraph description of the system that the generated UML state machine represents (str)"
-                 }
+    args: dict = {}
     usage: str = "Identify all history states for hierarchical states in the system"
+    description: str = ""
 
-    def execute(self, description):
+    def execute(self):
         print(f"Running {self.name}...")
         hierarchical_states_table, transition_table = self.belief.get('hierarchical_state_search_action')
         hierarchical_states = list(set(extractColumn(hierarchical_states_table, 0)))
-        modeled_system, tmp = self.belief.get('state_event_search_action')
+        modeled_system, _ = self.belief.get('state_event_search_action')
         areThereHistoryStates = False
 
         for i in range(len(hierarchical_states)):
@@ -23,7 +22,7 @@ class HistoryStateSearchAction(BaseAction):
             Note that history states are only required if there are transitions to them.
             
             The system description:
-            {description}
+            {self.description}
             The system you are modeling: 
             {modeled_system}
 
@@ -40,5 +39,5 @@ class HistoryStateSearchAction(BaseAction):
                 history_state_table = tmp if not areThereHistoryStates else appendTables(history_state_table, tmp)
                 areThereHistoryStates = True
         
-        return_table = appendTables(transition_table, history_state_table) if areThereHistoryStates else transition_table
-        return return_table
+        updated_transition_table = appendTables(transition_table, history_state_table) if areThereHistoryStates else transition_table
+        return updated_transition_table

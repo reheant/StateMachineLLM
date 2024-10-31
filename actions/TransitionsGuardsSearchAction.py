@@ -69,5 +69,4 @@ class TransitionsGuardsSearchAction(BaseAction):
         response = call_gpt4(prompt)
         transition_guard_table = extract_transitions_guards_table(response, True)
 
-        print(f"Transitions guard table: {transition_guard_table}")
         return transition_guard_table

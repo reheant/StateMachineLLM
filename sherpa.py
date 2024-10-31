@@ -59,7 +59,7 @@ action_map = {
     transitions_guards_action.name: transitions_guards_action,
     action_search_action.name: action_search_action,
     hierarchical_state_action.name: hierarchical_state_action,
-    #history_state_action.name: history_state_action,
+    history_state_action.name: history_state_action,
     #sanity_check_action.name: sanity_check_action
 }
  
