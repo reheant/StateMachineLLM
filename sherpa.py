@@ -60,7 +60,7 @@ action_map = {
     action_search_action.name: action_search_action,
     hierarchical_state_action.name: hierarchical_state_action,
     history_state_action.name: history_state_action,
-    #sanity_check_action.name: sanity_check_action
+    sanity_check_action.name: sanity_check_action
 }
  
 states = ["SearchStatesEvents", "ParallelRegions", "TransitionsGuards", "FiguringActions", "HierarchicalStates", "HistoryStates", "SanityCheck", "Done"]

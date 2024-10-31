@@ -36,7 +36,7 @@ hierarchical_states = {
 history_states = {
     "trigger": "start_history_states",
     "source": "HistoryStates",
-    "dest": "Done",
+    "dest": "SanityCheck",
     "before": "history_state_search_action",
 }
 
@@ -54,5 +54,5 @@ transitions = [
                 actions, 
                 hierarchical_states,
                 history_states,
-                #sanity_check
+                sanity_check
                ]
