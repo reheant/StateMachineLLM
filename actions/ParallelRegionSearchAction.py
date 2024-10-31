@@ -87,10 +87,6 @@ class ParallelStateSearchAction(BaseAction):
         # if no parallel state table is returned, log a message warning that no parallel states were found
         if parallel_state_table is None:
             print(f"No parallel states found")
-
-        print(updated_state_event_table)
-        print(parallel_state_table)
-            
         
         # state_event_table will never be None, parallel_state_table may be None if there are no parallel states
         return state_event_table, parallel_state_table
