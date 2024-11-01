@@ -13,6 +13,7 @@ from actions.HierarchicalStateSearchAction import HierarchicalStateSearchAction
 from actions.HistoryStateSearchAction import HistoryStateSearchAction
 from actions.FinalSanityCheckAction import FinalSanityCheckAction
 from smf_transitions import transitions
+from util import gsm_tables_to_dict
 
 description = """
               The Thermomix TM6 is an all-in-one kitchen appliance that
@@ -76,3 +77,10 @@ policy = ReactPolicy(role_description="Help the user finish the task", output_in
 qa_agent = QAAgent(llm=llm, belief=belief, num_runs=10, policy=policy)
 
 qa_agent.run()
+
+gsm_states, gsm_transitions, gsm_parallel_regions = gsm_tables_to_dict(*belief.get("sanity_check_action"))
+print(f"States: {gsm_states}")
+print(f"Transitions: {gsm_transitions}")
+print(f"Parallel Regions: {gsm_parallel_regions}")
+gsm = SherpaStateMachine(states=gsm_states, transitions=gsm_transitions, initial=[sms for sms in gsm_states if not isinstance(sms, dict)][0], sm_cls=HierarchicalGraphMachine)
+print(gsm.sm.get_graph().draw(None))

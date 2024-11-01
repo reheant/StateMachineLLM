@@ -117,9 +117,10 @@ def extractColumn(table : Tag, columnIdx : int):
     # table = soup.find('table', {'id': 'myTable'})
 
     # Add new column data to each row
-    for row in table.find_all('tr')[1:]:  # Skip the header row=
-        cols = row.find_all('td')
-        column_list.append(cols[columnIdx].get_text())
+    if table:
+        for row in table.find_all('tr')[1:]:  # Skip the header row=
+            cols = row.find_all('td')
+            column_list.append(cols[columnIdx].get_text())
 
     return column_list
 
@@ -129,3 +130,82 @@ def extract_transitions_guards_actions_table(llm_response : str) -> Tag:
                                                                    headers=transitions_guards_table_events_headers)
     return transitions_guards_actions_table
     
+def gsm_tables_to_dict(hierarchical_states_table : Tag, transitions_table : Tag, parallel_state_table : Tag):
+    states = []
+    transitions = []
+    parallel_regions = []
+
+    # Add states to state list
+    states += list(set(extractColumn(hierarchical_states_table, 0) + extractColumn(hierarchical_states_table, 1) + extractColumn(transitions_table, 0) + extractColumn(transitions_table, 1) + extractColumn(parallel_state_table, 1)))
+
+    for row in transitions_table.find_all('tr')[1:]:  # Skip the header row=
+        cols = row.find_all('td')
+        transition = {
+            "trigger": cols[2].get_text(),
+            "source": cols[0].get_text(),
+            "dest": cols[1].get_text(),
+        }
+        if (cols[4].get_text() != "NONE"):
+            transition["before"] = cols[4].get_text()
+        if (cols[3].get_text() != "NONE"):
+            transition["conditions"] = cols[3].get_text()
+        
+        transitions.append(transition)
+    
+    if hierarchical_states_table:
+        for row in hierarchical_states_table.find_all('tr')[1:]:  # Skip the header row=
+            cols = row.find_all('td')
+
+            try:
+                stateIdx = states.index(cols[0].get_text())
+            except ValueError:
+                stateIdx = [states.index(dic) for dic in states if isinstance(dic, dict) and dic['name'] == cols[0].get_text()][0]
+
+            if not isinstance(states[stateIdx], dict):
+                hierarchical_state = {
+                    "name": cols[0].get_text(),
+                    "children": [cols[1].get_text()]
+                }
+                states[stateIdx] = hierarchical_state
+            else:
+                states[stateIdx]['children'].append(cols[1].get_text())
+    
+    if parallel_state_table:
+        for row in parallel_state_table.find_all('tr')[1:]:  # Skip the header row=
+            cols = row.find_all('td')
+
+            region = [parallel_regions.index(dic) for dic in parallel_regions if isinstance(dic, dict) and dic['name'] == cols[0].get_text()]
+
+            if not region:
+                region = {
+                    "name": cols[0].get_text(),
+                    "regionChildren": [cols[1].get_text()]
+                }
+                parallel_regions[region[0]] = region
+            else:
+                parallel_regions[region[0]]['regionChildren'].append(cols[1].get_text())
+
+    # Remove all spaces not to confuse mermaid
+    states = list(map(state_remove_spaces, states))
+    transitions = list(map(transitions_remove_spaces, transitions))
+    parallel_regions = list(map(regions_remove_spaces, parallel_regions))
+
+    return states, transitions, parallel_regions
+
+def state_remove_spaces(state):
+    if isinstance(state, dict):
+        state['name'] = state['name'].replace(' ', '')
+        state['children'] = [s.replace(' ', '') for s in state['children']]
+    else:
+        state = state.replace(' ', '')
+    return state
+
+def transitions_remove_spaces(transition):
+    transition['source'] = transition['source'].replace(' ', '')
+    transition['dest'] = transition['dest'].replace(' ', '')
+    return transition
+
+def regions_remove_spaces(region):
+    region['name'] = region['name'].replace(' ', '')
+    region['regionChildren'] = [s.replace(' ', '') for s in region['regionChildren']]
+    return region

@@ -1,8 +1,5 @@
 from sherpa_ai.actions.base import BaseAction
-from util import call_gpt4
-from util import extract_hierarchical_state_table
-from util import extract_parallel_states_table
-from util import extract_transitions_guards_actions_table
+from util import call_gpt4, extract_hierarchical_state_table, extract_parallel_states_table, extract_transitions_guards_actions_table, gsm_tables_to_dict
 
 class FinalSanityCheckAction(BaseAction):
     name: str = "sanity_check_action"
@@ -88,4 +85,4 @@ class FinalSanityCheckAction(BaseAction):
         print(f"Updated Parallel State Table: {updated_parallel_state_table}")
         print(f"Updated Transitions Table: {updated_transitions_table}")
 
-        return updated_hierarchical_state_table, updated_parallel_state_table, updated_transitions_table
+        return updated_hierarchical_state_table, updated_transitions_table, updated_parallel_state_table
