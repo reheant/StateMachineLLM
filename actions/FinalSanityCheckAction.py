@@ -65,21 +65,27 @@ class FinalSanityCheckAction(BaseAction):
 
         print(f"Running {self.name}...")
         
-        hierarchical_state_table, transitions_table = self.belief.get("hierarchical_state_search_action")
-        # parallel_state_table = self.belief.get("parallel_state_search_action")
+        hierarchical_state_table, _ = self.belief.get("hierarchical_state_search_action")
+        _, parallel_state_table = self.belief.get("parallel_state_search_action")
+        transitions_table = self.belief.get("history_state_search_action")
 
 
-        updated_hierarchical_state_table = self.send_sanity_check(
-                                                           table=hierarchical_state_table,
-                                                           table_name="Hierarchical States")
-        # updated_parallel_state_table = self.send_sanity_check(description=self.description,
-                                                              # table=parallel_state_table,
-                                                              # table_name="Parallel States")
-        updated_transitions_table = self.send_sanity_check(
-                                                           table=transitions_table,
-                                                           table_name="Transitions")
+        # sanity check on hierarchical states
+        updated_hierarchical_state_table = self.send_sanity_check(table=hierarchical_state_table,
+                                                                  table_name="Hierarchical States")
         
-        print(updated_hierarchical_state_table)
-        print(updated_transitions_table)
+        # parallel state table is an optional output. if it is not identified by ParallelStateSearchAction, the output is None
+        updated_parallel_state_table = None
+        if parallel_state_table is not None:
+            updated_parallel_state_table = self.send_sanity_check(table=parallel_state_table,
+                                                                table_name="Parallel States")
+            
+        # sanity check on transitions
+        updated_transitions_table = self.send_sanity_check(table=transitions_table,
+                                                           table_name="Transitions")
 
-        return updated_hierarchical_state_table, updated_transitions_table
+        print(f"Updated Hierarchical State Table: {updated_hierarchical_state_table}")
+        print(f"Updated Parallel State Table: {updated_parallel_state_table}")
+        print(f"Updated Transitions Table: {updated_transitions_table}")
+
+        return updated_hierarchical_state_table, updated_parallel_state_table, updated_transitions_table
