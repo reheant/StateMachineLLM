@@ -15,14 +15,23 @@ async def stream_function_output():
     stdout_capture = io.StringIO()
     
     with contextlib.redirect_stdout(stdout_capture):
-        await asyncio.to_thread(run_sherpa_task)
-        stdout_capture.seek(0)
-        current_output = stdout_capture.read()
+        task = asyncio.create_task(asyncio.to_thread(run_sherpa_task))
         
-        if current_output:
-            await final_answer.stream_token(current_output)
-            stdout_capture.truncate(0)
+        while not task.done():
+            await asyncio.sleep(0.1)
+
             stdout_capture.seek(0)
+            current_output = stdout_capture.read()
+            
+            if current_output:
+                await final_answer.stream_token(current_output)
+                stdout_capture.truncate(0)
+                stdout_capture.seek(0)
+
+        stdout_capture.seek(0)
+        final_output = stdout_capture.read()
+        if final_output:
+            await final_answer.stream_token(final_output)
 
     await final_answer.update()
 
