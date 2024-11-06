@@ -85,3 +85,7 @@ def run_sherpa_task():
     print(f"Parallel Regions: {gsm_parallel_regions}")
     gsm = SherpaStateMachine(states=gsm_states, transitions=gsm_transitions, initial=[sms for sms in gsm_states if not isinstance(sms, dict)][0], sm_cls=HierarchicalGraphMachine)
     print(gsm.sm.get_graph().draw(None))
+
+if __name__ == "__main__":
+    run_sherpa_task()
+    
