@@ -20,7 +20,8 @@ class EventDrivenSystemNameSearchAction(BaseAction):
         {self.description}
         """
 
-        response = call_gpt4(prompt)
+        response = call_gpt4(prompt=prompt,
+                             temperature=0.7)
         
         system_name = re.search(r"System:\s*\"(.*?)\"", response).group(1)
 
