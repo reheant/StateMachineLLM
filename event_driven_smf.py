@@ -7,6 +7,7 @@ from sherpa_ai.policies.react_policy import ReactPolicy
 from sherpa_ai.agents.qa_agent import QAAgent
 
 from actions.EventDrivenSystemNameSearchAction import EventDrivenSystemNameSearchAction
+from actions.EventDrivenStateSearchAction import EventDrivenStateSearchSearchAction
 from event_driven_smf_transitions import transitions
 
 description = """
@@ -40,14 +41,19 @@ description = """
 
 belief = Belief()
 belief.set("description", description)
-event_driven_system_name_search_action = EventDrivenSystemNameSearchAction(description=description)
+event_driven_system_name_search_action = EventDrivenSystemNameSearchAction(belief=belief,
+                                                                           description=description)
+event_driven_state_search_action = EventDrivenStateSearchSearchAction(belief=belief,
+                                                                      description=description)
 
 event_driven_action_map = {
-    event_driven_system_name_search_action.name: event_driven_system_name_search_action
+    event_driven_system_name_search_action.name: event_driven_system_name_search_action,
+    event_driven_state_search_action.name: event_driven_state_search_action
 }
 
 states = [
             "SystemNameSearch",
+            "StateSearch",
             "Done"
          ]
 
@@ -58,6 +64,7 @@ event_driven_smf = SherpaStateMachine(states=states,
                                       initial=initial, 
                                       action_map=event_driven_action_map, 
                                       sm_cls=HierarchicalGraphMachine)
+
 belief.state_machine = event_driven_smf
 belief.set_current_task(Event(EventType.task, 
                               "user", 
