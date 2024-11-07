@@ -15,12 +15,20 @@ state_search = {
 initial_state_search = {
     "trigger": "start_event_driven_initial_state_search",
     "source": "InitialStateSearch",
-    "dest": "Done",
+    "dest": "EventSearch",
     "before": "event_driven_initial_state_search_action",
+}
+
+event_search = {
+    "trigger": "start_event_driven_event_search",
+    "source": "EventSearch",
+    "dest" : "Done",
+    "before": "event_driven_event_search_action"
 }
 
 transitions = [
                 system_name_search,
                 state_search,
-                initial_state_search
+                initial_state_search,
+                event_search
               ]
