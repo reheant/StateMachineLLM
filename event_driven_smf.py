@@ -9,6 +9,7 @@ from sherpa_ai.agents.qa_agent import QAAgent
 from actions.EventDrivenSystemNameSearchAction import EventDrivenSystemNameSearchAction
 from actions.EventDrivenStateSearchAction import EventDrivenStateSearchSearchAction
 from actions.EventDrivenInitialStateSearchAction import EventDrivenInitialStateSearchSearchAction
+from actions.EventDrivenEventSearchAction import EventDrivenEventSearchAction
 from event_driven_smf_transitions import transitions
 
 description = """
@@ -48,17 +49,21 @@ event_driven_state_search_action = EventDrivenStateSearchSearchAction(belief=bel
                                                                       description=description)
 event_driven_initial_state_search_action = EventDrivenInitialStateSearchSearchAction(belief=belief,
                                                                                      description=description)
+event_driven_event_search_action = EventDrivenEventSearchAction(belief=belief,
+                                                                description=description)
 
 event_driven_action_map = {
     event_driven_system_name_search_action.name: event_driven_system_name_search_action,
     event_driven_state_search_action.name: event_driven_state_search_action,
-    event_driven_initial_state_search_action.name: event_driven_initial_state_search_action
+    event_driven_initial_state_search_action.name: event_driven_initial_state_search_action,
+    event_driven_event_search_action.name: event_driven_event_search_action
 }
 
 states = [
             "SystemNameSearch",
             "StateSearch",
             "InitialStateSearch",
+            "EventSearch",
             "Done"
          ]
 
