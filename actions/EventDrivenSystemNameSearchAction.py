@@ -1,6 +1,6 @@
 import re
 from sherpa_ai.actions.base import BaseAction
-from util import call_gpt4, extract_transitions_guards_table, appendTables, extractColumn
+from util import call_gpt4
 
 class EventDrivenSystemNameSearchAction(BaseAction):
     name: str = "event_driven_system_name_search_action"
