@@ -221,3 +221,8 @@ def extract_event_driven_events_table(llm_response : str) -> Tag:
     event_driven_events_table = extract_table_using_headers(llm_response=llm_response,
                                                             headers=event_driven_events_table_headers)
     return event_driven_events_table
+
+def extract_table_entries(table: Tag):
+    entries = [td.get_text(strip=True) for td in table.find_all("td")]
+    return entries
+    
