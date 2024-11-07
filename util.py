@@ -209,3 +209,9 @@ def regions_remove_spaces(region):
     region['name'] = region['name'].replace(' ', '')
     region['regionChildren'] = [s.replace(' ', '') for s in region['regionChildren']]
     return region
+
+def extract_event_driven_states_table(llm_response : str) -> Tag:
+    event_driven_states_table_headers = ["State Name"]
+    event_driven_states_table = extract_table_using_headers(llm_response=llm_response,
+                                                            headers=event_driven_states_table_headers)
+    return event_driven_states_table
