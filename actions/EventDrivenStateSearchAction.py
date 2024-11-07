@@ -35,7 +35,8 @@ class EventDrivenStateSearchSearchAction(BaseAction):
         The HTML table you output MUST be in the above format, or else your solution will be rejected.
         """
 
-        response = call_gpt4(prompt=prompt)
+        response = call_gpt4(prompt=prompt,
+                             temperature=0.7)
 
         event_driven_states_table = extract_event_driven_states_table(llm_response=response)
 
