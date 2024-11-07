@@ -215,3 +215,9 @@ def extract_event_driven_states_table(llm_response : str) -> Tag:
     event_driven_states_table = extract_table_using_headers(llm_response=llm_response,
                                                             headers=event_driven_states_table_headers)
     return event_driven_states_table
+
+def extract_event_driven_events_table(llm_response : str) -> Tag:
+    event_driven_events_table_headers = ["Event Name"]
+    event_driven_events_table = extract_table_using_headers(llm_response=llm_response,
+                                                            headers=event_driven_events_table_headers)
+    return event_driven_events_table
