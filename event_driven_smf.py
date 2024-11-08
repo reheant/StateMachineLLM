@@ -10,6 +10,7 @@ from actions.EventDrivenSystemNameSearchAction import EventDrivenSystemNameSearc
 from actions.EventDrivenStateSearchAction import EventDrivenStateSearchSearchAction
 from actions.EventDrivenInitialStateSearchAction import EventDrivenInitialStateSearchSearchAction
 from actions.EventDrivenEventSearchAction import EventDrivenEventSearchAction
+from actions.EventDrivenCreateTransitionsAction import EventDrivenCreateTransitionsAction
 from event_driven_smf_transitions import transitions
 
 description = """
@@ -51,12 +52,15 @@ event_driven_initial_state_search_action = EventDrivenInitialStateSearchSearchAc
                                                                                      description=description)
 event_driven_event_search_action = EventDrivenEventSearchAction(belief=belief,
                                                                 description=description)
+event_driven_create_transitions_action = EventDrivenCreateTransitionsAction(belief=belief,
+                                                                            description=description)
 
 event_driven_action_map = {
     event_driven_system_name_search_action.name: event_driven_system_name_search_action,
     event_driven_state_search_action.name: event_driven_state_search_action,
     event_driven_initial_state_search_action.name: event_driven_initial_state_search_action,
-    event_driven_event_search_action.name: event_driven_event_search_action
+    event_driven_event_search_action.name: event_driven_event_search_action,
+    event_driven_create_transitions_action.name: event_driven_create_transitions_action
 }
 
 states = [
@@ -64,6 +68,7 @@ states = [
             "StateSearch",
             "InitialStateSearch",
             "EventSearch",
+            "CreateTransitions",
             "Done"
          ]
 
