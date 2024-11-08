@@ -225,4 +225,34 @@ def extract_event_driven_events_table(llm_response : str) -> Tag:
 def extract_table_entries(table: Tag):
     entries = [td.get_text(strip=True) for td in table.find_all("td")]
     return entries
+
+def merge_tables(html_tables_list) -> Tag:
+    # Assume the first table contains the header, so extract it
+    header_cells = [th.get_text() for th in html_tables_list[0].find_all('th')]
+
+    # Create a new BeautifulSoup object with an empty table for merging
+    merged_table_soup = BeautifulSoup("<table border='1'><tr></tr></table>", 'html.parser')
+    merged_table = merged_table_soup.find('table')
+
+    # Create header row in the merged table
+    header_row = merged_table.find('tr')
+    for header in header_cells:
+        th = merged_table_soup.new_tag('th')
+        th.string = header
+        header_row.append(th)
+
+    # Collect all rows from each table and add them to the merged table
+    for table_tag in html_tables_list:
+        rows = table_tag.find_all('tr')[1:]  # Skip the header row
+
+        for row in rows:
+            new_row = merged_table_soup.new_tag('tr')
+            for cell in row.find_all('td'):
+                new_cell = merged_table_soup.new_tag('td')
+                new_cell.string = cell.get_text()
+                new_row.append(new_cell)
+            merged_table.append(new_row)
+
+    # Return the <table> Tag object directly
+    return merged_table
     
