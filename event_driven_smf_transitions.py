@@ -22,13 +22,21 @@ initial_state_search = {
 event_search = {
     "trigger": "start_event_driven_event_search",
     "source": "EventSearch",
-    "dest" : "Done",
+    "dest" : "CreateTransitions",
     "before": "event_driven_event_search_action"
+}
+
+create_transitions = {
+    "trigger": "start_event_driven_create_transitions",
+    "source": "CreateTransitions",
+    "dest": "Done",
+    "before": "event_driven_create_transitions_action"
 }
 
 transitions = [
                 system_name_search,
                 state_search,
                 initial_state_search,
-                event_search
+                event_search,
+                create_transitions
               ]
