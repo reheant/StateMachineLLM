@@ -27,15 +27,12 @@ class EventDrivenCreateHierarchicalStatesAction(BaseAction):
         Description of the system:
         {self.description}
 
-        The table of identified states is:
-        {event_driven_states_table}
-
         The table of identified transitions is:
         {event_driven_transitions_table}
 
         Solution structure:
         1. Begin the response with "Let's think step by step."
-        2. Determine if the state machine can be modified into a Hierarchical State Machine. Hierarchical state machine design captures the commonality by organizing the states as a hierarchy. The states at the higher level in hierarchy perform the common message handling, while the lower level states inherit the commonality from higher level ones and perform the state specific functions.
+        2. Using the transitions in the identified transitions table, determine if the state machine can be modified into a Hierarchical State Machine. Hierarchical state machine design captures the commonality by organizing the states as a hierarchy. The states at the higher level in hierarchy perform the common message handling, while the lower level states inherit the commonality from higher level ones and perform the state specific functions.
         3. If the state machine CANNOT be modified into a Hierarchical State Machine, reply with "NO HIERARCHY".
         4. If the state machine CAN be modified into a Hierarchical State Machine, output a table with the following format:
         
@@ -46,7 +43,7 @@ class EventDrivenCreateHierarchicalStatesAction(BaseAction):
         <tr> <td> - </td> <td> State5 </td> </tr>
         </table> ```
 
-        Your solution MUST be in the above format, otherwise it will be rejected. For the solution, ALL states from the original table of identified states MUST appear in the "Substate" column; otherwise, your solution will be rejected. If a state from the original table of identified states DOES NOT have a parent state in your design of the Hierarchical State Machine, enter "-" in the "Superstate" column, as demonstrated in the example above.
+        Your solution MUST be in the above format, otherwise it will be rejected. For the solution, ALL states from the original table of identified transitions MUST appear in the "Substate" column EXACTLY ONCE; otherwise, your solution will be rejected. If a state from the original table of identified transitions DOES NOT have a parent state in your design of the Hierarchical State Machine, enter "-" in the "Superstate" column, as demonstrated in the example above.
         """
 
         response = call_gpt4(prompt=prompt,
