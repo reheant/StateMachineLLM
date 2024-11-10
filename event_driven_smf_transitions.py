@@ -29,8 +29,15 @@ event_search = {
 create_transitions = {
     "trigger": "start_event_driven_create_transitions",
     "source": "CreateTransitions",
-    "dest": "Done",
+    "dest": "CreateHierarchicalStates",
     "before": "event_driven_create_transitions_action"
+}
+
+create_hierarchical_states = {
+    "trigger": "start_event_driven_create_hierarchical_states",
+    "source": "CreateHierarchicalStates",
+    "dest": "Done",
+    "before": "event_driven_create_hierarchical_states_action"
 }
 
 transitions = [
@@ -38,5 +45,6 @@ transitions = [
                 state_search,
                 initial_state_search,
                 event_search,
-                create_transitions
+                create_transitions,
+                create_hierarchical_states
               ]
