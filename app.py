@@ -38,3 +38,14 @@ async def stream_function_output():
 @cl.on_message
 async def run_conversation(message: cl.Message):
     await stream_function_output()
+    await display_image()
+
+
+async def display_image():
+    image = cl.Image(path="ExhibitA.png", name="State Machine Image", display="inline", size='large')
+    
+    # Attach the image to the message
+    await cl.Message(
+        content="State Machine Image Rendered",
+        elements=[image],
+    ).send()
