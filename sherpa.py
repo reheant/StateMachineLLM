@@ -14,6 +14,9 @@ from actions.HistoryStateSearchAction import HistoryStateSearchAction
 from actions.FinalSanityCheckAction import FinalSanityCheckAction
 from smf_transitions import transitions
 from util import gsm_tables_to_dict
+import mermaid as md
+from mermaid.graph import Graph
+
 
 description = """
               The Thermomix TM6 is an all-in-one kitchen appliance that
@@ -85,6 +88,9 @@ def run_sherpa_task():
     print(f"Parallel Regions: {gsm_parallel_regions}")
     gsm = SherpaStateMachine(states=gsm_states, transitions=gsm_transitions, initial=[sms for sms in gsm_states if not isinstance(sms, dict)][0], sm_cls=HierarchicalGraphMachine)
     print(gsm.sm.get_graph().draw(None))
+    sequence = Graph('Sequence-diagram',gsm.sm.get_graph().draw(None))
+    render = md.Mermaid(sequence)
+    render.to_png('ExhibitA.png')
 
 if __name__ == "__main__":
     run_sherpa_task()
