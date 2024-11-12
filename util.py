@@ -302,4 +302,41 @@ def map_child_state_to_parent_state(hierarchical_state_table):
     
     return child_to_parent_dict
 
+def refactor_transition_table_with_parent_states(transitions_table, hierarchical_state_table):
+
+    # map each child state to its parent, if it has one
+    child_to_parent_dict = map_child_state_to_parent_state(hierarchical_state_table=hierarchical_state_table)
+
+    # convert to beautiful soup if input is a string
+    if isinstance(transitions_table, str):
+        soup = BeautifulSoup(transitions_table, "html.parser")
+        transitions_table = soup.find("table")
+
+    # iterate over each row in the transitions table
+    rows = transitions_table.find_all("tr")[1:]
+
+    for row in rows:
+        cells = row.find_all("td")
+        from_state = cells[0].get_text(strip=True)
+        to_state = cells[1].get_text(strip=True)
+
+        # replace "From State" with "Parent.Child" format if parent exists in child_to_parent_dict
+        if from_state in child_to_parent_dict:
+            parent = child_to_parent_dict[from_state]
+            formatted_from_state = f"{parent}.{from_state}"
+        else:
+            formatted_from_state = from_state
+
+        # replace "To State" with "Parent.Child" format if parent exists in child_to_parent_dict
+        if to_state in child_to_parent_dict:
+            parent = child_to_parent_dict[to_state]
+            formatted_to_state = f"{parent}.{to_state}"
+        else:
+            formatted_to_state = to_state
+
+        # update the cell text with the formatted state names
+        cells[0].string = formatted_from_state
+        cells[1].string = formatted_to_state
+
+    return transitions_table
     
