@@ -36,8 +36,15 @@ create_transitions = {
 create_hierarchical_states = {
     "trigger": "start_event_driven_create_hierarchical_states",
     "source": "CreateHierarchicalStates",
-    "dest": "Done",
+    "dest": "HierarchicalInitialStateSearch",
     "before": "event_driven_create_hierarchical_states_action"
+}
+
+hierarchical_initial_state_search = {
+    "trigger": "start_event_driven_hierarchical_initial_state_search",
+    "source": "HierarchicalInitialStateSearch",
+    "dest": "Done",
+    "before": "event_driven_hierarchical_initial_state_search"
 }
 
 transitions = [
@@ -46,5 +53,6 @@ transitions = [
                 initial_state_search,
                 event_search,
                 create_transitions,
-                create_hierarchical_states
+                create_hierarchical_states,
+                hierarchical_initial_state_search
               ]
