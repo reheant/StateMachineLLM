@@ -47,6 +47,13 @@ hierarchical_initial_state_search = {
     "before": "event_driven_hierarchical_initial_state_search"
 }
 
+refactor_transition_names = {
+    "trigger": "start_event_driven_refactor_transition_names",
+    "source": "RefactorTransitionNames",
+    "dest": "Done",
+    "before": "event_driven_refactor_transition_names_action"
+}
+
 transitions = [
                 system_name_search,
                 state_search,
@@ -54,5 +61,6 @@ transitions = [
                 event_search,
                 create_transitions,
                 create_hierarchical_states,
-                hierarchical_initial_state_search
+                hierarchical_initial_state_search,
+                refactor_transition_names,
               ]
