@@ -280,4 +280,26 @@ def group_parent_child_states(hierarchical_state_table):
             hierarchical_state_dict[parent_state].append(child_state)
     
     return hierarchical_state_dict
+
+def map_child_state_to_parent_state(hierarchical_state_table):
+    if isinstance(hierarchical_state_table, str):
+        soup = BeautifulSoup(hierarchical_state_table, "html.parser")
+        hierarchical_state_table = soup.find("table")
+
+    child_to_parent_dict = {}
+
+    # extract all rows except for header
+    rows = hierarchical_state_table.find_all("tr")[1:]
+
+    for row in rows:
+        cells = row.find_all("td")
+        parent_state = cells[0].get_text(strip=True)
+        child_state = cells[1].get_text(strip=True)
+        
+        # only create mappings for states that actually have a parent in the hierarchy
+        if parent_state != "-":
+            child_to_parent_dict[child_state] = parent_state
+    
+    return child_to_parent_dict
+
     
