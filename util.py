@@ -255,4 +255,29 @@ def merge_tables(html_tables_list) -> Tag:
 
     # Return the <table> Tag object directly
     return merged_table
+
+def group_parent_child_states(hierarchical_state_table):
+    if isinstance(hierarchical_state_table, str):
+        soup = BeautifulSoup(hierarchical_state_table, "html.parser")
+        hierarchical_state_table = soup.find("table")
+
+    hierarchical_state_dict = {}
+
+    # extract all rows except for header
+    rows = hierarchical_state_table.find_all("tr")[1:]
+
+    for row in rows:
+        cells = row.find_all("td")
+        parent_state = cells[0].get_text(strip=True)
+        child_state = cells[1].get_text(strip=True)
+        
+        # we're only concerned about hierarchical states
+        if parent_state != "-":
+            if parent_state not in hierarchical_state_dict:
+                hierarchical_state_dict[parent_state] = []
+
+            # add the current child state to the list of child states in the dict
+            hierarchical_state_dict[parent_state].append(child_state)
+    
+    return hierarchical_state_dict
     
