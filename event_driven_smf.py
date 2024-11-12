@@ -14,6 +14,7 @@ from actions.EventDrivenCreateTransitionsAction import EventDrivenCreateTransiti
 from actions.EventDrivenTransitionsSanityCheck import EventDrivenTransitionsSanityCheck
 from actions.EventDrivenCreateHierarchicalStatesAction import EventDrivenCreateHierarchicalStatesAction
 from actions.EventDrivenHierarchicalInitialStateSearchAction import EventDrivenHierarchicalInitialStateSearchAction
+from actions.EventDrivenRefactorTransitionNamesAction import EventDrivenRefactorTransitionNamesAction
 from event_driven_smf_transitions import transitions
 
 description = """
@@ -63,6 +64,8 @@ event_driven_create_hierarchical_states_action = EventDrivenCreateHierarchicalSt
                                                                                            description=description)
 event_driven_hierarchical_initial_state_search_action = EventDrivenHierarchicalInitialStateSearchAction(belief=belief,
                                                                                                         description=description)
+event_driven_refactor_transition_names_action =  EventDrivenRefactorTransitionNamesAction(belief=belief,
+                                                                                          description=description)
 
 event_driven_action_map = {
     event_driven_system_name_search_action.name: event_driven_system_name_search_action,
@@ -72,7 +75,8 @@ event_driven_action_map = {
     event_driven_create_transitions_action.name: event_driven_create_transitions_action,
     event_driven_transitions_sanity_check_action.name: event_driven_transitions_sanity_check_action,
     event_driven_create_hierarchical_states_action.name: event_driven_create_hierarchical_states_action,
-    event_driven_hierarchical_initial_state_search_action.name: event_driven_hierarchical_initial_state_search_action
+    event_driven_hierarchical_initial_state_search_action.name: event_driven_hierarchical_initial_state_search_action,
+    event_driven_refactor_transition_names_action.name: event_driven_refactor_transition_names_action
 }
 
 states = [
@@ -84,11 +88,12 @@ states = [
             # "TransitionsSanityCheck",
             "CreateHierarchicalStates",
             "HierarchicalInitialStateSearch",
+            "RefactorTransitionNames",
             "Done"
          ]
 
 # create event driven state macine
-initial = "SystemNameSearch"
+initial = "RefactorTransitionNames"
 event_driven_smf = SherpaStateMachine(states=states, 
                                       transitions=transitions, 
                                       initial=initial, 
