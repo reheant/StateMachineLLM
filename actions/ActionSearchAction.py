@@ -1,6 +1,7 @@
 from sherpa_ai.actions.base import BaseAction
 from util import call_gpt4
 from util import extract_transitions_guards_actions_table
+from n_shot_examples import get_n_shot_examples
 
 class ActionSearchAction(BaseAction):
     name: str = "action_search_action"
@@ -28,16 +29,20 @@ class ActionSearchAction(BaseAction):
                      The definition of an action in a UML state machine is described below:
                      When an event instance is dispatched, the state machine responds by performing actions, such as changing a variable, performing I/O, invoking a function, generating another event instance, or changing to another state. Any parameter values associated with the current event are available to all actions directly caused by that event.
                      
-                     The transition table is: 
-                     {transition_table}
+                    {get_n_shot_examples(["Printer", "Spa Manager"], ["system_description", "transitions_events_guards_table", "transitions_events_guards_actions_table"])}
+
+                    Example: 
+
+                    system_description: 
+                    {self.description}
+
+                    transitions_events_guards_table: 
+                    {transition_table}
                      
-                     The problem description is: 
-                     {self.description}
-                  """
+                    transitions_events_guards_actions_table: 
+                """
 
         response = call_gpt4(prompt=prompt)
-
-
 
         transitions_guards_actions_table = extract_transitions_guards_actions_table(response)
 

@@ -3,6 +3,7 @@ from sherpa_ai.memory.belief import Belief
 from util import call_gpt4
 from util import extract_states_events_table
 from util import extract_parallel_states_table
+from n_shot_examples import get_n_shot_examples
 
 class ParallelStateSearchAction(BaseAction):
     name: str = "parallel_state_search_action"
@@ -32,16 +33,21 @@ class ParallelStateSearchAction(BaseAction):
             If there are parallel states, identify the events that take place concurrently. To do this, update the provided HTML table describing states and events. place the states that the events are being performed on under a parallel state with a state name that encompasses the behavior of such a state and identify the events that causes the state machine to enter and leave the parallel state to.  
             To do this, update the states and events accordingly using the HTML table columns below. You MUST use the exact columns provided below and build off of the states and events table provided. If there are no parallel states, then return the original states and events table that you are provided in this prompt.
             ```html <table border="1"> <tr> <th>Current State</th> <th>Event</th> <th>Next State(s)</th> </tr> </table> ```                          
-            
-            
+        
+            {get_n_shot_examples(["Printer", "Spa Manager"], ["system_description", "transitions_events_table", "parallel_states_table"])}
+
+            Example 2:
 
             The system description:
             {self.description}
+
             The system you are modeling: 
             {system_name}
+
             The original HTML table descibing the states and events is:
             {state_event_table}
-            
+
+            Output:
         """
         
         retries = 0

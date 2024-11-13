@@ -27,7 +27,7 @@ class FinalSanityCheckAction(BaseAction):
                       ```html {table} ```
 
                       A reminder that you MUST return the updated table using the above format.
-                      """
+                """
                       
         retries = 0
         retry = True
