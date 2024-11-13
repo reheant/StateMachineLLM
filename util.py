@@ -282,9 +282,9 @@ def group_parent_child_states(hierarchical_state_table):
     return hierarchical_state_dict
 
 def map_child_state_to_parent_state(hierarchical_state_table):
-    if isinstance(hierarchical_state_table, str):
-        soup = BeautifulSoup(hierarchical_state_table, "html.parser")
-        hierarchical_state_table = soup.find("table")
+    hierarchical_state_table = str(hierarchical_state_table)
+    soup = BeautifulSoup(hierarchical_state_table, "html.parser")
+    hierarchical_state_table = soup.find("table")
 
     child_to_parent_dict = {}
 
@@ -308,9 +308,9 @@ def refactor_transition_table_with_parent_states(transitions_table, hierarchical
     child_to_parent_dict = map_child_state_to_parent_state(hierarchical_state_table=hierarchical_state_table)
 
     # convert to beautiful soup if input is a string
-    if isinstance(transitions_table, str):
-        soup = BeautifulSoup(transitions_table, "html.parser")
-        transitions_table = soup.find("table")
+    transitions_table = str(transitions_table)
+    soup = BeautifulSoup(transitions_table, "html.parser")
+    transitions_table = soup.find("table")
 
     # iterate over each row in the transitions table
     rows = transitions_table.find_all("tr")[1:]
