@@ -11,7 +11,6 @@ from actions.EventDrivenStateSearchAction import EventDrivenStateSearchSearchAct
 from actions.EventDrivenInitialStateSearchAction import EventDrivenInitialStateSearchSearchAction
 from actions.EventDrivenEventSearchAction import EventDrivenEventSearchAction
 from actions.EventDrivenCreateTransitionsAction import EventDrivenCreateTransitionsAction
-from actions.EventDrivenTransitionsSanityCheck import EventDrivenTransitionsSanityCheck
 from actions.EventDrivenCreateHierarchicalStatesAction import EventDrivenCreateHierarchicalStatesAction
 from actions.EventDrivenHierarchicalInitialStateSearchAction import EventDrivenHierarchicalInitialStateSearchAction
 from actions.EventDrivenRefactorTransitionNamesAction import EventDrivenRefactorTransitionNamesAction
@@ -59,8 +58,6 @@ event_driven_event_search_action = EventDrivenEventSearchAction(belief=belief,
                                                                 description=description)
 event_driven_create_transitions_action = EventDrivenCreateTransitionsAction(belief=belief,
                                                                             description=description)
-event_driven_transitions_sanity_check_action = EventDrivenTransitionsSanityCheck(belief=belief,
-                                                                                 description=description)
 event_driven_create_hierarchical_states_action = EventDrivenCreateHierarchicalStatesAction(belief=belief,
                                                                                            description=description)
 event_driven_hierarchical_initial_state_search_action = EventDrivenHierarchicalInitialStateSearchAction(belief=belief,
@@ -76,7 +73,6 @@ event_driven_action_map = {
     event_driven_initial_state_search_action.name: event_driven_initial_state_search_action,
     event_driven_event_search_action.name: event_driven_event_search_action,
     event_driven_create_transitions_action.name: event_driven_create_transitions_action,
-    event_driven_transitions_sanity_check_action.name: event_driven_transitions_sanity_check_action,
     event_driven_create_hierarchical_states_action.name: event_driven_create_hierarchical_states_action,
     event_driven_hierarchical_initial_state_search_action.name: event_driven_hierarchical_initial_state_search_action,
     event_driven_refactor_transition_names_action.name: event_driven_refactor_transition_names_action,
