@@ -7,7 +7,7 @@ class EventDrivenCreateTransitionsAction(BaseAction):
     usage: str = "Given a description of a system, the states of the system, and the events of the system, identify all transitions in the UML state machine of the system"
     description: str = ""
 
-    def create_transition(self, system_name, state, event, states_table):
+    def create_transition(self, system_name, state, event, states_table, max_retries=5):
         prompt = f"""
         You are an AI assistant specialized in designing UML state machines from a textual description of a system. Given the description of the system, one of the identified states of the system, one of the identified events of the system, and a table of all identified states of the system, your task is to solve a question answering task.
 
@@ -43,17 +43,31 @@ class EventDrivenCreateTransitionsAction(BaseAction):
         where the "From State", "To State", and "Event" column entries are required, but the "Guard" and "Action" are NOT required. If no "Guard" or "Action" has been identified for a transition, fill the "Guard" or "Action" entry with "NONE".
         """
 
-        response = call_gpt4(prompt=prompt,
-                             temperature=0.7)
-        
-        transitions = None
-        if "NO TRANSITIONS" not in response:
+        # iterate over a max number of retries in order to get the correct format
+        # if the LLM does not get the correct format after max_retries, then we return none
+        retries = 0
+        while retries < max_retries:
+            response = call_gpt4(prompt=prompt, 
+                                 temperature=0.7)
+            
+            if "NO TRANSITIONS" in response:
+                print("No transitions identified.")
+                return None
+            
+            # attempt to extract the transitions table
             transitions_table = extract_transitions_guards_actions_table(llm_response=response)
-            transitions = transitions_table
-        
-        print(transitions)
-        
-        return transitions
+            if transitions_table is not None:
+                print("Valid transitions found.")
+                return transitions_table
+            else:
+                print("No transitions table found in the response.")
+
+            retries += 1
+            print(f"Retrying... ({retries}/{max_retries})")
+
+        # max retries met
+        print("Max retries reached. No valid transitions found.")
+        return None
 
     def execute(self):
         print(f"Running {self.name}...")
@@ -88,4 +102,4 @@ class EventDrivenCreateTransitionsAction(BaseAction):
         merged_transitions_table = merge_tables(html_tables_list=transitions_tables)
         print(merged_transitions_table)
 
-        return event_driven_states_table
+        return merged_transitions_table
