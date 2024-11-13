@@ -5,7 +5,6 @@ class EventDrivenRefactorTransitionNamesAction(BaseAction):
     name: str = "event_driven_refactor_transition_names_action"
     args: dict = {}
     usage: str = "Given the hierarchical states and transitions of a UML state machine, refactor the names of the transitions to match the ParentState.ChildState format"
-    description: str = ""
 
 
     def execute(self):
