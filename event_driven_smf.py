@@ -85,7 +85,6 @@ states = [
             "InitialStateSearch",
             "EventSearch",
             "CreateTransitions",
-            # "TransitionsSanityCheck",
             "CreateHierarchicalStates",
             "HierarchicalInitialStateSearch",
             "RefactorTransitionNames",
