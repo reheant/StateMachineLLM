@@ -222,6 +222,12 @@ def extract_event_driven_events_table(llm_response : str) -> Tag:
                                                             headers=event_driven_events_table_headers)
     return event_driven_events_table
 
+def extract_event_driven_partial_order_table(llm_response: str) -> Tag:
+    event_driven_partial_order_headers = ["Partial Order Index", "Partial Order"]
+    event_drivent_partial_order_table = extract_table_using_headers(llm_response=llm_response,
+                                                                    headers=event_driven_partial_order_headers)
+    return event_drivent_partial_order_table
+
 def extract_table_entries(table: Tag):
     entries = [td.get_text(strip=True) for td in table.find_all("td")]
     return entries
@@ -323,7 +329,6 @@ def map_child_state_to_parent_state(hierarchical_state_table):
     return child_to_parent_dict
 
 def refactor_transition_table_with_parent_states(transitions_table, hierarchical_state_table):
-
     # map each child state to its parent, if it has one
     child_to_parent_dict = map_child_state_to_parent_state(hierarchical_state_table=hierarchical_state_table)
 
@@ -359,4 +364,24 @@ def refactor_transition_table_with_parent_states(transitions_table, hierarchical
         cells[1].string = formatted_to_state
 
     return transitions_table
+
+def find_events_for_transitions_table(transitions_table):
+    # convert to beautiful soup if input is a string
+    transitions_table = str(transitions_table)
+    soup = BeautifulSoup(transitions_table, "html.parser")
+    transitions_table = soup.find("table")
+
+    # iterate over each row in the transitions table
+    rows = transitions_table.find_all("tr")[1:]
+
+    events = set()
+
+    for row in rows:
+        cells = row.find_all("td")
+        event = cells[2].get_text(strip=True)
+        events.add(event)
+
+    return list(events)
+
+
     
