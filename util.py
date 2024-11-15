@@ -256,6 +256,26 @@ def merge_tables(html_tables_list) -> Tag:
     # Return the <table> Tag object directly
     return merged_table
 
+def create_from_state_transitions_table(transitions_table, from_state):
+    transitions_table = str(transitions_table)
+    soup = BeautifulSoup(transitions_table, "html.parser")
+    transitions_table = soup.find("table")
+
+    rows = transitions_table.find_all("tr")
+
+    from_state_transitions_table = BeautifulSoup("<table border='1'></table>", "html.parser")
+    from_state_transitions_table_table = from_state_transitions_table.table
+
+    from_state_transitions_table_table.append(rows[0])
+
+    for row in rows[1:]:
+        columns = row.find_all("td")
+        if columns[0].get_text(strip=True) == from_state:
+            from_state_transitions_table_table.append(row)
+
+    return from_state_transitions_table
+
+
 def group_parent_child_states(hierarchical_state_table):
     if isinstance(hierarchical_state_table, str):
         soup = BeautifulSoup(hierarchical_state_table, "html.parser")
