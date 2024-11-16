@@ -265,7 +265,7 @@ def merge_tables(html_tables_list) -> Tag:
     # Return the <table> Tag object directly
     return merged_table
 
-def create_from_state_transitions_table(transitions_table, from_state):
+def create_exit_transitions_table(transitions_table, from_state):
     # Parse the transitions table
     transitions_table = str(transitions_table)
     soup = BeautifulSoup(transitions_table, "html.parser")
