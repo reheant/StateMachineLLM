@@ -229,6 +229,9 @@ def extract_event_driven_partial_order_table(llm_response: str) -> Tag:
     return event_drivent_partial_order_table
 
 def extract_table_entries(table: Tag):
+    table = str(table)
+    soup = BeautifulSoup(table, "html.parser")
+    table = soup.find("table")
     entries = [td.get_text(strip=True) for td in table.find_all("td")]
     return entries
 
@@ -263,23 +266,63 @@ def merge_tables(html_tables_list) -> Tag:
     return merged_table
 
 def create_from_state_transitions_table(transitions_table, from_state):
+    # Parse the transitions table
+    transitions_table = str(transitions_table)
+    soup = BeautifulSoup(transitions_table, "html.parser")
+    transitions_table = soup.find("table")
+    rows = transitions_table.find_all("tr")
+
+    # Create a new table for filtered transitions
+    from_state_transitions_table = BeautifulSoup("<table border='1'></table>", "html.parser")
+    from_state_transitions_table_table = from_state_transitions_table.table
+
+    # Add a new "Transition ID" column to the header row
+    header_row = rows[0]
+    header_columns = header_row.find_all("th")
+    header_row.append(soup.new_tag("th"))  # Add a new <th> for "Transition ID"
+    header_row.find_all("th")[-1].string = "Transition ID"
+    from_state_transitions_table_table.append(header_row)
+
+    id = 1
+    for row in rows[1:]:
+        columns = row.find_all("td")
+        if columns[0].get_text(strip=True) == from_state:
+            # create a new row with the unique ID
+            new_row = BeautifulSoup(str(row), "html.parser").tr
+            new_transition_id = soup.new_tag("td")
+            new_transition_id.string = str(id)
+            id += 1
+            new_row.append(new_transition_id)
+            from_state_transitions_table_table.append(new_row)
+
+    return from_state_transitions_table
+
+def remove_transitions_from_exit_transition_table(transitions_table, ids_to_remove):
     transitions_table = str(transitions_table)
     soup = BeautifulSoup(transitions_table, "html.parser")
     transitions_table = soup.find("table")
 
     rows = transitions_table.find_all("tr")
 
-    from_state_transitions_table = BeautifulSoup("<table border='1'></table>", "html.parser")
-    from_state_transitions_table_table = from_state_transitions_table.table
-
-    from_state_transitions_table_table.append(rows[0])
-
     for row in rows[1:]:
         columns = row.find_all("td")
-        if columns[0].get_text(strip=True) == from_state:
-            from_state_transitions_table_table.append(row)
+        transition_id = columns[5].get_text(strip=True)
+        if transition_id in ids_to_remove:
+            row.decompose()
 
-    return from_state_transitions_table
+    # remove the ID column and its entries afterwards
+    header_row = transitions_table.find("tr")
+    if header_row:
+        header_cells = header_row.find_all("th")
+        header_cells[5].decompose()
+    
+    rows = transitions_table.find_all("tr")
+    for row in rows[1:]:
+        columns = row.find_all("td")
+        id_column = columns[5]
+        id_column.decompose()
+    
+    return transitions_table
 
 
 def group_parent_child_states(hierarchical_state_table):
@@ -381,7 +424,4 @@ def find_events_for_transitions_table(transitions_table):
         event = cells[2].get_text(strip=True)
         events.add(event)
 
-    return list(events)
-
-
-    
+    return list(events) 
