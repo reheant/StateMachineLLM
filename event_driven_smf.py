@@ -98,7 +98,7 @@ states = [
          ]
 
 # create event driven state macine
-initial = "FilterTransitions"
+initial = "SystemNameSearch"
 event_driven_smf = SherpaStateMachine(states=states, 
                                       transitions=transitions, 
                                       initial=initial, 
