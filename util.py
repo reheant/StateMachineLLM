@@ -222,7 +222,16 @@ def extract_event_driven_events_table(llm_response : str) -> Tag:
                                                             headers=event_driven_events_table_headers)
     return event_driven_events_table
 
+def extract_event_driven_partial_order_table(llm_response: str) -> Tag:
+    event_driven_partial_order_headers = ["Partial Order Index", "Partial Order"]
+    event_drivent_partial_order_table = extract_table_using_headers(llm_response=llm_response,
+                                                                    headers=event_driven_partial_order_headers)
+    return event_drivent_partial_order_table
+
 def extract_table_entries(table: Tag):
+    table = str(table)
+    soup = BeautifulSoup(table, "html.parser")
+    table = soup.find("table")
     entries = [td.get_text(strip=True) for td in table.find_all("td")]
     return entries
 
@@ -255,6 +264,66 @@ def merge_tables(html_tables_list) -> Tag:
 
     # Return the <table> Tag object directly
     return merged_table
+
+def create_exit_transitions_table(transitions_table, from_state):
+    # Parse the transitions table
+    transitions_table = str(transitions_table)
+    soup = BeautifulSoup(transitions_table, "html.parser")
+    transitions_table = soup.find("table")
+    rows = transitions_table.find_all("tr")
+
+    # Create a new table for filtered transitions
+    from_state_transitions_table = BeautifulSoup("<table border='1'></table>", "html.parser")
+    from_state_transitions_table_table = from_state_transitions_table.table
+
+    # Add a new "Transition ID" column to the header row
+    header_row = rows[0]
+    header_columns = header_row.find_all("th")
+    header_row.append(soup.new_tag("th"))  # Add a new <th> for "Transition ID"
+    header_row.find_all("th")[-1].string = "Transition ID"
+    from_state_transitions_table_table.append(header_row)
+
+    id = 1
+    for row in rows[1:]:
+        columns = row.find_all("td")
+        if columns[0].get_text(strip=True) == from_state:
+            # create a new row with the unique ID
+            new_row = BeautifulSoup(str(row), "html.parser").tr
+            new_transition_id = soup.new_tag("td")
+            new_transition_id.string = str(id)
+            id += 1
+            new_row.append(new_transition_id)
+            from_state_transitions_table_table.append(new_row)
+
+    return from_state_transitions_table
+
+def remove_transitions_from_exit_transition_table(transitions_table, ids_to_remove):
+    transitions_table = str(transitions_table)
+    soup = BeautifulSoup(transitions_table, "html.parser")
+    transitions_table = soup.find("table")
+
+    rows = transitions_table.find_all("tr")
+
+    for row in rows[1:]:
+        columns = row.find_all("td")
+        transition_id = columns[5].get_text(strip=True)
+        if transition_id in ids_to_remove:
+            row.decompose()
+
+    # remove the ID column and its entries afterwards
+    header_row = transitions_table.find("tr")
+    if header_row:
+        header_cells = header_row.find_all("th")
+        header_cells[5].decompose()
+    
+    rows = transitions_table.find_all("tr")
+    for row in rows[1:]:
+        columns = row.find_all("td")
+        id_column = columns[5]
+        id_column.decompose()
+    
+    return transitions_table
+
 
 def group_parent_child_states(hierarchical_state_table):
     if isinstance(hierarchical_state_table, str):
@@ -303,7 +372,6 @@ def map_child_state_to_parent_state(hierarchical_state_table):
     return child_to_parent_dict
 
 def refactor_transition_table_with_parent_states(transitions_table, hierarchical_state_table):
-
     # map each child state to its parent, if it has one
     child_to_parent_dict = map_child_state_to_parent_state(hierarchical_state_table=hierarchical_state_table)
 
@@ -339,4 +407,21 @@ def refactor_transition_table_with_parent_states(transitions_table, hierarchical
         cells[1].string = formatted_to_state
 
     return transitions_table
-    
+
+def find_events_for_transitions_table(transitions_table):
+    # convert to beautiful soup if input is a string
+    transitions_table = str(transitions_table)
+    soup = BeautifulSoup(transitions_table, "html.parser")
+    transitions_table = soup.find("table")
+
+    # iterate over each row in the transitions table
+    rows = transitions_table.find_all("tr")[1:]
+
+    events = set()
+
+    for row in rows:
+        cells = row.find_all("td")
+        event = cells[2].get_text(strip=True)
+        events.add(event)
+
+    return list(events) 
