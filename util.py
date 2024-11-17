@@ -209,3 +209,134 @@ def regions_remove_spaces(region):
     region['name'] = region['name'].replace(' ', '')
     region['regionChildren'] = [s.replace(' ', '') for s in region['regionChildren']]
     return region
+
+def extract_event_driven_states_table(llm_response : str) -> Tag:
+    event_driven_states_table_headers = ["State Name"]
+    event_driven_states_table = extract_table_using_headers(llm_response=llm_response,
+                                                            headers=event_driven_states_table_headers)
+    return event_driven_states_table
+
+def extract_event_driven_events_table(llm_response : str) -> Tag:
+    event_driven_events_table_headers = ["Event Name"]
+    event_driven_events_table = extract_table_using_headers(llm_response=llm_response,
+                                                            headers=event_driven_events_table_headers)
+    return event_driven_events_table
+
+def extract_table_entries(table: Tag):
+    entries = [td.get_text(strip=True) for td in table.find_all("td")]
+    return entries
+
+def merge_tables(html_tables_list) -> Tag:
+    # Assume the first table contains the header, so extract it
+    header_cells = [th.get_text() for th in html_tables_list[0].find_all('th')]
+
+    # Create a new BeautifulSoup object with an empty table for merging
+    merged_table_soup = BeautifulSoup("<table border='1'><tr></tr></table>", 'html.parser')
+    merged_table = merged_table_soup.find('table')
+
+    # Create header row in the merged table
+    header_row = merged_table.find('tr')
+    for header in header_cells:
+        th = merged_table_soup.new_tag('th')
+        th.string = header
+        header_row.append(th)
+
+    # Collect all rows from each table and add them to the merged table
+    for table_tag in html_tables_list:
+        rows = table_tag.find_all('tr')[1:]  # Skip the header row
+
+        for row in rows:
+            new_row = merged_table_soup.new_tag('tr')
+            for cell in row.find_all('td'):
+                new_cell = merged_table_soup.new_tag('td')
+                new_cell.string = cell.get_text()
+                new_row.append(new_cell)
+            merged_table.append(new_row)
+
+    # Return the <table> Tag object directly
+    return merged_table
+
+def group_parent_child_states(hierarchical_state_table):
+    if isinstance(hierarchical_state_table, str):
+        soup = BeautifulSoup(hierarchical_state_table, "html.parser")
+        hierarchical_state_table = soup.find("table")
+
+    hierarchical_state_dict = {}
+
+    # extract all rows except for header
+    rows = hierarchical_state_table.find_all("tr")[1:]
+
+    for row in rows:
+        cells = row.find_all("td")
+        parent_state = cells[0].get_text(strip=True)
+        child_state = cells[1].get_text(strip=True)
+        
+        # we're only concerned about hierarchical states
+        if parent_state != "-":
+            if parent_state not in hierarchical_state_dict:
+                hierarchical_state_dict[parent_state] = []
+
+            # add the current child state to the list of child states in the dict
+            hierarchical_state_dict[parent_state].append(child_state)
+    
+    return hierarchical_state_dict
+
+def map_child_state_to_parent_state(hierarchical_state_table):
+    hierarchical_state_table = str(hierarchical_state_table)
+    soup = BeautifulSoup(hierarchical_state_table, "html.parser")
+    hierarchical_state_table = soup.find("table")
+
+    child_to_parent_dict = {}
+
+    # extract all rows except for header
+    rows = hierarchical_state_table.find_all("tr")[1:]
+
+    for row in rows:
+        cells = row.find_all("td")
+        parent_state = cells[0].get_text(strip=True)
+        child_state = cells[1].get_text(strip=True)
+        
+        # only create mappings for states that actually have a parent in the hierarchy
+        if parent_state != "-":
+            child_to_parent_dict[child_state] = parent_state
+    
+    return child_to_parent_dict
+
+def refactor_transition_table_with_parent_states(transitions_table, hierarchical_state_table):
+
+    # map each child state to its parent, if it has one
+    child_to_parent_dict = map_child_state_to_parent_state(hierarchical_state_table=hierarchical_state_table)
+
+    # convert to beautiful soup if input is a string
+    transitions_table = str(transitions_table)
+    soup = BeautifulSoup(transitions_table, "html.parser")
+    transitions_table = soup.find("table")
+
+    # iterate over each row in the transitions table
+    rows = transitions_table.find_all("tr")[1:]
+
+    for row in rows:
+        cells = row.find_all("td")
+        from_state = cells[0].get_text(strip=True)
+        to_state = cells[1].get_text(strip=True)
+
+        # replace "From State" with "Parent.Child" format if parent exists in child_to_parent_dict
+        if from_state in child_to_parent_dict:
+            parent = child_to_parent_dict[from_state]
+            formatted_from_state = f"{parent}.{from_state}"
+        else:
+            formatted_from_state = from_state
+
+        # replace "To State" with "Parent.Child" format if parent exists in child_to_parent_dict
+        if to_state in child_to_parent_dict:
+            parent = child_to_parent_dict[to_state]
+            formatted_to_state = f"{parent}.{to_state}"
+        else:
+            formatted_to_state = to_state
+
+        # update the cell text with the formatted state names
+        cells[0].string = formatted_from_state
+        cells[1].string = formatted_to_state
+
+    return transitions_table
+    
