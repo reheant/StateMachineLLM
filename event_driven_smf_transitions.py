@@ -22,14 +22,21 @@ initial_state_search = {
 event_search = {
     "trigger": "start_event_driven_event_search",
     "source": "EventSearch",
-    "dest" : "CreateTransitions",
+    "dest" : "AssociateEventsWithStates",
     "before": "event_driven_event_search_action"
+}
+
+associate_events_with_states = {
+    "trigger": "start_event_driven_associate_events_with_states_action",
+    "source": "AssociateEventsWithStates",
+    "dest" : "CreateTransitions",
+    "before": "event_driven_associate_events_with_states_action"
 }
 
 create_transitions = {
     "trigger": "start_event_driven_create_transitions",
     "source": "CreateTransitions",
-    "dest": "FilterTransitions",
+    "dest": "Done",
     "before": "event_driven_create_transitions_action"
 }
 
@@ -73,6 +80,7 @@ transitions = [
                 state_search,
                 initial_state_search,
                 event_search,
+                associate_events_with_states,
                 create_transitions,
                 filter_transitions,
                 create_hierarchical_states,
