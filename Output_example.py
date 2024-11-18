@@ -73,17 +73,17 @@ event_driven_filter_transitions = '''
 
 event_driven_create_hierarchical_states = '''
 <table border="1">
-<tr><th>Superstate</th><th>Substate</th></tr>
-<tr><td>Operational</td><td>Home Screen</td></tr>
-<tr><td>Operational</td><td>Recipe Selection</td></tr>
-<tr><td>Operational</td><td>Ingredient Weighing</td></tr>
-<tr><td>Operational</td><td>Chopping Ingredients</td></tr>
-<tr><td>Operational</td><td>Cooking</td></tr>
-<tr><td>Operational</td><td>Meal Ready</td></tr>
-<tr><td>-</td><td>Off State</td></tr>
-<tr><td>-</td><td>Transportation Mode</td></tr>
-<tr><td>-</td><td>Automatic Shutdown Warning</td></tr>
-<tr><td>-</td><td>Error State</td></tr>
+<tr> <th>Superstate</th> <th>Substate</th> </tr>
+<tr> <td> On </td> <td> Home Screen </td> </tr>
+<tr> <td> On </td> <td> Idle </td> </tr>
+<tr> <td> On </td> <td> Shutdown Warning </td> </tr>
+<tr> <td> Cooking Process </td> <td> Cooking Preparation </td> </tr>     
+<tr> <td> Cooking Process </td> <td> Chopping </td> </tr>
+<tr> <td> Cooking Process </td> <td> Cooking </td> </tr>
+<tr> <td> Cooking Process </td> <td> Meal Ready </td> </tr>
+<tr> <td> - </td> <td> Off </td> </tr>
+<tr> <td> - </td> <td> Transportation Mode </td> </tr>
+<tr> <td> - </td> <td> Error State </td> </tr>
 </table>'''
 
 event_driven_hierarchical_initial_state_search = '''

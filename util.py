@@ -138,9 +138,9 @@ def str_to_Tag(table : str):
     return tables[0] if tables else None
 
 def gsm_tables_to_dict(hierarchical_states_table : Tag, transitions_table : Tag, parallel_state_table : Tag):
-    hierarchical_states_table = str_to_Tag(hierarchical_states_table)
-    transitions_table = str_to_Tag(transitions_table)
-    parallel_state_table = str_to_Tag(parallel_state_table)
+    hierarchical_states_table = table_remove_spaces(str_to_Tag(hierarchical_states_table))
+    transitions_table = table_remove_spaces(str_to_Tag(transitions_table))
+    parallel_state_table = table_remove_spaces(str_to_Tag(parallel_state_table))
     states = []
     transitions = []
     parallel_regions = []
@@ -207,6 +207,19 @@ def gsm_tables_to_dict(hierarchical_states_table : Tag, transitions_table : Tag,
     parallel_regions = list(map(regions_remove_spaces, parallel_regions))
 
     return states, transitions, parallel_regions
+
+def table_remove_spaces(table):
+    if not table:
+        return None
+    
+    # Find all table cells
+    cells = table.find_all('td')
+
+    # Iterate through each cell and remove spaces
+    for cell in cells:
+        cell.string = cell.get_text().replace(' ','')
+
+    return table
 
 def state_remove_spaces(state):
     if isinstance(state, dict):

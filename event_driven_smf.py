@@ -118,7 +118,7 @@ belief.set_current_task(Event(EventType.task,
 # set up task to be run
 llm = SherpaChatOpenAI(model_name="gpt-4o-mini", temperature=0.5)
 policy = ReactPolicy(role_description="Help the user finish the task", output_instruction="Determine which action and arguments would be the best continuing the task", llm=llm)
-qa_agent = QAAgent(llm=llm, belief=belief, num_runs=10, policy=policy)
+qa_agent = QAAgent(llm=llm, belief=belief, num_runs=100, policy=policy)
 
 def run_event_driven_smf():
     qa_agent.run()
