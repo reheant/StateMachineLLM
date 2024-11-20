@@ -70,12 +70,12 @@ def extract_transitions_guards_table(llm_response : str, includeHeader : bool) -
             first_row.decompose()
     return transitions_guards_table
 
-def extract_history_state_table(llm_response : str, includeHeader: bool) -> Tag:
+def extract_history_state_table(llm_response : str, includeHeader: bool = False) -> Tag:
     history_table_headers = ["From State", "Event", "Guard", "Action"]
     history_table = extract_table_using_headers(llm_response=llm_response,
                                                            headers=history_table_headers)
-    if not includeHeader and history_table:
-        first_row = history_table.find('th')
+    if history_table and not includeHeader:
+        first_row = history_table.find('tr')
         if first_row:
             first_row.decompose()
     return history_table
@@ -87,6 +87,9 @@ def extract_hierarchical_state_table(llm_response : str) -> Tag:
     return history_table
 
 def appendTables(table1 : Tag, table2 : Tag) -> Tag:
+    table1 = BeautifulSoup(str(table1), 'html.parser').find_all('table')[0]
+    table2 = BeautifulSoup(str(table2), 'html.parser').find_all('table')[0]
+
     for row in table2.find_all('tr'):
         table1.append(row)
     return table1
@@ -130,7 +133,14 @@ def extract_transitions_guards_actions_table(llm_response : str) -> Tag:
                                                                    headers=transitions_guards_table_events_headers)
     return transitions_guards_actions_table
     
+def str_to_Tag(table : str):
+    tables = BeautifulSoup(str(table), 'html.parser').find_all('table')
+    return tables[0] if tables else None
+
 def gsm_tables_to_dict(hierarchical_states_table : Tag, transitions_table : Tag, parallel_state_table : Tag):
+    hierarchical_states_table = table_remove_spaces(str_to_Tag(hierarchical_states_table))
+    transitions_table = table_remove_spaces(str_to_Tag(transitions_table))
+    parallel_state_table = table_remove_spaces(str_to_Tag(parallel_state_table))
     states = []
     transitions = []
     parallel_regions = []
@@ -185,12 +195,31 @@ def gsm_tables_to_dict(hierarchical_states_table : Tag, transitions_table : Tag,
             else:
                 parallel_regions[region[0]]['regionChildren'].append(cols[1].get_text())
 
+    # States under '-' really don't have a superstate
+    non_composite_state = [state for state in states if isinstance(state, dict) and state['name'] == '-']
+    if non_composite_state:
+        states.extend(non_composite_state[0]['children'])
+        states.remove(non_composite_state[0])
+
     # Remove all spaces not to confuse mermaid
     states = list(map(state_remove_spaces, states))
     transitions = list(map(transitions_remove_spaces, transitions))
     parallel_regions = list(map(regions_remove_spaces, parallel_regions))
 
     return states, transitions, parallel_regions
+
+def table_remove_spaces(table):
+    if not table:
+        return None
+    
+    # Find all table cells
+    cells = table.find_all('td')
+
+    # Iterate through each cell and remove spaces
+    for cell in cells:
+        cell.string = cell.get_text().replace(' ','')
+
+    return table
 
 def state_remove_spaces(state):
     if isinstance(state, dict):

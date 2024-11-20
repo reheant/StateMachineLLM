@@ -21,6 +21,6 @@ class EventDrivenDisplayResultsAction(BaseAction):
 
         print(f"Hierarchical Initial States:\n{event_driven_hierarchical_initial_states}")
 
-        event_driven_transitions = self.belief.get("event_driven_refactor_transition_names_action")
+        event_driven_transitions = self.belief.get("event_driven_history_state_search_action")
 
         print(f"Transitions:\n{event_driven_transitions}")
