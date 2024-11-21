@@ -2,12 +2,24 @@ from sherpa_ai.actions.base import BaseAction
 from util import call_gpt4, extract_hierarchical_state_table
 
 class EventDrivenCreateHierarchicalStatesAction(BaseAction):
+    """
+    The EventDrivenCreateHierarchicalStatesAction takes the transitions after they have been
+    filtered by the EventDrivenFilterTransitionsAction and produces hierarchical states based
+    on events that share common transitions
+    """
+
     name: str = "event_driven_create_hierarchical_states_action"
     args: dict = {}
     usage: str = "Given a description of a system, the states of the system, and the transitions of the system, identify all Hierarchical States in the UML state machine of the system."
     description: str = ""
 
     def execute(self):
+        """
+        The execute function prompts the LLM to examine the table of created transitions and group states
+        together that share transitions. The output is a table containing a list of the original states,
+        now grouped with their hierarchical parent state.
+        """
+        
         print(f"Running {self.name}")
         
         
