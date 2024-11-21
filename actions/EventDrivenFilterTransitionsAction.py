@@ -7,6 +7,9 @@ class EventDrivenFilterTransitionsAction(BaseAction):
     The EventDrivenFilterTransitionsAction takes examines the transitions table created
     by EventDrivenCreateTransitionsAction and prompts the LLM to reduce the number of
     false positive transitions created.
+
+    Input(s): description of the system, name of the system, states of the system from EventDrivenStateSearchAction, and the transitions of the system from EventDrivenCreateTransitionsAction
+    Output(s): an HTML table with columns "From State", "To State", "Event", "Guard", and "Action" containing all transitions of the UML State Machine after removing unnecessary transitions
     """
 
     name: str = "event_driven_filter_transitions_action"
