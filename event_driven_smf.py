@@ -10,6 +10,7 @@ from actions.EventDrivenSystemNameSearchAction import EventDrivenSystemNameSearc
 from actions.EventDrivenStateSearchAction import EventDrivenStateSearchSearchAction
 from actions.EventDrivenInitialStateSearchAction import EventDrivenInitialStateSearchSearchAction
 from actions.EventDrivenEventSearchAction import EventDrivenEventSearchAction
+from actions.EventDrivenAssociateEventsWithStatesAction import EventDrivenAssociateEventsWithStatesAction
 from actions.EventDrivenCreateTransitionsAction import EventDrivenCreateTransitionsAction
 from actions.EventDrivenCreateHierarchicalStatesAction import EventDrivenCreateHierarchicalStatesAction
 from actions.EventDrivenHierarchicalInitialStateSearchAction import EventDrivenHierarchicalInitialStateSearchAction
@@ -58,6 +59,8 @@ event_driven_initial_state_search_action = EventDrivenInitialStateSearchSearchAc
                                                                                      description=description)
 event_driven_event_search_action = EventDrivenEventSearchAction(belief=belief,
                                                                 description=description)
+event_driven_associate_events_with_states = EventDrivenAssociateEventsWithStatesAction(belief=belief,
+                                                                                       description=description)
 event_driven_create_transitions_action = EventDrivenCreateTransitionsAction(belief=belief,
                                                                             description=description)
 event_driven_filter_transitions_action = EventDrivenFilterTransitionsAction(belief=belief,
@@ -78,6 +81,7 @@ event_driven_action_map = {
     event_driven_state_search_action.name: event_driven_state_search_action,
     event_driven_initial_state_search_action.name: event_driven_initial_state_search_action,
     event_driven_event_search_action.name: event_driven_event_search_action,
+    event_driven_associate_events_with_states.name: event_driven_associate_events_with_states,
     event_driven_create_transitions_action.name: event_driven_create_transitions_action,
     event_driven_filter_transitions_action.name: event_driven_filter_transitions_action,
     event_driven_create_hierarchical_states_action.name: event_driven_create_hierarchical_states_action,
@@ -92,6 +96,7 @@ states = [
             "StateSearch",
             "InitialStateSearch",
             "EventSearch",
+            "AssociateEventsWithStates",
             "CreateTransitions",
             "FilterTransitions",
             "CreateHierarchicalStates",
