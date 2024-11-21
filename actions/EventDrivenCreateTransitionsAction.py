@@ -18,7 +18,7 @@ class EventDrivenCreateTransitionsAction(BaseAction):
         and the list of all states. The LLM is prompted to create a transitions for each event starting from the provided 
         state to one or more of the states in the states_table. 
         """
-        
+
         prompt = f"""
         You are an AI assistant specialized in designing UML state machines from a textual description of a system. Given the description of the system, one of the identified states of the system, one of the identified events of the system, and a table of all identified states of the system, your task is to solve a question answering task.
 
@@ -89,7 +89,8 @@ class EventDrivenCreateTransitionsAction(BaseAction):
         """
         The execute function gets the table of all states and the mapping of states to events from the
         EventDrivenAssociateEventsWithStatesAction. For each state, the create_transitions() function
-        is called to prompt the LLM to create transitions exiting that state.
+        is called to prompt the LLM to create transitions exiting that state. The output is a table
+        containing the transitions of the UML State Machine.
         """
 
         print(f"Running {self.name}...")
