@@ -5,6 +5,9 @@ class EventDrivenEventSearchAction(BaseAction):
     """
     The EventDrivenEventSearchAction prompts the LLM to find all the events that occur in the
     UML State Machine from a textual description of the system.
+
+    Input(s): description of the system, name of the system
+    Output(s): An HTML table with a column "Event Name", containing the names of all the events in the UML State Machine of the system
     """
     name: str = "event_driven_event_search_action"
     args: dict = {}
