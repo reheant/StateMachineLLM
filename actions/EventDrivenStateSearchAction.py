@@ -2,12 +2,22 @@ from sherpa_ai.actions.base import BaseAction
 from util import call_gpt4, extract_event_driven_states_table
 
 class EventDrivenStateSearchSearchAction(BaseAction):
+    """
+    The EventDrivenStateSearchAction uses the description of a system to find
+    all states in the UML state machine of the system
+    """
+
     name: str = "event_driven_state_search_action"
     args: dict = {}
     usage: str = "Given a description of a system, identify all states in the UML state machine of the system"
     description: str = ""
 
     def execute(self):
+        """
+        The execute function prompts the LLM to find all states in the UML state machine from the textual
+        description of the system
+        """
+        
         print(f"Running {self.name}...")
 
         system_name = self.belief.get("event_driven_system_name_search_action")
