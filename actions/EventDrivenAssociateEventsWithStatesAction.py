@@ -8,6 +8,9 @@ class EventDrivenAssociateEventsWithStatesAction(BaseAction):
     of states and events to find the events that can occur in each of the identified states. The
     output of this action is a dictionary which maps the names of states to the names of events that
     can occur in that state
+
+    Input(s): description of the system, name of the system, table of events from EventDrivenEventSearchAction, and table of states from EventDrivenStateSearchAction
+    Output(s): a dictionary mapping the name of a state to the name(s) events that can occur in the state in the UML State Machine
     """
 
     name: str = "event_driven_associate_events_with_states_action"
