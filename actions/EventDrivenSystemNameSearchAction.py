@@ -8,6 +8,9 @@ class EventDrivenSystemNameSearchAction(BaseAction):
     The LLM is prompted to identify the name of the system from a textual description. The system
     name is used throughout the remainder of the steps to better focus LLM responses on the system
     in the description
+
+    Input(s): descriptions of system
+    Output(s): string containing the name of the described system
     """
 
     name: str = "event_driven_system_name_search_action"
