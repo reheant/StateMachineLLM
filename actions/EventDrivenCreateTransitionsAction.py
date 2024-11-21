@@ -5,6 +5,9 @@ class EventDrivenCreateTransitionsAction(BaseAction):
     """
     The EventDrivenCreateTransitionsAction iterates over the mapping of states and events identified in the
     EventDrivenAssociateEventsWithStatesAction and prompts the LLM to create transitions.
+
+    Input(s): description of the system, name of the system, table of states of the system from EventDrivenStateSearchAction, dictionary mapping states to events from EventDrivenAssociateEventsWithStatesAction
+    Outputs(s): an HTML table with columns "From State", "To State", "Event", "Guard", and "Action" containing all transitions of the UML State Machine 
     """
 
     name: str = "event_driven_create_transitions_action"
