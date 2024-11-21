@@ -2,7 +2,16 @@ import re
 from sherpa_ai.actions.base import BaseAction
 from util import call_gpt4
 
-class EventDrivenInitialStateSearchSearchAction(BaseAction):
+class EventDrivenInitialStateSearchAction(BaseAction):
+    """
+    The EventDrivenInitialStateSearchSearchAction class prompts the LLM to examine
+    the description of the system and the identified states of the UML State Machine
+    to determine the Initial State of the UML State Machine
+
+    Input(s): description of the system, name of the system, and the state table output from EventDrivenStateSearchAction
+    Output(s): string containing the name of the initial state of the UML State Machine
+    """
+
     name: str = "event_driven_initial_state_search_action"
     args: dict = {}
     usage: str = "Given a description of a system and a list of all states of the system, identify the Initial State of the UML state machine of the system"
