@@ -6,6 +6,9 @@ class EventDrivenCreateHierarchicalStatesAction(BaseAction):
     The EventDrivenCreateHierarchicalStatesAction takes the transitions after they have been
     filtered by the EventDrivenFilterTransitionsAction and produces hierarchical states based
     on events that share common transitions
+
+    Input(s): description of the system, name of the system, and table of transitions from EventDrivenFilterTransitionsAction
+    Output(s): an HTML table containing columns "Superstate" and "Substate" which provide the hierarchical states of the UML State Machine of the system
     """
 
     name: str = "event_driven_create_hierarchical_states_action"
