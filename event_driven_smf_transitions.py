@@ -36,7 +36,7 @@ associate_events_with_states = {
 create_transitions = {
     "trigger": "start_event_driven_create_transitions",
     "source": "CreateTransitions",
-    "dest": "Done",
+    "dest": "FilterTransitions",
     "before": "event_driven_create_transitions_action"
 }
 
