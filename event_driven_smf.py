@@ -7,8 +7,8 @@ from sherpa_ai.policies.react_policy import ReactPolicy
 from sherpa_ai.agents.qa_agent import QAAgent
 
 from actions.EventDrivenSystemNameSearchAction import EventDrivenSystemNameSearchAction
-from actions.EventDrivenStateSearchAction import EventDrivenStateSearchSearchAction
-from actions.EventDrivenInitialStateSearchAction import EventDrivenInitialStateSearchSearchAction
+from actions.EventDrivenStateSearchAction import EventDrivenStateSearchAction
+from actions.EventDrivenInitialStateSearchAction import EventDrivenInitialStateSearchAction
 from actions.EventDrivenEventSearchAction import EventDrivenEventSearchAction
 from actions.EventDrivenAssociateEventsWithStatesAction import EventDrivenAssociateEventsWithStatesAction
 from actions.EventDrivenCreateTransitionsAction import EventDrivenCreateTransitionsAction
@@ -53,10 +53,10 @@ belief = Belief()
 belief.set("description", description)
 event_driven_system_name_search_action = EventDrivenSystemNameSearchAction(belief=belief,
                                                                            description=description)
-event_driven_state_search_action = EventDrivenStateSearchSearchAction(belief=belief,
-                                                                      description=description)
-event_driven_initial_state_search_action = EventDrivenInitialStateSearchSearchAction(belief=belief,
-                                                                                     description=description)
+event_driven_state_search_action = EventDrivenStateSearchAction(belief=belief,
+                                                                description=description)
+event_driven_initial_state_search_action = EventDrivenInitialStateSearchAction(belief=belief,
+                                                                               description=description)
 event_driven_event_search_action = EventDrivenEventSearchAction(belief=belief,
                                                                 description=description)
 event_driven_associate_events_with_states = EventDrivenAssociateEventsWithStatesAction(belief=belief,
