@@ -1,11 +1,18 @@
 from sherpa_ai.actions.base import BaseAction
-from sherpa_ai.memory.belief import Belief
 from util import call_gpt4
 from util import extract_states_events_table
 from util import extract_parallel_states_table
 from n_shot_examples import get_n_shot_examples
 
 class ParallelStateSearchAction(BaseAction):
+    """
+    The ParallelStateSearchAction is the second step in the Linear SMF. It identifies
+    the parallel regions and their child states in the UML State Machine of the system
+
+    Input(s): description of the system, name of the system, and states/events table from StateEventSearchAction
+    Output(s): updated states/events table, and an HTML table containing columns "Superstate", "Substate" to represent parallel states of the UML State Machine
+    """
+    
     name: str = "parallel_state_search_action"
     args: dict = {}
     usage: str = "Identify all parallel regions of the state machine from the system description"
