@@ -86,7 +86,8 @@ class EventDrivenCreateTransitionsAction(BaseAction):
                                                       event=event,
                                                       states_table=event_driven_states_table)
 
-                transitions_tables.append(transitions)
+                if transitions_tables is not None:
+                    transitions_tables.append(transitions)
         
         merged_transitions_table = merge_tables(html_tables_list=transitions_tables)
         print(merged_transitions_table)
