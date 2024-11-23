@@ -20,6 +20,7 @@ from actions.EventDrivenFilterTransitionsAction import EventDrivenFilterTransiti
 from actions.EventDrivenHistoryStateSearchAction import EventDrivenHistoryStateSearchAction
 from event_driven_smf_transitions import transitions
 
+# running example description of the fictitious Thermomix TM6 system description
 example_description = """
                     The Thermomix TM6 is an all-in-one kitchen appliance that
                     preps ingredients and cooks them to perfection.
@@ -51,6 +52,8 @@ example_description = """
 
 belief = Belief()
 belief.set("description", example_description)
+
+# Sherpa actions of the Event State Machine Framework
 event_driven_system_name_search_action = EventDrivenSystemNameSearchAction(belief=belief,
                                                                            description=example_description)
 event_driven_state_search_action = EventDrivenStateSearchAction(belief=belief,
@@ -76,6 +79,7 @@ event_driven_history_state_search_action =  EventDrivenHistoryStateSearchAction(
 event_driven_display_results_action = EventDrivenDisplayResultsAction(belief=belief,
                                                                       description=example_description)
 
+# mapping between the names of Sherpa actions and their Action class
 event_driven_action_map = {
     event_driven_system_name_search_action.name: event_driven_system_name_search_action,
     event_driven_state_search_action.name: event_driven_state_search_action,
@@ -91,6 +95,7 @@ event_driven_action_map = {
     event_driven_display_results_action.name: event_driven_display_results_action
 }
 
+# states of the Event Driven State Machine Framework
 states = [
             "SystemNameSearch",
             "StateSearch",
@@ -107,7 +112,7 @@ states = [
             "Done"
          ]
 
-# create event driven state macine
+# create Sherpa state machine and set the task for creating a UML State Machine
 initial = "SystemNameSearch"
 event_driven_smf = SherpaStateMachine(states=states, 
                                       transitions=transitions, 
