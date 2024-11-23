@@ -3,6 +3,12 @@ from util import call_gpt4, extract_transitions_guards_table
 from n_shot_examples import get_n_shot_examples
 
 class TransitionsGuardsSearchAction(BaseAction):
+    """
+    The TransitionsGuardsSearchAction creates the transitions of the UML State Machine with relevant guards
+
+    Input(s): description of the system, name of the system, table of states/events, and table of parallel states
+    Output(s): An HTML table containing transitions with columns "From State", "To State", "Event", and "Guard"
+    """
     name: str = "transitions_guards_search_action"
     args: dict = {}
     usage: str = "Identify all transitions and guards of the state machine from the system description"
