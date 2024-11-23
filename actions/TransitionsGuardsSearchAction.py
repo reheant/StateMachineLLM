@@ -15,6 +15,11 @@ class TransitionsGuardsSearchAction(BaseAction):
     description: str = ""
     
     def execute(self):
+        """
+        The execute function prompts the LLM to identify the transitions of the UML State Machine and their
+        guards
+        """
+        
         print(f"Running {self.name}...")
         modeled_system, _ = self.belief.get('state_event_search_action')
         statesAndEvents, parallelRegions = self.belief.get('parallel_state_search_action')
