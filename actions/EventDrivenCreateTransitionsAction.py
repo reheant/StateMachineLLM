@@ -7,7 +7,7 @@ class EventDrivenCreateTransitionsAction(BaseAction):
     usage: str = "Given a description of a system, the states of the system, and the events of the system, identify all transitions in the UML state machine of the system"
     description: str = ""
 
-    def create_transitions(self, system_name, state, events, states_table, max_retries=5):
+    def create_transitions(self, system_name, state, event, states_table, max_retries=2):
         prompt = f"""
         You are an AI assistant specialized in designing UML state machines from a textual description of a system. Given the description of the system, one of the identified states of the system, one of the identified events of the system, and a table of all identified states of the system, your task is to solve a question answering task.
 
@@ -20,19 +20,19 @@ class EventDrivenCreateTransitionsAction(BaseAction):
         The identified state is:
         {state}
 
-        The list of relevant events is:
-        {events}
+        The identified event is:
+        {event}
 
         The table of identified events is:
         {states_table}
 
         Solution structure:
         1. Begin the response with "Let's think step by step."
-        2. For each event, determine if the event can actually occur in the provided state {state}.
-        3. If the event CANNOT occur in the state, skip to step 7. Otherwise, if the event CAN occur in the state, create transition(s) for when the event occurs in the state. Use the table of provided states to determine the destination state when the provided event occurs in the provided state.
+        2. Determine if the single identified event can occur while in the single identified state
+        3. If the event CANNOT occur in the state, reply with "NO TRANSITIONS". Otherwise, if the event CAN occur in the state, create transition(s) for when the event occurs in the state. Use the table of provided states to determine the destination state when the provided event occurs in the provided state.
         4. If any transitions were identified, identify any guard conditions for each of the identified transitions. Note that guard conditions are NOT required for transitions, so it is possible that a transition may not have a guard condition. If there are no guard conditions identified for one of the transitions, output "NONE".
         5. If any transitions were identified, identify any actions/side effects for each of the identified transitions. Note that actions are NOT required for transitions, so it is possible that a transition may not have an associated action. If there are no actions identified for one of the transitions, output "NONE".
-        6. If any transitions were identified, give a list of transitions in the following HTML table format:
+        6. Finally, if there are no transitions for the identified state and event, reply "NO TRANSITIONS". Otherwise, if any transitions were identified, give a list of transitions in the following HTML table format:
         
         ```html <table border="1"> 
         <tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr> 
@@ -41,15 +41,6 @@ class EventDrivenCreateTransitionsAction(BaseAction):
         </table> ```
 
         where the "From State", "To State", and "Event" column entries are required, but the "Guard" and "Action" are NOT required. If no "Guard" or "Action" has been identified for a transition, fill the "Guard" or "Action" entry with "NONE".
-
-        7. If there are events remaining in the list of events, go back to step 2 and repeat the process.
-        8. Combine all transitions tables into a single table in the format:
-
-        ```html <table border="1"> 
-        <tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr> 
-        <tr> <td rowspan="3"> State1 </td> <td> State2 </td> <td> Event1 </td> <td> Condition1 </td> <td> Action 1 </td> </tr> 
-        <tr> <td rowspan="3"> State2 </td> <td> State3 </td> <td> Event1 </td> <td> Condition1 </td> <td> NONE </td> </tr> 
-        </table> ```
         """
 
         # iterate over a max number of retries in order to get the correct format
@@ -59,10 +50,15 @@ class EventDrivenCreateTransitionsAction(BaseAction):
             response = call_gpt4(prompt=prompt, 
                                  temperature=0.7)
             
+            # no transitions, so skip retries
+            if "NO TRANSITIONS" in response:
+                print("No transitions created.")
+                return None
+
             # attempt to extract the transitions table
             transitions_table = extract_transitions_guards_actions_table(llm_response=response)
             if transitions_table is not None:
-                print("Valid transitions found.")
+                print(transitions_table)
                 return transitions_table
             else:
                 print("No transitions table found in the response.")
@@ -88,13 +84,15 @@ class EventDrivenCreateTransitionsAction(BaseAction):
 
         # iterate over each combination of states and events, collecting transitions tables to be merged at the end
         transitions_tables = []
-        for state, events in states_events_dict.items():
-            transitions = self.create_transitions(system_name=system_name,
-                                                  state=state,
-                                                  events=events,
-                                                  states_table=event_driven_states_table)
+        for state in states_events_dict:
+            for event in states_events_dict.get(state, []):
+                transitions = self.create_transitions(system_name=system_name,
+                                                      state=state,
+                                                      event=event,
+                                                      states_table=event_driven_states_table)
 
-            transitions_tables.append(transitions)
+                if transitions is not None:
+                    transitions_tables.append(transitions)
         
         merged_transitions_table = merge_tables(html_tables_list=transitions_tables)
         print(merged_transitions_table)
