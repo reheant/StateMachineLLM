@@ -7,7 +7,7 @@ class EventDrivenCreateTransitionsAction(BaseAction):
     usage: str = "Given a description of a system, the states of the system, and the events of the system, identify all transitions in the UML state machine of the system"
     description: str = ""
 
-    def create_transitions(self, system_name, state, event, states_table, max_retries=5):
+    def create_transitions(self, system_name, state, event, states_table, max_retries=2):
         prompt = f"""
         You are an AI assistant specialized in designing UML state machines from a textual description of a system. Given the description of the system, one of the identified states of the system, one of the identified events of the system, and a table of all identified states of the system, your task is to solve a question answering task.
 
@@ -50,10 +50,15 @@ class EventDrivenCreateTransitionsAction(BaseAction):
             response = call_gpt4(prompt=prompt, 
                                  temperature=0.7)
             
+            # no transitions, so skip retries
+            if "NO TRANSITIONS" in response:
+                print("No transitions created.")
+                return None
+
             # attempt to extract the transitions table
             transitions_table = extract_transitions_guards_actions_table(llm_response=response)
             if transitions_table is not None:
-                print("Valid transitions found.")
+                print(transitions_table)
                 return transitions_table
             else:
                 print("No transitions table found in the response.")
@@ -86,7 +91,7 @@ class EventDrivenCreateTransitionsAction(BaseAction):
                                                       event=event,
                                                       states_table=event_driven_states_table)
 
-                if transitions_tables is not None:
+                if transitions is not None:
                     transitions_tables.append(transitions)
         
         merged_transitions_table = merge_tables(html_tables_list=transitions_tables)
