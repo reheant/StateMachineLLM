@@ -64,7 +64,9 @@ class HistoryStateSearchAction(BaseAction):
         answer = call_gpt4(prompt)
         
         if "NONE" in answer:
+            print(f"History State updated transitions: {transition_table}")
             return transition_table
         else:
-            return extract_transitions_guards_table(answer, True)
-
+            rv = extract_transitions_guards_table(answer, True)
+            print(rv)
+            return rv

@@ -45,5 +45,6 @@ class ActionSearchAction(BaseAction):
         response = call_gpt4(prompt=prompt)
 
         transitions_guards_actions_table = extract_transitions_guards_actions_table(response)
-
+        
+        print(transitions_guards_actions_table)
         return transitions_guards_actions_table
