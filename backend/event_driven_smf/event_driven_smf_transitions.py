@@ -36,7 +36,7 @@ associate_events_with_states = {
 create_transitions = {
     "trigger": "start_event_driven_create_transitions",
     "source": "CreateTransitions",
-    "dest": "FilterTransitions",
+    "dest": "CreateHierarchicalStates",
     "before": "event_driven_create_transitions_action"
 }
 
@@ -89,7 +89,6 @@ transitions = [
                 event_search,
                 associate_events_with_states,
                 create_transitions,
-                filter_transitions,
                 create_hierarchical_states,
                 hierarchical_initial_state_search,
                 refactor_transition_names,
