@@ -16,7 +16,6 @@ from actions.EventDrivenCreateHierarchicalStatesAction import EventDrivenCreateH
 from actions.EventDrivenHierarchicalInitialStateSearchAction import EventDrivenHierarchicalInitialStateSearchAction
 from actions.EventDrivenRefactorTransitionNamesAction import EventDrivenRefactorTransitionNamesAction
 from actions.EventDrivenDisplayResultsAction import EventDrivenDisplayResultsAction
-from actions.EventDrivenFilterTransitionsAction import EventDrivenFilterTransitionsAction
 from actions.EventDrivenHistoryStateSearchAction import EventDrivenHistoryStateSearchAction
 from event_driven_smf_transitions import transitions
 
@@ -63,8 +62,6 @@ event_driven_associate_events_with_states = EventDrivenAssociateEventsWithStates
                                                                                        description=description)
 event_driven_create_transitions_action = EventDrivenCreateTransitionsAction(belief=belief,
                                                                             description=description)
-event_driven_filter_transitions_action = EventDrivenFilterTransitionsAction(belief=belief,
-                                                                            description=description)
 event_driven_create_hierarchical_states_action = EventDrivenCreateHierarchicalStatesAction(belief=belief,
                                                                                            description=description)
 event_driven_hierarchical_initial_state_search_action = EventDrivenHierarchicalInitialStateSearchAction(belief=belief,
@@ -83,7 +80,6 @@ event_driven_action_map = {
     event_driven_event_search_action.name: event_driven_event_search_action,
     event_driven_associate_events_with_states.name: event_driven_associate_events_with_states,
     event_driven_create_transitions_action.name: event_driven_create_transitions_action,
-    event_driven_filter_transitions_action.name: event_driven_filter_transitions_action,
     event_driven_create_hierarchical_states_action.name: event_driven_create_hierarchical_states_action,
     event_driven_hierarchical_initial_state_search_action.name: event_driven_hierarchical_initial_state_search_action,
     event_driven_refactor_transition_names_action.name: event_driven_refactor_transition_names_action,
@@ -98,7 +94,6 @@ states = [
             "EventSearch",
             "AssociateEventsWithStates",
             "CreateTransitions",
-            "FilterTransitions",
             "CreateHierarchicalStates",
             "HierarchicalInitialStateSearch",
             "RefactorTransitionNames",
