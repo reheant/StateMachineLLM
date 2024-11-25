@@ -1,0 +1,125 @@
+import re
+from sherpa_ai.actions.base import BaseAction
+from resources.util import call_gpt4, remove_transitions_from_exit_transition_table, extract_table_entries, create_exit_transitions_table, find_events_for_transitions_table, merge_tables
+
+class EventDrivenFilterTransitionsAction(BaseAction):
+    """
+    The EventDrivenFilterTransitionsAction takes examines the transitions table created
+    by EventDrivenCreateTransitionsAction and prompts the LLM to reduce the number of
+    false positive transitions created.
+
+    Input(s): description of the system, name of the system, states of the system from EventDrivenStateSearchAction, and the transitions of the system from EventDrivenCreateTransitionsAction
+    Output(s): an HTML table with columns "From State", "To State", "Event", "Guard", and "Action" containing all transitions of the UML State Machine after removing unnecessary transitions
+    """
+
+    name: str = "event_driven_filter_transitions_action"
+    args: dict = {}
+    usage: str = "Given a description of a system and the identified transitions of the system, reduce the number of inaccurate or unneccesary transitions in the UML State Machine"
+    description: str = ""
+
+    
+    def send_filter_transitions_prompt(self, system_name, transitions_table, events, state):
+        """
+        The send_filter_transitions_prompt() function takes a single state name,
+        the table containing all transitions leaving a state, and all events occuring the state.
+        The LLM is prompted to create partial orderings of the provided events, and then remove
+        any transitions which violate the partial orderings
+        """
+
+        events_formatted = ", ".join(events)
+        prompt = f"""
+        You are an AI assistant specialized in designing UML state machines from a textual description of a system. Given the description of the system, a state, and a table containing the transitions exiting the provided state, your task is to answer a question answering task.
+        
+        Name of the system:
+        {system_name}
+
+        Description of the system:
+        {self.description}
+
+        The identified state is:
+        {state}
+
+        The table of identified transitions exiting the state is:
+        {transitions_table}
+
+        The events associated with the transitions are:
+        {events_formatted}
+
+        Solution structure:
+        1. Begin the response with "Let's think step by step."
+        2. Examine the events and transitions that are exiting the current state.
+        3. Examine the description of the system. Using the description of the system, determine partial orderings of the events related to the transitions. A partial ordering of events refers to a system where some events must occur in a specific sequence due to dependencies, while others can happen independently or concurrently.
+        4. Based on the partial orderings which you generate and the provided state, identify the transitions that violate the partial orderings. In other words, based on the state and the partial orderings which you have generated, identify the transitions that CANNOT occur for the given state.
+        5. If there are transitions to remove based on the partial orderings. Output "NO TRANSITIONS REMOVED".
+        6. Otherwise, if transitions need to be removed, output the IDs of the transitions, as indicated in the "Transition ID" column, in a comma separated list in the following format:
+
+        Transitions Removed: <first_id>, <second_id>, <third_id>, ...
+
+        The IDs that you provide should come from the original transitions table provided to you above. DO NOT add transition IDs that do not exist.
+        Your solution MUST be in the above format, otherwise it will be rejected.
+        """
+
+        response = call_gpt4(prompt=prompt,
+                             temperature=0.7)
+        
+        match = re.search(r"Transitions Removed:\s*([\w\s,]+)", response)
+        
+        if "NO TRANSITIONS REMOVED" in response:
+            print("No transitions removed")
+            transitions_table = remove_transitions_from_exit_transition_table(transitions_table, set())
+            return transitions_table
+        else:
+            if match:
+                # extract either a comma separated list or a single ID provided by the LLM
+                ids_to_remove_str = match.group(1)
+                ids_to_remove = [id.strip() for id in ids_to_remove_str.split(",") if id.strip()]
+                updated_transitions = remove_transitions_from_exit_transition_table(transitions_table=transitions_table,
+                                                                                    ids_to_remove=ids_to_remove)
+                print(f"Removed transitions {ids_to_remove}")
+                return updated_transitions
+            else:
+                print(f"Match not found. Response: {response}")
+                transitions_table = remove_transitions_from_exit_transition_table(transitions_table, set())
+                return transitions_table
+        
+
+    def execute(self):
+        """
+        The execute function takes the transitions table created by the EventDrivenCreateTransitionsAction
+        and the states identified by the EventDrivenStateSearchAction as input. For each identified state, 
+        the transitions exiting that state are extracted from the transitions table and the events of those transitions. 
+        Then, the execute function calls the send_filter_transitions_prompt() function to prompt the LLM to remove
+        unneccessary transitions. These filtered transitions tables are then merged to create the filtered
+        transitions table of the UML state machine
+        """
+
+        print(f"Running {self.name}...")
+        system_name = self.belief.get("event_driven_system_name_search_action", "Thermomix TM6")
+
+        event_driven_transitions_table = self.belief.get("event_driven_create_transitions_action")
+        event_driven_states_table = self.belief.get("event_driven_state_search_action")
+        states = extract_table_entries(table=event_driven_states_table)
+
+        filtered_transitions_tables = []
+
+        # for each state, prompt the LLM to remove unnecessary transitions exiting the state, and store the new table in a list
+        for state in states:
+            exit_transitions = create_exit_transitions_table(transitions_table=event_driven_transitions_table,
+                                                                   from_state=state)
+            
+            events = find_events_for_transitions_table(transitions_table=exit_transitions)
+            
+            filtered_transitions_table = self.send_filter_transitions_prompt(system_name=system_name,
+                                                                             transitions_table=exit_transitions, 
+                                                                             events=events, 
+                                                                             state=state)
+            
+            filtered_transitions_tables.append(filtered_transitions_table)
+        
+        # merge all the filtered transitions tables into a single HTML table
+        filtered_transitions_table = merge_tables(html_tables_list=filtered_transitions_tables)
+
+        print(filtered_transitions_table)
+        return filtered_transitions_table
+                
+
