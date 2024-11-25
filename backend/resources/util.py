@@ -198,7 +198,9 @@ def gsm_tables_to_dict(hierarchical_states_table : Tag, transitions_table : Tag,
     # States under '-' really don't have a superstate
     non_composite_state = [state for state in states if isinstance(state, dict) and state['name'] == '-']
     if non_composite_state:
-        states.extend(non_composite_state[0]['children'])
+        for child in non_composite_state[0]['children']:
+            if child not in states:
+                states.append(child)
         states.remove(non_composite_state[0])
 
     # Remove all spaces not to confuse mermaid

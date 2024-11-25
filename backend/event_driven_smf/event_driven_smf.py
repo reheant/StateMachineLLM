@@ -27,6 +27,10 @@ from actions.EventDrivenDisplayResultsAction import EventDrivenDisplayResultsAct
 from actions.EventDrivenHistoryStateSearchAction import EventDrivenHistoryStateSearchAction
 from event_driven_smf_transitions import transitions
 from resources.state_machine_descriptions import thermomix_fall_2021
+import mermaid as md
+from mermaid.graph import Graph
+from resources.util import gsm_tables_to_dict
+import time
 
 description = thermomix_fall_2021
 
@@ -103,7 +107,19 @@ policy = ReactPolicy(role_description="Help the user finish the task", output_in
 qa_agent = QAAgent(llm=llm, belief=belief, num_runs=100, policy=policy)
 
 def run_event_driven_smf():
-    qa_agent.run()
+    with open(f'{os.path.dirname(__file__)}\\..\\resources\\event_driven_log\\output_event_driven{time.strftime("%m_%d_%H_%M_%S")}.txt', 'w') as f:
+        sys.stdout = f
+        qa_agent.run()
+
+        gsm_states, gsm_transitions, gsm_parallel_regions = gsm_tables_to_dict(belief.get("event_driven_create_hierarchical_states_action"), belief.get("event_driven_history_state_search_action"), None)
+        print(f"States: {gsm_states}")
+        print(f"Transitions: {gsm_transitions}")
+        print(f"Parallel Regions: {gsm_parallel_regions}")
+        gsm = SherpaStateMachine(states=gsm_states, transitions=gsm_transitions, initial=belief.get("event_driven_initial_state_search_action").replace(' ',''), sm_cls=HierarchicalGraphMachine)
+        print(gsm.sm.get_graph().draw(None))
+        sequence = Graph('Sequence-diagram',gsm.sm.get_graph().draw(None))
+        render = md.Mermaid(sequence)
+        render.to_png('ExhibitA.png')
 
 if __name__ == "__main__":
     run_event_driven_smf()

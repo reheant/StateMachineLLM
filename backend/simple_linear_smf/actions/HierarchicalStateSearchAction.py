@@ -51,4 +51,7 @@ class HierarchicalStateSearchAction(BaseAction):
         answer = call_gpt4(prompt)
         hierarchical_state_table = extract_hierarchical_state_table(answer)
         updated_transitions_table = extract_transitions_guards_actions_table(answer)
+
+        print(f"Hierarchical State Table: {hierarchical_state_table}")
+        print(f"Updated Transitions State Table: {updated_transitions_table}")
         return hierarchical_state_table, updated_transitions_table

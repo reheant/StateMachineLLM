@@ -95,6 +95,8 @@ class ParallelStateSearchAction(BaseAction):
             print(f"No parallel states found")
         
         # state_event_table will never be None, parallel_state_table may be None if there are no parallel states
+        
+        print(f"Parallel State event table: {state_event_table}")
+        print(f"Parallel State table: {parallel_state_table}")
         return state_event_table, parallel_state_table
-            
 

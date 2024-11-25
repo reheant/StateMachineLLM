@@ -1,5 +1,6 @@
 import sys
 import os
+import time
 
 script_dir = os.path.dirname(__file__)
 resources_dir = os.path.join(script_dir, '..')
@@ -62,17 +63,20 @@ policy = ReactPolicy(role_description="Help the user finish the task", output_in
 qa_agent = QAAgent(llm=llm, belief=belief, num_runs=10, policy=policy)
 
 def run_sherpa_task():
-    print(qa_agent.run())
+    with open(f'{os.path.dirname(__file__)}\\..\\resources\\simple_linear_log\\output_simple_linear{time.strftime("%m_%d_%H_%M_%S")}.txt', 'w') as f:
+        sys.stdout = f
+        
+        qa_agent.run()
 
-    gsm_states, gsm_transitions, gsm_parallel_regions = gsm_tables_to_dict(*belief.get("sanity_check_action"))
-    print(f"States: {gsm_states}")
-    print(f"Transitions: {gsm_transitions}")
-    print(f"Parallel Regions: {gsm_parallel_regions}")
-    gsm = SherpaStateMachine(states=gsm_states, transitions=gsm_transitions, initial=[sms for sms in gsm_states if not isinstance(sms, dict)][0], sm_cls=HierarchicalGraphMachine)
-    print(gsm.sm.get_graph().draw(None))
-    sequence = Graph('Sequence-diagram',gsm.sm.get_graph().draw(None))
-    render = md.Mermaid(sequence)
-    render.to_png('ExhibitA.png')
+        gsm_states, gsm_transitions, gsm_parallel_regions = gsm_tables_to_dict(*belief.get("sanity_check_action"))
+        print(f"States: {gsm_states}")
+        print(f"Transitions: {gsm_transitions}")
+        print(f"Parallel Regions: {gsm_parallel_regions}")
+        gsm = SherpaStateMachine(states=gsm_states, transitions=gsm_transitions, initial=[sms for sms in gsm_states if not isinstance(sms, dict)][0], sm_cls=HierarchicalGraphMachine)
+        print(gsm.sm.get_graph().draw(None))
+        sequence = Graph('Sequence-diagram',gsm.sm.get_graph().draw(None))
+        render = md.Mermaid(sequence)
+        render.to_png(f'{os.path.dirname(__file__)}\\ExhibitA.png')
 
 if __name__ == "__main__":
     run_sherpa_task()
