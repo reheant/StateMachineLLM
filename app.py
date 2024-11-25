@@ -1,5 +1,5 @@
 import chainlit as cl
-from sherpa import run_sherpa_task
+from event_driven_smf import run_event_driven_smf
 import io
 import contextlib
 import asyncio
@@ -15,7 +15,7 @@ async def stream_function_output():
     stdout_capture = io.StringIO()
     
     with contextlib.redirect_stdout(stdout_capture):
-        task = asyncio.create_task(asyncio.to_thread(run_sherpa_task))
+        task = asyncio.create_task(asyncio.to_thread(run_event_driven_smf))
         
         while not task.done():
             await asyncio.sleep(0.1)

@@ -8,7 +8,6 @@ class EventDrivenDisplayResultsAction(BaseAction):
     def execute(self):
         print(f"Running {self.name}...")
 
-
         event_driven_hierarchical_states_table = self.belief.get("event_driven_create_hierarchical_states_action")
 
         print(f"Hierarchical States Table:\n{event_driven_hierarchical_states_table}")

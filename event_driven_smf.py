@@ -17,6 +17,7 @@ from actions.EventDrivenHierarchicalInitialStateSearchAction import EventDrivenH
 from actions.EventDrivenRefactorTransitionNamesAction import EventDrivenRefactorTransitionNamesAction
 from actions.EventDrivenDisplayResultsAction import EventDrivenDisplayResultsAction
 from actions.EventDrivenHistoryStateSearchAction import EventDrivenHistoryStateSearchAction
+from actions.EventDrivenFactorOutTransitionsForHierarchalStates import EventDrivenFactorOutTransitionsForHierarchalStates
 from event_driven_smf_transitions import transitions
 
 description = """
@@ -68,6 +69,8 @@ event_driven_hierarchical_initial_state_search_action = EventDrivenHierarchicalI
                                                                                                         description=description)
 event_driven_refactor_transition_names_action =  EventDrivenRefactorTransitionNamesAction(belief=belief,
                                                                                           description=description)
+event_driven_factor_out_transitions_for_hierarchal_states = EventDrivenFactorOutTransitionsForHierarchalStates(belief=belief,
+                                                                                          description=description)
 event_driven_history_state_search_action =  EventDrivenHistoryStateSearchAction(belief=belief,
                                                                                           description=description)
 event_driven_display_results_action = EventDrivenDisplayResultsAction(belief=belief,
@@ -83,6 +86,7 @@ event_driven_action_map = {
     event_driven_create_hierarchical_states_action.name: event_driven_create_hierarchical_states_action,
     event_driven_hierarchical_initial_state_search_action.name: event_driven_hierarchical_initial_state_search_action,
     event_driven_refactor_transition_names_action.name: event_driven_refactor_transition_names_action,
+    event_driven_factor_out_transitions_for_hierarchal_states.name: event_driven_factor_out_transitions_for_hierarchal_states,
     event_driven_history_state_search_action.name: event_driven_history_state_search_action,
     event_driven_display_results_action.name: event_driven_display_results_action
 }
@@ -97,6 +101,7 @@ states = [
             "CreateHierarchicalStates",
             "HierarchicalInitialStateSearch",
             "RefactorTransitionNames",
+            "FactorOutHierarchalTransitions",
             "HistoryStateSearch",
             "DisplayResults",
             "Done"
@@ -116,7 +121,7 @@ belief.set_current_task(Event(EventType.task,
                               "User wants to generate a UML State Machine from the provided system description and display the results at the end"))
 
 # set up task to be run
-llm = SherpaChatOpenAI(model_name="gpt-4o-mini", temperature=0.5)
+llm = SherpaChatOpenAI(model_name="gpt-4o-mini", temperature=0.7)
 policy = ReactPolicy(role_description="Help the user finish the task", output_instruction="Determine which action and arguments would be the best continuing the task", llm=llm)
 qa_agent = QAAgent(llm=llm, belief=belief, num_runs=100, policy=policy)
 
