@@ -131,6 +131,9 @@ policy = ReactPolicy(role_description="Help the user finish the task", output_in
 qa_agent = QAAgent(llm=llm, belief=belief, num_runs=100, policy=policy)
 
 def run_event_driven_smf():
+    """
+    the run_event_driven_smf initiates the Sherpa Event Driven State Machine Framework
+    """
     qa_agent.run()
 
 if __name__ == "__main__":
