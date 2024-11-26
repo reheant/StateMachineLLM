@@ -1,6 +1,6 @@
 from sherpa_ai.actions.base import BaseAction
 from sherpa_ai.memory.belief import Belief
-from resources.util import call_gpt4
+from resources.util import call_llm
 from resources.util import extract_states_events_table
 from resources.util import extract_parallel_states_table
 from resources.n_shot_examples import get_n_shot_examples
@@ -55,7 +55,7 @@ class ParallelStateSearchAction(BaseAction):
         
         # call GPT 4 while we should retry and we haven't reached max retries
         while retries < 5 and retry:
-            response = call_gpt4(prompt)
+            response = call_llm(prompt)
             updated_state_event_table = extract_states_events_table(llm_response=response)
             
             if ("EMPTY" in response):

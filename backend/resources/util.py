@@ -2,18 +2,62 @@ import os
 import openai
 import re
 from bs4 import BeautifulSoup, Tag
+from getpass import getpass
+import aisuite as ai
+
 
 openai.api_key = os.environ.get("OPENAI_API_KEY")
 
-def call_gpt4(prompt, model="gpt-4o", max_tokens=1200, temperature=0.7):
-    response = openai.chat.completions.create(
+client = ai.Client()
+
+model = ""
+
+def choose_model():
+    print("Please pick the model you want to use to power your assistant:")
+    print("1. GPT-4o")
+    print("2. Claude 3.5 Sonnet")
+    print("3. Llama 3.2 3b Preview")
+    print("4. Gemini 1.5 Pro 001")
+
+
+    while True:
+        try:
+            choice = int(input("Enter the number corresponding to your model (1, 2, 3, 4): "))
+            if choice == 1:
+                model =  "openai:gpt-4o"
+                return
+            elif choice == 2:
+                model =  "anthropic:claude-3-5-sonnet-20241022"
+                return
+            elif choice == 3:
+                model = "groq:llama-3.2-3b-preview"
+                return
+            elif choice == 4:
+                model = "google:gemini-1.5-pro-001"
+                return
+            else:
+                print("Invalid choice. Please enter 1, 2, 3 or 4.")
+        except ValueError:
+            print("Invalid input. Please enter a number (1, 2, 3, or 4).")
+
+
+def call_llm(prompt, max_tokens=1200, temperature=0.7):
+    response = client.chat.completions.create(
         model=model,
-        messages=[{"role": "user", "content": prompt}],
+        messages=[{"role": "system", "content": "You are a programming assistant specialized in generating HTML content. Your task is to create a state machine representation using HTML tables."},
+                  {"role": "user", "content": prompt}],
         temperature=temperature,
         max_tokens=max_tokens
     )
-
     return response.choices[0].message.content
+
+
+if __name__ == "__main__":
+    prompt = "Hi, I need help answering a question about states machines. What are events?"
+    model="google:gemini-1.5-pro-001"
+    llm_response = call_llm(prompt)
+    print(llm_response)
+
 
 def extract_html_tables(llm_response : str) -> list[Tag]:
     # extract the content within the ```html code blocks using regex

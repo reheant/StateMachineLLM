@@ -1,5 +1,5 @@
 from sherpa_ai.actions.base import BaseAction
-from resources.util import call_gpt4, extract_hierarchical_state_table, extract_transitions_guards_actions_table
+from resources.util import call_llm, extract_hierarchical_state_table, extract_transitions_guards_actions_table
 from resources.n_shot_examples import get_n_shot_examples
 
 class HierarchicalStateSearchAction(BaseAction):
@@ -48,7 +48,7 @@ class HierarchicalStateSearchAction(BaseAction):
 
         Updated transitions table: 
         '''
-        answer = call_gpt4(prompt)
+        answer = call_llm(prompt)
         hierarchical_state_table = extract_hierarchical_state_table(answer)
         updated_transitions_table = extract_transitions_guards_actions_table(answer)
 

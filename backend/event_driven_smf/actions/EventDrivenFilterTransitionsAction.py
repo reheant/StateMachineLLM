@@ -1,6 +1,6 @@
 import re
 from sherpa_ai.actions.base import BaseAction
-from resources.util import call_gpt4, remove_transitions_from_exit_transition_table, extract_table_entries, create_exit_transitions_table, find_events_for_transitions_table, merge_tables
+from resources.util import call_llm, remove_transitions_from_exit_transition_table, extract_table_entries, create_exit_transitions_table, find_events_for_transitions_table, merge_tables
 
 class EventDrivenFilterTransitionsAction(BaseAction):
     name: str = "event_driven_filter_transitions_action"
@@ -43,7 +43,7 @@ class EventDrivenFilterTransitionsAction(BaseAction):
         Your solution MUST be in the above format, otherwise it will be rejected.
         """
 
-        response = call_gpt4(prompt=prompt,
+        response = call_llm(prompt=prompt,
                              temperature=0.7)
         
         match = re.search(r"Transitions Removed:\s*([\w\s,]+)", response)

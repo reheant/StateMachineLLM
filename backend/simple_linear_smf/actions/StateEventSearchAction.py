@@ -1,5 +1,5 @@
 from sherpa_ai.actions.base import BaseAction
-from resources.util import call_gpt4
+from resources.util import call_llm
 from resources.util import extract_states_events_table
 import re
 from resources.n_shot_examples import get_n_shot_examples
@@ -12,7 +12,7 @@ class StateEventSearchAction(BaseAction):
 
     def execute(self):
         print(f"Running {self.name}...")
-        states_response_in_html = call_gpt4(f"""
+        states_response_in_html = call_llm(f"""
             Given the problem description, identify what the states and events are and make sure not to include any redundant states or events by making sure that you parse the output for any states or events that might be redundant. Ensure that the states are defined specifically in the context of the object being modeled. It’s important to note that a complete state machine has an initial state and that states might have multiple events occurring on them resulting in multiple transitions from the current state to other states. 
             
             Output the name of the system in the following format:  

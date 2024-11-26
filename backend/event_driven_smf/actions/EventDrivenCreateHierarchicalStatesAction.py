@@ -1,5 +1,5 @@
 from sherpa_ai.actions.base import BaseAction
-from resources.util import call_gpt4, extract_hierarchical_state_table
+from resources.util import call_llm, extract_hierarchical_state_table
 
 class EventDrivenCreateHierarchicalStatesAction(BaseAction):
     name: str = "event_driven_create_hierarchical_states_action"
@@ -42,7 +42,7 @@ class EventDrivenCreateHierarchicalStatesAction(BaseAction):
         Your solution MUST be in the above format, otherwise it will be rejected. For the solution, ALL states from the original table of identified transitions MUST appear in the "Substate" column EXACTLY ONCE; otherwise, your solution will be rejected. If a state from the original table of identified transitions DOES NOT have a parent state in your design of the Hierarchical State Machine, enter "-" in the "Superstate" column, as demonstrated in the example above.
         """
 
-        response = call_gpt4(prompt=prompt,
+        response = call_llm(prompt=prompt,
                              temperature=0.7)
         
         hierarchical_state_table = None

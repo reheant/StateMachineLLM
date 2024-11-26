@@ -1,5 +1,5 @@
 from sherpa_ai.actions.base import BaseAction
-from resources.util import call_gpt4
+from resources.util import call_llm
 from resources.util import extract_transitions_guards_actions_table
 from resources.n_shot_examples import get_n_shot_examples
 
@@ -42,7 +42,7 @@ class ActionSearchAction(BaseAction):
                     transitions_events_guards_actions_table: 
                 """
 
-        response = call_gpt4(prompt=prompt)
+        response = call_llm(prompt=prompt)
 
         transitions_guards_actions_table = extract_transitions_guards_actions_table(response)
         

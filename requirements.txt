@@ -3,3 +3,8 @@ openai==1.35.7
 sherpa-ai==0.4.0
 beautifulsoup4
 mermaid-py
+aisuite
+anthropic
+llama-stack
+groq
+vertex-ai

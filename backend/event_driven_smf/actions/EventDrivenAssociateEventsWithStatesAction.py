@@ -1,6 +1,6 @@
 import re
 from sherpa_ai.actions.base import BaseAction
-from resources.util import call_gpt4, extract_table_entries
+from resources.util import call_llm, extract_table_entries
 
 class EventDrivenAssociateEventsWithStatesAction(BaseAction):
     """
@@ -55,7 +55,7 @@ class EventDrivenAssociateEventsWithStatesAction(BaseAction):
         # if the LLM does not get the correct format after max_retries, then we return none
         retries = 0
         while retries < max_retries:
-            response = call_gpt4(prompt=prompt, 
+            response = call_llm(prompt=prompt, 
                                  temperature=0.7)
             
             match = re.search(r"Relevant Events:\s*([\w\s,]+)", response)

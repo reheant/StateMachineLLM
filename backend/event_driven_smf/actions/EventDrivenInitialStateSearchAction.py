@@ -1,6 +1,6 @@
 import re
 from sherpa_ai.actions.base import BaseAction
-from resources.util import call_gpt4
+from resources.util import call_llm
 
 class EventDrivenInitialStateSearchSearchAction(BaseAction):
     name: str = "event_driven_initial_state_search_action"
@@ -36,7 +36,7 @@ class EventDrivenInitialStateSearchSearchAction(BaseAction):
         The Initial State you output MUST be in the above format, or else your solution will be rejected.
         """
 
-        response = call_gpt4(prompt=prompt,
+        response = call_llm(prompt=prompt,
                              temperature=0.7)
         
         initial_state = re.search(r"Initial State:\s*\"(.*?)\"", response).group(1)

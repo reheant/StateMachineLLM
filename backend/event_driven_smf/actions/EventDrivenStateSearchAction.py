@@ -1,5 +1,5 @@
 from sherpa_ai.actions.base import BaseAction
-from resources.util import call_gpt4, extract_event_driven_states_table
+from resources.util import call_llm, extract_event_driven_states_table
 
 class EventDrivenStateSearchSearchAction(BaseAction):
     name: str = "event_driven_state_search_action"
@@ -35,7 +35,7 @@ class EventDrivenStateSearchSearchAction(BaseAction):
         The HTML table you output MUST be in the above format, or else your solution will be rejected.
         """
 
-        response = call_gpt4(prompt=prompt,
+        response = call_llm(prompt=prompt,
                              temperature=0.7)
 
         event_driven_states_table = extract_event_driven_states_table(llm_response=response)

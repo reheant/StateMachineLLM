@@ -1,5 +1,5 @@
 from sherpa_ai.actions.base import BaseAction
-from resources.util import call_gpt4, extract_transitions_guards_table
+from resources.util import call_llm, extract_transitions_guards_table
 from resources.n_shot_examples import get_n_shot_examples
 
 class HistoryStateSearchAction(BaseAction):
@@ -61,7 +61,7 @@ class HistoryStateSearchAction(BaseAction):
         Updated transition table:
         '''
         
-        answer = call_gpt4(prompt)
+        answer = call_llm(prompt)
         
         if "NONE" in answer:
             print(f"History State updated transitions: {transition_table}")

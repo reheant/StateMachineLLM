@@ -30,7 +30,7 @@ from event_driven_smf_transitions import transitions
 from resources.state_machine_descriptions import thermomix_fall_2021
 import mermaid as md
 from mermaid.graph import Graph
-from resources.util import gsm_tables_to_dict
+from resources.util import gsm_tables_to_dict, choose_model
 import time
 
 description = thermomix_fall_2021
@@ -127,4 +127,5 @@ def run_event_driven_smf():
         render.to_png('ExhibitA.png')
 
 if __name__ == "__main__":
+    choose_model()
     run_event_driven_smf()

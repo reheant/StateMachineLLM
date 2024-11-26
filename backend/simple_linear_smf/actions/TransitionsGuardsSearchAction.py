@@ -1,5 +1,5 @@
 from sherpa_ai.actions.base import BaseAction
-from resources.util import call_gpt4, extract_transitions_guards_table, appendTables, extractColumn
+from resources.util import call_llm, extract_transitions_guards_table, appendTables, extractColumn
 from resources.n_shot_examples import get_n_shot_examples
 
 class TransitionsGuardsSearchAction(BaseAction):
@@ -37,7 +37,7 @@ class TransitionsGuardsSearchAction(BaseAction):
                 <tr> <td rowspan="3"> State3 </td> <td> State4 </td> <td> Event2 </td> <td> NONE </td> </tr> </table>  
 
                 '''
-                transitions.append(call_gpt4(prompt))
+                transitions.append(call_llm(prompt))
 
         final_transition_table = ''
         for i in range(len(transitions)):
@@ -80,7 +80,7 @@ class TransitionsGuardsSearchAction(BaseAction):
         Output: 
         '''
 
-        response = call_gpt4(prompt)
+        response = call_llm(prompt)
         transition_guard_table = extract_transitions_guards_table(response, True)
 
         print(f"Transitions table: {transition_guard_table}")

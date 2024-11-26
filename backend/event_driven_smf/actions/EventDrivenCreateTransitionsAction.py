@@ -1,5 +1,5 @@
 from sherpa_ai.actions.base import BaseAction
-from resources.util import call_gpt4, extract_table_entries, extract_transitions_guards_actions_table, merge_tables
+from resources.util import call_llm, extract_table_entries, extract_transitions_guards_actions_table, merge_tables
 
 class EventDrivenCreateTransitionsAction(BaseAction):
     name: str = "event_driven_create_transitions_action"
@@ -47,7 +47,7 @@ class EventDrivenCreateTransitionsAction(BaseAction):
         # if the LLM does not get the correct format after max_retries, then we return none
         retries = 0
         while retries < max_retries:
-            response = call_gpt4(prompt=prompt, 
+            response = call_llm(prompt=prompt, 
                                  temperature=0.7)
             
             # no transitions, so skip retries

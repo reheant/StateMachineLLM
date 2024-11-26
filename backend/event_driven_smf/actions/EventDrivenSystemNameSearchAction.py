@@ -1,6 +1,6 @@
 import re
 from sherpa_ai.actions.base import BaseAction
-from resources.util import call_gpt4
+from resources.util import call_llm
 
 class EventDrivenSystemNameSearchAction(BaseAction):
     name: str = "event_driven_system_name_search_action"
@@ -20,7 +20,7 @@ class EventDrivenSystemNameSearchAction(BaseAction):
         {self.description}
         """
 
-        response = call_gpt4(prompt=prompt,
+        response = call_llm(prompt=prompt,
                              temperature=0.7)
         
         system_name = re.search(r"System:\s*\"(.*?)\"", response).group(1)
