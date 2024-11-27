@@ -6,7 +6,9 @@ import re
 from bs4 import BeautifulSoup, Tag
 from getpass import getpass
 import aisuite as ai
+from dotenv import load_dotenv
 
+load_dotenv()
 
 openai.api_key = os.environ.get("OPENAI_API_KEY")
 groq.api_key = os.environ.get("GROQ_API_KEY")
