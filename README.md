@@ -1,19 +1,8 @@
 # State Machine-Driven LLM Framework for UML Modeling Automation
 
-## Project Overview
+## Library Overview
 
-This project aims to automate the creation of UML State Machines using Large Language Models (LLMs) through an innovative State Machine Framework (SMF). The primary goal is to streamline the model-driven engineering process by reducing the time and expertise required to generate accurate UML state machines from textual system descriptions.
-
-## Contributors
-
-- Samer Abdulkarim (260964596)
-- Karl Bridi (261002728)
-- Evan Boyd (260947228)
-- Alec Tufenkjian (260986857)
-
-**Project Advisors:**
-- Prof. Gunter Mussbacher
-- Percy Chen (PhD Student)
+This library aims to automate the creation of UML State Machines using Large Language Models (LLMs) through an innovative State Machine Framework (SMF). The primary goal is to streamline the model-driven engineering process by reducing the time and expertise required to generate accurate UML state machines from textual system descriptions.
 
 ## Motivation
 
