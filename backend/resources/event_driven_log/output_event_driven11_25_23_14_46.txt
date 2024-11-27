@@ -1,0 +1,704 @@
+Running start_event_driven_system_name_search...
+SpaManager
+Running start_event_driven_state_search...
+<table border="1">
+<tr> <th>State Name</th> </tr>
+<tr> <td>Sauna Off</td> </tr>
+<tr> <td>Heating</td> </tr>
+<tr> <td>Maintaining Temperature</td> </tr>
+<tr> <td>Fan Active</td> </tr>
+<tr> <td>Dispensing Water</td> </tr>
+<tr> <td>Jacuzzi Off</td> </tr>
+<tr> <td>Level 1 Pressure</td> </tr>
+<tr> <td>Level 2 Pressure</td> </tr>
+<tr> <td>Level 3 Pressure</td> </tr>
+<tr> <td>Pause</td> </tr>
+<tr> <td>Pattern Selection</td> </tr>
+</table>
+Running start_event_driven_initial_state_search...
+Sauna Off
+Running start_event_driven_event_search...
+<table border="1">
+<tr> <th>Event Name</th> </tr>
+<tr> <td>TurnSaunaOn</td> </tr>
+<tr> <td>TurnSaunaOff</td> </tr>
+<tr> <td>StoveStartHeating</td> </tr>
+<tr> <td>StoveStopHeating</td> </tr>
+<tr> <td>FanActivate</td> </tr>
+<tr> <td>FanDeactivate</td> </tr>
+<tr> <td>PourWater</td> </tr>
+<tr> <td>TurnJacuzziOn</td> </tr>
+<tr> <td>TurnJacuzziOff</td> </tr>
+<tr> <td>IncreasePressureLevel</td> </tr>
+<tr> <td>DecreasePressureLevel</td> </tr>
+<tr> <td>ChangeEjectionPattern</td> </tr>
+<tr> <td>PauseJets</td> </tr>
+<tr> <td>ResumeJets</td> </tr>
+</table>
+Running start_event_driven_associate_events_with_states_action
+['TurnSaunaOn']
+['TurnSaunaOn', 'StoveStartHeating', 'StoveStopHeating', 'PourWater']
+['StoveStartHeating', 'StoveStopHeating', 'FanActivate', 'FanDeactivate']
+['FanActivate', 'FanDeactivate', 'TurnSaunaOff']
+['PourWater']
+['TurnJacuzziOn']
+['IncreasePressureLevel', 'DecreasePressureLevel', 'ChangeEjectionPattern', 'PauseJets', 'ResumeJets', 'TurnJacuzziOff']
+['IncreasePressureLevel', 'DecreasePressureLevel', 'ChangeEjectionPattern', 'PauseJets', 'ResumeJets', 'TurnJacuzziOff']
+['DecreasePressureLevel', 'ChangeEjectionPattern', 'PauseJets', 'ResumeJets', 'TurnJacuzziOff']
+['PauseJets', 'ResumeJets']
+['ChangeEjectionPattern']
+{'Sauna Off': ['TurnSaunaOn'], 'Heating': ['TurnSaunaOn', 'StoveStartHeating', 'StoveStopHeating', 'PourWater'], 'Maintaining Temperature': ['StoveStartHeating', 'StoveStopHeating', 'FanActivate', 'FanDeactivate'], 'Fan Active': ['FanActivate', 'FanDeactivate', 'TurnSaunaOff'], 'Dispensing Water': ['PourWater'], 'Jacuzzi Off': ['TurnJacuzziOn'], 'Level 1 Pressure': ['IncreasePressureLevel', 'DecreasePressureLevel', 'ChangeEjectionPattern', 'PauseJets', 'ResumeJets', 'TurnJacuzziOff'], 'Level 2 Pressure': ['IncreasePressureLevel', 'DecreasePressureLevel', 'ChangeEjectionPattern', 'PauseJets', 'ResumeJets', 'TurnJacuzziOff'], 'Level 3 Pressure': ['DecreasePressureLevel', 'ChangeEjectionPattern', 'PauseJets', 'ResumeJets', 'TurnJacuzziOff'], 'Pause': ['PauseJets', 'ResumeJets'], 'Pattern Selection': ['ChangeEjectionPattern']}
+Running start_event_driven_parallel_regions_search_action...
+<table border="1">
+<tr> <th>State Name</th> </tr>
+<tr> <td>Sauna Off</td> </tr>
+<tr> <td>Heating</td> </tr>
+<tr> <td>Maintaining Temperature</td> </tr>
+<tr> <td>Fan Active</td> </tr>
+<tr> <td>Dispensing Water</td> </tr>
+<tr> <td>Jacuzzi Off</td> </tr>
+<tr> <td>Level 1 Pressure</td> </tr>
+<tr> <td>Level 2 Pressure</td> </tr>
+<tr> <td>Level 3 Pressure</td> </tr>
+<tr> <td>Pause</td> </tr>
+<tr> <td>Pattern Selection</td> </tr>
+</table>
+{'Sauna Off': ['TurnSaunaOn'], 'Heating': ['TurnSaunaOn', 'StoveStartHeating', 'StoveStopHeating', 'PourWater'], 'Maintaining Temperature': ['StoveStartHeating', 'StoveStopHeating', 'FanActivate', 'FanDeactivate'], 'Fan Active': ['FanActivate', 'FanDeactivate', 'TurnSaunaOff'], 'Dispensing Water': ['PourWater'], 'Jacuzzi Off': ['TurnJacuzziOn'], 'Level 1 Pressure': ['IncreasePressureLevel', 'DecreasePressureLevel', 'ChangeEjectionPattern', 'PauseJets', 'ResumeJets', 'TurnJacuzziOff'], 'Level 2 Pressure': ['IncreasePressureLevel', 'DecreasePressureLevel', 'ChangeEjectionPattern', 'PauseJets', 'ResumeJets', 'TurnJacuzziOff'], 'Level 3 Pressure': ['DecreasePressureLevel', 'ChangeEjectionPattern', 'PauseJets', 'ResumeJets', 'TurnJacuzziOff'], 'Pause': ['PauseJets', 'ResumeJets'], 'Pattern Selection': ['ChangeEjectionPattern']}
+Running start_event_driven_create_transitions...
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Sauna Off</td> <td>Heating</td> <td>TurnSaunaOn</td> <td>NONE</td> <td>Stove starts heating</td> </tr>
+</table>
+No transitions created.
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Heating</td> <td>Heating</td> <td>StoveStartHeating</td> <td>NONE</td> <td>Stove starts heating</td> </tr>
+</table>
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Heating</td> <td>Maintaining Temperature</td> <td>StoveStopHeating</td> <td>Temperature reaches 90°C</td> <td>NONE</td> </tr>
+</table>
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Heating</td> <td>Dispensing Water</td> <td>PourWater</td> <td>Humidity &lt; 40% AND Fan is not active</td> <td>Disperse eucalyptus-infused water</td> </tr>
+</table>
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Maintaining Temperature</td> <td>Heating</td> <td>StoveStartHeating</td> <td>Temperature &lt; 85°C</td> <td>Stove starts heating</td> </tr>
+</table>
+No transitions created.
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Maintaining Temperature</td> <td>Fan Active</td> <td>FanActivate</td> <td>Humidity &gt; 40% for more than 3 minutes</td> <td>NONE</td> </tr>
+</table>
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Maintaining Temperature</td> <td>Maintaining Temperature</td> <td>FanDeactivate</td> <td>NONE</td> <td>NONE</td> </tr>
+</table>
+No transitions created.
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Fan Active</td> <td>Fan Inactive</td> <td>FanDeactivate</td> <td>Fan active for 5 minutes</td> <td>NONE</td> </tr>
+</table>
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Fan Active</td> <td>Sauna Off</td> <td>TurnSaunaOff</td> <td>NONE</td> <td>NONE</td> </tr>
+</table>
+No transitions created.
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Jacuzzi Off</td> <td>Level 1 Pressure</td> <td>TurnJacuzziOn</td> <td>NONE</td> <td>Start jets at level 1 pressure</td> </tr>
+</table>
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Level 1 Pressure</td> <td>Level 2 Pressure</td> <td>IncreasePressureLevel</td> <td>NONE</td> <td>NONE</td> </tr>
+</table>
+No transitions created.
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Level 1 Pressure</td> <td>Level 1 Pressure</td> <td>ChangeEjectionPattern</td> <td>NONE</td> <td>Change ejection pattern</td> </tr>
+</table>
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Level 1 Pressure</td> <td>Pause</td> <td>PauseJets</td> <td>NONE</td> <td>Stop jets for two minutes</td> </tr>
+</table>
+No transitions created.
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Level 1 Pressure</td> <td>Jacuzzi Off</td> <td>TurnJacuzziOff</td> <td>NONE</td> <td>NONE</td> </tr>
+</table>
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Level 2 Pressure</td> <td>Level 3 Pressure</td> <td>IncreasePressureLevel</td> <td>NONE</td> <td>NONE</td> </tr>
+</table>
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Level 2 Pressure</td> <td>Level 1 Pressure</td> <td>DecreasePressureLevel</td> <td>NONE</td> <td>NONE</td> </tr>
+</table>
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Level 2 Pressure</td> <td>Pattern Selection</td> <td>ChangeEjectionPattern</td> <td>NONE</td> <td>NONE</td> </tr>
+</table>
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Level 2 Pressure</td> <td>Pause</td> <td>PauseJets</td> <td>NONE</td> <td>Stop jets for two minutes</td> </tr>
+</table>
+No transitions created.
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Level 2 Pressure</td> <td>Jacuzzi Off</td> <td>TurnJacuzziOff</td> <td>NONE</td> <td>NONE</td> </tr>
+</table>
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Level 3 Pressure</td> <td>Level 2 Pressure</td> <td>DecreasePressureLevel</td> <td>NONE</td> <td>NONE</td> </tr>
+</table>
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Level 3 Pressure</td> <td>Pattern Selection</td> <td>ChangeEjectionPattern</td> <td>NONE</td> <td>NONE</td> </tr>
+</table>
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Level 3 Pressure</td> <td>Pause</td> <td>PauseJets</td> <td>NONE</td> <td>Stop jets for 2 minutes</td> </tr>
+</table>
+No transitions created.
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Level 3 Pressure</td> <td>Jacuzzi Off</td> <td>TurnJacuzziOff</td> <td>NONE</td> <td>NONE</td> </tr>
+</table>
+No transitions created.
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td> Pause </td> <td> Level 1 Pressure </td> <td> ResumeJets </td> <td> NONE </td> <td> NONE </td> </tr>
+</table>
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Pattern Selection</td> <td>Level 1 Pressure</td> <td>ChangeEjectionPattern</td> <td>NONE</td> <td>NONE</td> </tr>
+</table>
+<table border="1"><tr><th>From State</th><th>To State</th><th>Event</th><th>Guard</th><th>Action</th></tr><tr><td>Sauna Off</td><td>Heating</td><td>TurnSaunaOn</td><td>NONE</td><td>Stove starts heating</td></tr><tr><td>Heating</td><td>Heating</td><td>StoveStartHeating</td><td>NONE</td><td>Stove starts heating</td></tr><tr><td>Heating</td><td>Maintaining Temperature</td><td>StoveStopHeating</td><td>Temperature reaches 90°C</td><td>NONE</td></tr><tr><td>Heating</td><td>Dispensing Water</td><td>PourWater</td><td>Humidity &lt; 40% AND Fan is not active</td><td>Disperse eucalyptus-infused water</td></tr><tr><td>Maintaining Temperature</td><td>Heating</td><td>StoveStartHeating</td><td>Temperature &lt; 85°C</td><td>Stove starts heating</td></tr><tr><td>Maintaining Temperature</td><td>Fan Active</td><td>FanActivate</td><td>Humidity &gt; 40% for more than 3 minutes</td><td>NONE</td></tr><tr><td>Maintaining Temperature</td><td>Maintaining Temperature</td><td>FanDeactivate</td><td>NONE</td><td>NONE</td></tr><tr><td>Fan Active</td><td>Fan Inactive</td><td>FanDeactivate</td><td>Fan active for 5 minutes</td><td>NONE</td></tr><tr><td>Fan Active</td><td>Sauna Off</td><td>TurnSaunaOff</td><td>NONE</td><td>NONE</td></tr><tr><td>Jacuzzi Off</td><td>Level 1 Pressure</td><td>TurnJacuzziOn</td><td>NONE</td><td>Start jets at level 1 pressure</td></tr><tr><td>Level 1 Pressure</td><td>Level 2 Pressure</td><td>IncreasePressureLevel</td><td>NONE</td><td>NONE</td></tr><tr><td>Level 1 Pressure</td><td>Level 1 Pressure</td><td>ChangeEjectionPattern</td><td>NONE</td><td>Change ejection pattern</td></tr><tr><td>Level 1 Pressure</td><td>Pause</td><td>PauseJets</td><td>NONE</td><td>Stop jets for two minutes</td></tr><tr><td>Level 1 Pressure</td><td>Jacuzzi Off</td><td>TurnJacuzziOff</td><td>NONE</td><td>NONE</td></tr><tr><td>Level 2 Pressure</td><td>Level 3 Pressure</td><td>IncreasePressureLevel</td><td>NONE</td><td>NONE</td></tr><tr><td>Level 2 Pressure</td><td>Level 1 Pressure</td><td>DecreasePressureLevel</td><td>NONE</td><td>NONE</td></tr><tr><td>Level 2 Pressure</td><td>Pattern Selection</td><td>ChangeEjectionPattern</td><td>NONE</td><td>NONE</td></tr><tr><td>Level 2 Pressure</td><td>Pause</td><td>PauseJets</td><td>NONE</td><td>Stop jets for two minutes</td></tr><tr><td>Level 2 Pressure</td><td>Jacuzzi Off</td><td>TurnJacuzziOff</td><td>NONE</td><td>NONE</td></tr><tr><td>Level 3 Pressure</td><td>Level 2 Pressure</td><td>DecreasePressureLevel</td><td>NONE</td><td>NONE</td></tr><tr><td>Level 3 Pressure</td><td>Pattern Selection</td><td>ChangeEjectionPattern</td><td>NONE</td><td>NONE</td></tr><tr><td>Level 3 Pressure</td><td>Pause</td><td>PauseJets</td><td>NONE</td><td>Stop jets for 2 minutes</td></tr><tr><td>Level 3 Pressure</td><td>Jacuzzi Off</td><td>TurnJacuzziOff</td><td>NONE</td><td>NONE</td></tr><tr><td> Pause </td><td> Level 1 Pressure </td><td> ResumeJets </td><td> NONE </td><td> NONE </td></tr><tr><td>Pattern Selection</td><td>Level 1 Pressure</td><td>ChangeEjectionPattern</td><td>NONE</td><td>NONE</td></tr></table>
+Running start_event_driven_create_hierarchical_states
+<table border="1">
+<tr> <th>Superstate</th> <th>Substate</th> </tr>
+<tr> <td> Sauna </td> <td> Sauna Off </td> </tr>
+<tr> <td> Sauna </td> <td> Heating </td> </tr>
+<tr> <td> Sauna </td> <td> Maintaining Temperature </td> </tr>
+<tr> <td> Sauna </td> <td> Fan Active </td> </tr>
+<tr> <td> Sauna </td> <td> Fan Inactive </td> </tr>
+<tr> <td> Sauna </td> <td> Dispensing Water </td> </tr>
+<tr> <td> Jacuzzi </td> <td> Jacuzzi Off </td> </tr>
+<tr> <td> Jacuzzi </td> <td> Level 1 Pressure </td> </tr>
+<tr> <td> Jacuzzi </td> <td> Level 2 Pressure </td> </tr>
+<tr> <td> Jacuzzi </td> <td> Level 3 Pressure </td> </tr>
+<tr> <td> Jacuzzi </td> <td> Pattern Selection </td> </tr>
+<tr> <td> Jacuzzi </td> <td> Pause </td> </tr>
+</table>
+Running start_event_driven_hierarchical_initial_state_search...
+{'Sauna': 'Sauna Off', 'Jacuzzi': 'Level 1 Pressure'}
+Running start_event_driven_refactor_transition_names...
+<table border="1"><tr><th>From State</th><th>To State</th><th>Event</th><th>Guard</th><th>Action</th></tr><tr><td>Sauna.Sauna Off</td><td>Sauna.Heating</td><td>TurnSaunaOn</td><td>NONE</td><td>Stove starts heating</td></tr><tr><td>Sauna.Heating</td><td>Sauna.Heating</td><td>StoveStartHeating</td><td>NONE</td><td>Stove starts heating</td></tr><tr><td>Sauna.Heating</td><td>Sauna.Maintaining Temperature</td><td>StoveStopHeating</td><td>Temperature reaches 90°C</td><td>NONE</td></tr><tr><td>Sauna.Heating</td><td>Sauna.Dispensing Water</td><td>PourWater</td><td>Humidity &lt; 40% AND Fan is not active</td><td>Disperse eucalyptus-infused water</td></tr><tr><td>Sauna.Maintaining Temperature</td><td>Sauna.Heating</td><td>StoveStartHeating</td><td>Temperature &lt; 85°C</td><td>Stove starts heating</td></tr><tr><td>Sauna.Maintaining Temperature</td><td>Sauna.Fan Active</td><td>FanActivate</td><td>Humidity &gt; 40% for more than 3 minutes</td><td>NONE</td></tr><tr><td>Sauna.Maintaining Temperature</td><td>Sauna.Maintaining Temperature</td><td>FanDeactivate</td><td>NONE</td><td>NONE</td></tr><tr><td>Sauna.Fan Active</td><td>Sauna.Fan Inactive</td><td>FanDeactivate</td><td>Fan active for 5 minutes</td><td>NONE</td></tr><tr><td>Sauna.Fan Active</td><td>Sauna.Sauna Off</td><td>TurnSaunaOff</td><td>NONE</td><td>NONE</td></tr><tr><td>Jacuzzi.Jacuzzi Off</td><td>Jacuzzi.Level 1 Pressure</td><td>TurnJacuzziOn</td><td>NONE</td><td>Start jets at level 1 pressure</td></tr><tr><td>Jacuzzi.Level 1 Pressure</td><td>Jacuzzi.Level 2 Pressure</td><td>IncreasePressureLevel</td><td>NONE</td><td>NONE</td></tr><tr><td>Jacuzzi.Level 1 Pressure</td><td>Jacuzzi.Level 1 Pressure</td><td>ChangeEjectionPattern</td><td>NONE</td><td>Change ejection pattern</td></tr><tr><td>Jacuzzi.Level 1 Pressure</td><td>Jacuzzi.Pause</td><td>PauseJets</td><td>NONE</td><td>Stop jets for two minutes</td></tr><tr><td>Jacuzzi.Level 1 Pressure</td><td>Jacuzzi.Jacuzzi Off</td><td>TurnJacuzziOff</td><td>NONE</td><td>NONE</td></tr><tr><td>Jacuzzi.Level 2 Pressure</td><td>Jacuzzi.Level 3 Pressure</td><td>IncreasePressureLevel</td><td>NONE</td><td>NONE</td></tr><tr><td>Jacuzzi.Level 2 Pressure</td><td>Jacuzzi.Level 1 Pressure</td><td>DecreasePressureLevel</td><td>NONE</td><td>NONE</td></tr><tr><td>Jacuzzi.Level 2 Pressure</td><td>Jacuzzi.Pattern Selection</td><td>ChangeEjectionPattern</td><td>NONE</td><td>NONE</td></tr><tr><td>Jacuzzi.Level 2 Pressure</td><td>Jacuzzi.Pause</td><td>PauseJets</td><td>NONE</td><td>Stop jets for two minutes</td></tr><tr><td>Jacuzzi.Level 2 Pressure</td><td>Jacuzzi.Jacuzzi Off</td><td>TurnJacuzziOff</td><td>NONE</td><td>NONE</td></tr><tr><td>Jacuzzi.Level 3 Pressure</td><td>Jacuzzi.Level 2 Pressure</td><td>DecreasePressureLevel</td><td>NONE</td><td>NONE</td></tr><tr><td>Jacuzzi.Level 3 Pressure</td><td>Jacuzzi.Pattern Selection</td><td>ChangeEjectionPattern</td><td>NONE</td><td>NONE</td></tr><tr><td>Jacuzzi.Level 3 Pressure</td><td>Jacuzzi.Pause</td><td>PauseJets</td><td>NONE</td><td>Stop jets for 2 minutes</td></tr><tr><td>Jacuzzi.Level 3 Pressure</td><td>Jacuzzi.Jacuzzi Off</td><td>TurnJacuzziOff</td><td>NONE</td><td>NONE</td></tr><tr><td>Jacuzzi.Pause</td><td>Jacuzzi.Level 1 Pressure</td><td> ResumeJets </td><td> NONE </td><td> NONE </td></tr><tr><td>Jacuzzi.Pattern Selection</td><td>Jacuzzi.Level 1 Pressure</td><td>ChangeEjectionPattern</td><td>NONE</td><td>NONE</td></tr></table>
+Running start_event_driven_factor_out_transitions_for_hierarchal_states...
+Running start_event_driven_history_state_search_action...
+Found history state
+Not Found history state
+<table border="1">
+<tr>
+<th>From State</th>
+<th>To State</th>
+<th>Event</th>
+<th>Guard</th>
+<th>Action</th>
+</tr>
+<tr>
+<td>Sauna.Sauna Off</td>
+<td>Sauna.Heating</td>
+<td>TurnSaunaOn</td>
+<td>NONE</td>
+<td>Stove starts heating</td>
+</tr>
+<tr>
+<td>Sauna.Heating</td>
+<td>Sauna.Heating</td>
+<td>StoveStartHeating</td>
+<td>NONE</td>
+<td>Stove starts heating</td>
+</tr>
+<tr>
+<td>Sauna.Heating</td>
+<td>Sauna.Maintaining Temperature</td>
+<td>StoveStopHeating</td>
+<td>Temperature reaches 90°C</td>
+<td>NONE</td>
+</tr>
+<tr>
+<td>Sauna.Heating</td>
+<td>Sauna.Dispensing Water</td>
+<td>PourWater</td>
+<td>Humidity &lt; 40% AND Fan is not active</td>
+<td>Disperse eucalyptus-infused water</td>
+</tr>
+<tr>
+<td>Sauna.Maintaining Temperature</td>
+<td>Sauna.Heating</td>
+<td>StoveStartHeating</td>
+<td>Temperature &lt; 85°C</td>
+<td>Stove starts heating</td>
+</tr>
+<tr>
+<td>Sauna.Maintaining Temperature</td>
+<td>Sauna.Fan Active</td>
+<td>FanActivate</td>
+<td>Humidity &gt; 40% for more than 3 minutes</td>
+<td>NONE</td>
+</tr>
+<tr>
+<td>Sauna.Maintaining Temperature</td>
+<td>Sauna.Maintaining Temperature</td>
+<td>FanDeactivate</td>
+<td>NONE</td>
+<td>NONE</td>
+</tr>
+<tr>
+<td>Sauna.Fan Active</td>
+<td>Sauna.Fan Inactive</td>
+<td>FanDeactivate</td>
+<td>Fan active for 5 minutes</td>
+<td>NONE</td>
+</tr>
+<tr>
+<td>Sauna.Fan Active</td>
+<td>Sauna.Sauna Off</td>
+<td>TurnSaunaOff</td>
+<td>NONE</td>
+<td>NONE</td>
+</tr>
+<tr>
+<td>Jacuzzi.Jacuzzi Off</td>
+<td>Jacuzzi.Level 1 Pressure</td>
+<td>TurnJacuzziOn</td>
+<td>NONE</td>
+<td>Start jets at level 1 pressure</td>
+</tr>
+<tr>
+<td>Jacuzzi.Level 1 Pressure</td>
+<td>Jacuzzi.Level 2 Pressure</td>
+<td>IncreasePressureLevel</td>
+<td>NONE</td>
+<td>NONE</td>
+</tr>
+<tr>
+<td>Jacuzzi.Level 1 Pressure</td>
+<td>Jacuzzi.Level 1 Pressure</td>
+<td>ChangeEjectionPattern</td>
+<td>NONE</td>
+<td>Change ejection pattern</td>
+</tr>
+<tr>
+<td>Jacuzzi.Level 1 Pressure</td>
+<td>Jacuzzi.Pause</td>
+<td>PauseJets</td>
+<td>NONE</td>
+<td>Stop jets for two minutes</td>
+</tr>
+<tr>
+<td>Jacuzzi.Level 1 Pressure</td>
+<td>Jacuzzi.Jacuzzi Off</td>
+<td>TurnJacuzziOff</td>
+<td>NONE</td>
+<td>NONE</td>
+</tr>
+<tr>
+<td>Jacuzzi.Level 2 Pressure</td>
+<td>Jacuzzi.Level 3 Pressure</td>
+<td>IncreasePressureLevel</td>
+<td>NONE</td>
+<td>NONE</td>
+</tr>
+<tr>
+<td>Jacuzzi.Level 2 Pressure</td>
+<td>Jacuzzi.Level 1 Pressure</td>
+<td>DecreasePressureLevel</td>
+<td>NONE</td>
+<td>NONE</td>
+</tr>
+<tr>
+<td>Jacuzzi.Level 2 Pressure</td>
+<td>Jacuzzi.Pattern Selection</td>
+<td>ChangeEjectionPattern</td>
+<td>NONE</td>
+<td>NONE</td>
+</tr>
+<tr>
+<td>Jacuzzi.Level 2 Pressure</td>
+<td>Jacuzzi.Pause</td>
+<td>PauseJets</td>
+<td>NONE</td>
+<td>Stop jets for two minutes</td>
+</tr>
+<tr>
+<td>Jacuzzi.Level 2 Pressure</td>
+<td>Jacuzzi.Jacuzzi Off</td>
+<td>TurnJacuzziOff</td>
+<td>NONE</td>
+<td>NONE</td>
+</tr>
+<tr>
+<td>Jacuzzi.Level 3 Pressure</td>
+<td>Jacuzzi.Level 2 Pressure</td>
+<td>DecreasePressureLevel</td>
+<td>NONE</td>
+<td>NONE</td>
+</tr>
+<tr>
+<td>Jacuzzi.Level 3 Pressure</td>
+<td>Jacuzzi.Pattern Selection</td>
+<td>ChangeEjectionPattern</td>
+<td>NONE</td>
+<td>NONE</td>
+</tr>
+<tr>
+<td>Jacuzzi.Level 3 Pressure</td>
+<td>Jacuzzi.Pause</td>
+<td>PauseJets</td>
+<td>NONE</td>
+<td>Stop jets for 2 minutes</td>
+</tr>
+<tr>
+<td>Jacuzzi.Level 3 Pressure</td>
+<td>Jacuzzi.Jacuzzi Off</td>
+<td>TurnJacuzziOff</td>
+<td>NONE</td>
+<td>NONE</td>
+</tr>
+<tr>
+<td>Jacuzzi.Pause</td>
+<td>Jacuzzi.Level 1 Pressure</td>
+<td>ResumeJets</td>
+<td>NONE</td>
+<td>NONE</td>
+</tr>
+<tr>
+<td>Jacuzzi.Pattern Selection</td>
+<td>Jacuzzi.Level 1 Pressure</td>
+<td>ChangeEjectionPattern</td>
+<td>NONE</td>
+<td>NONE</td>
+</tr>
+<tr> <td>Jacuzzi.Off</td><td>Jacuzzi.H</td> <td>TurnJacuzziOn</td> <td>NONE</td> <td>Resume last active substate</td> </tr></table>
+Running start_event_driven_display_results_action...
+Hierarchical States Table:
+<table border="1">
+<tr> <th>Superstate</th> <th>Substate</th> </tr>
+<tr> <td> Sauna </td> <td> Sauna Off </td> </tr>
+<tr> <td> Sauna </td> <td> Heating </td> </tr>
+<tr> <td> Sauna </td> <td> Maintaining Temperature </td> </tr>
+<tr> <td> Sauna </td> <td> Fan Active </td> </tr>
+<tr> <td> Sauna </td> <td> Fan Inactive </td> </tr>
+<tr> <td> Sauna </td> <td> Dispensing Water </td> </tr>
+<tr> <td> Jacuzzi </td> <td> Jacuzzi Off </td> </tr>
+<tr> <td> Jacuzzi </td> <td> Level 1 Pressure </td> </tr>
+<tr> <td> Jacuzzi </td> <td> Level 2 Pressure </td> </tr>
+<tr> <td> Jacuzzi </td> <td> Level 3 Pressure </td> </tr>
+<tr> <td> Jacuzzi </td> <td> Pattern Selection </td> </tr>
+<tr> <td> Jacuzzi </td> <td> Pause </td> </tr>
+</table>
+Initial System State: Sauna Off
+Hierarchical Initial States:
+{'Sauna': 'Sauna Off', 'Jacuzzi': 'Level 1 Pressure'}
+Transitions:
+<table border="1">
+<tr>
+<th>From State</th>
+<th>To State</th>
+<th>Event</th>
+<th>Guard</th>
+<th>Action</th>
+</tr>
+<tr>
+<td>Sauna.Sauna Off</td>
+<td>Sauna.Heating</td>
+<td>TurnSaunaOn</td>
+<td>NONE</td>
+<td>Stove starts heating</td>
+</tr>
+<tr>
+<td>Sauna.Heating</td>
+<td>Sauna.Heating</td>
+<td>StoveStartHeating</td>
+<td>NONE</td>
+<td>Stove starts heating</td>
+</tr>
+<tr>
+<td>Sauna.Heating</td>
+<td>Sauna.Maintaining Temperature</td>
+<td>StoveStopHeating</td>
+<td>Temperature reaches 90°C</td>
+<td>NONE</td>
+</tr>
+<tr>
+<td>Sauna.Heating</td>
+<td>Sauna.Dispensing Water</td>
+<td>PourWater</td>
+<td>Humidity &lt; 40% AND Fan is not active</td>
+<td>Disperse eucalyptus-infused water</td>
+</tr>
+<tr>
+<td>Sauna.Maintaining Temperature</td>
+<td>Sauna.Heating</td>
+<td>StoveStartHeating</td>
+<td>Temperature &lt; 85°C</td>
+<td>Stove starts heating</td>
+</tr>
+<tr>
+<td>Sauna.Maintaining Temperature</td>
+<td>Sauna.Fan Active</td>
+<td>FanActivate</td>
+<td>Humidity &gt; 40% for more than 3 minutes</td>
+<td>NONE</td>
+</tr>
+<tr>
+<td>Sauna.Maintaining Temperature</td>
+<td>Sauna.Maintaining Temperature</td>
+<td>FanDeactivate</td>
+<td>NONE</td>
+<td>NONE</td>
+</tr>
+<tr>
+<td>Sauna.Fan Active</td>
+<td>Sauna.Fan Inactive</td>
+<td>FanDeactivate</td>
+<td>Fan active for 5 minutes</td>
+<td>NONE</td>
+</tr>
+<tr>
+<td>Sauna.Fan Active</td>
+<td>Sauna.Sauna Off</td>
+<td>TurnSaunaOff</td>
+<td>NONE</td>
+<td>NONE</td>
+</tr>
+<tr>
+<td>Jacuzzi.Jacuzzi Off</td>
+<td>Jacuzzi.Level 1 Pressure</td>
+<td>TurnJacuzziOn</td>
+<td>NONE</td>
+<td>Start jets at level 1 pressure</td>
+</tr>
+<tr>
+<td>Jacuzzi.Level 1 Pressure</td>
+<td>Jacuzzi.Level 2 Pressure</td>
+<td>IncreasePressureLevel</td>
+<td>NONE</td>
+<td>NONE</td>
+</tr>
+<tr>
+<td>Jacuzzi.Level 1 Pressure</td>
+<td>Jacuzzi.Level 1 Pressure</td>
+<td>ChangeEjectionPattern</td>
+<td>NONE</td>
+<td>Change ejection pattern</td>
+</tr>
+<tr>
+<td>Jacuzzi.Level 1 Pressure</td>
+<td>Jacuzzi.Pause</td>
+<td>PauseJets</td>
+<td>NONE</td>
+<td>Stop jets for two minutes</td>
+</tr>
+<tr>
+<td>Jacuzzi.Level 1 Pressure</td>
+<td>Jacuzzi.Jacuzzi Off</td>
+<td>TurnJacuzziOff</td>
+<td>NONE</td>
+<td>NONE</td>
+</tr>
+<tr>
+<td>Jacuzzi.Level 2 Pressure</td>
+<td>Jacuzzi.Level 3 Pressure</td>
+<td>IncreasePressureLevel</td>
+<td>NONE</td>
+<td>NONE</td>
+</tr>
+<tr>
+<td>Jacuzzi.Level 2 Pressure</td>
+<td>Jacuzzi.Level 1 Pressure</td>
+<td>DecreasePressureLevel</td>
+<td>NONE</td>
+<td>NONE</td>
+</tr>
+<tr>
+<td>Jacuzzi.Level 2 Pressure</td>
+<td>Jacuzzi.Pattern Selection</td>
+<td>ChangeEjectionPattern</td>
+<td>NONE</td>
+<td>NONE</td>
+</tr>
+<tr>
+<td>Jacuzzi.Level 2 Pressure</td>
+<td>Jacuzzi.Pause</td>
+<td>PauseJets</td>
+<td>NONE</td>
+<td>Stop jets for two minutes</td>
+</tr>
+<tr>
+<td>Jacuzzi.Level 2 Pressure</td>
+<td>Jacuzzi.Jacuzzi Off</td>
+<td>TurnJacuzziOff</td>
+<td>NONE</td>
+<td>NONE</td>
+</tr>
+<tr>
+<td>Jacuzzi.Level 3 Pressure</td>
+<td>Jacuzzi.Level 2 Pressure</td>
+<td>DecreasePressureLevel</td>
+<td>NONE</td>
+<td>NONE</td>
+</tr>
+<tr>
+<td>Jacuzzi.Level 3 Pressure</td>
+<td>Jacuzzi.Pattern Selection</td>
+<td>ChangeEjectionPattern</td>
+<td>NONE</td>
+<td>NONE</td>
+</tr>
+<tr>
+<td>Jacuzzi.Level 3 Pressure</td>
+<td>Jacuzzi.Pause</td>
+<td>PauseJets</td>
+<td>NONE</td>
+<td>Stop jets for 2 minutes</td>
+</tr>
+<tr>
+<td>Jacuzzi.Level 3 Pressure</td>
+<td>Jacuzzi.Jacuzzi Off</td>
+<td>TurnJacuzziOff</td>
+<td>NONE</td>
+<td>NONE</td>
+</tr>
+<tr>
+<td>Jacuzzi.Pause</td>
+<td>Jacuzzi.Level 1 Pressure</td>
+<td>ResumeJets</td>
+<td>NONE</td>
+<td>NONE</td>
+</tr>
+<tr>
+<td>Jacuzzi.Pattern Selection</td>
+<td>Jacuzzi.Level 1 Pressure</td>
+<td>ChangeEjectionPattern</td>
+<td>NONE</td>
+<td>NONE</td>
+</tr>
+<tr> <td>Jacuzzi.Off</td><td>Jacuzzi.H</td> <td>TurnJacuzziOn</td> <td>NONE</td> <td>Resume last active substate</td> </tr></table>
+States: ['Pause', 'Jacuzzi.Level1Pressure', {'name': 'Jacuzzi', 'children': ['JacuzziOff', 'Level1Pressure', 'Level2Pressure', 'Level3Pressure', 'PatternSelection', 'Pause']}, 'MaintainingTemperature', 'Sauna.SaunaOff', 'Jacuzzi.Level3Pressure', 'Sauna.DispensingWater', 'FanActive', 'Jacuzzi.Off', 'Level3Pressure', 'PatternSelection', 'DispensingWater', 'Jacuzzi.JacuzziOff', 'Level2Pressure', 'Sauna.FanInactive', 'SaunaOff', 'Jacuzzi.Level2Pressure', 'Jacuzzi.Pause', 'Jacuzzi.H', 'Sauna.Heating', 'Sauna.FanActive', 'JacuzziOff', 'Level1Pressure', 'FanInactive', 'Jacuzzi.PatternSelection', 'Sauna.MaintainingTemperature', {'name': 'Sauna', 'children': ['SaunaOff', 'Heating', 'MaintainingTemperature', 'FanActive', 'FanInactive', 'DispensingWater']}, 'Heating']
+Transitions: [{'trigger': 'TurnSaunaOn', 'source': 'Sauna.SaunaOff', 'dest': 'Sauna.Heating', 'before': 'Stovestartsheating'}, {'trigger': 'StoveStartHeating', 'source': 'Sauna.Heating', 'dest': 'Sauna.Heating', 'before': 'Stovestartsheating'}, {'trigger': 'StoveStopHeating', 'source': 'Sauna.Heating', 'dest': 'Sauna.MaintainingTemperature', 'conditions': 'Temperaturereaches90°C'}, {'trigger': 'PourWater', 'source': 'Sauna.Heating', 'dest': 'Sauna.DispensingWater', 'before': 'Disperseeucalyptus-infusedwater', 'conditions': 'Humidity<40%ANDFanisnotactive'}, {'trigger': 'StoveStartHeating', 'source': 'Sauna.MaintainingTemperature', 'dest': 'Sauna.Heating', 'before': 'Stovestartsheating', 'conditions': 'Temperature<85°C'}, {'trigger': 'FanActivate', 'source': 'Sauna.MaintainingTemperature', 'dest': 'Sauna.FanActive', 'conditions': 'Humidity>40%formorethan3minutes'}, {'trigger': 'FanDeactivate', 'source': 'Sauna.MaintainingTemperature', 'dest': 'Sauna.MaintainingTemperature'}, {'trigger': 'FanDeactivate', 'source': 'Sauna.FanActive', 'dest': 'Sauna.FanInactive', 'conditions': 'Fanactivefor5minutes'}, {'trigger': 'TurnSaunaOff', 'source': 'Sauna.FanActive', 'dest': 'Sauna.SaunaOff'}, {'trigger': 'TurnJacuzziOn', 'source': 'Jacuzzi.JacuzziOff', 'dest': 'Jacuzzi.Level1Pressure', 'before': 'Startjetsatlevel1pressure'}, {'trigger': 'IncreasePressureLevel', 'source': 'Jacuzzi.Level1Pressure', 'dest': 'Jacuzzi.Level2Pressure'}, {'trigger': 'ChangeEjectionPattern', 'source': 'Jacuzzi.Level1Pressure', 'dest': 'Jacuzzi.Level1Pressure', 'before': 'Changeejectionpattern'}, {'trigger': 'PauseJets', 'source': 'Jacuzzi.Level1Pressure', 'dest': 'Jacuzzi.Pause', 'before': 'Stopjetsfortwominutes'}, {'trigger': 'TurnJacuzziOff', 'source': 'Jacuzzi.Level1Pressure', 'dest': 'Jacuzzi.JacuzziOff'}, {'trigger': 'IncreasePressureLevel', 'source': 'Jacuzzi.Level2Pressure', 'dest': 'Jacuzzi.Level3Pressure'}, {'trigger': 'DecreasePressureLevel', 'source': 'Jacuzzi.Level2Pressure', 'dest': 'Jacuzzi.Level1Pressure'}, {'trigger': 'ChangeEjectionPattern', 'source': 'Jacuzzi.Level2Pressure', 'dest': 'Jacuzzi.PatternSelection'}, {'trigger': 'PauseJets', 'source': 'Jacuzzi.Level2Pressure', 'dest': 'Jacuzzi.Pause', 'before': 'Stopjetsfortwominutes'}, {'trigger': 'TurnJacuzziOff', 'source': 'Jacuzzi.Level2Pressure', 'dest': 'Jacuzzi.JacuzziOff'}, {'trigger': 'DecreasePressureLevel', 'source': 'Jacuzzi.Level3Pressure', 'dest': 'Jacuzzi.Level2Pressure'}, {'trigger': 'ChangeEjectionPattern', 'source': 'Jacuzzi.Level3Pressure', 'dest': 'Jacuzzi.PatternSelection'}, {'trigger': 'PauseJets', 'source': 'Jacuzzi.Level3Pressure', 'dest': 'Jacuzzi.Pause', 'before': 'Stopjetsfor2minutes'}, {'trigger': 'TurnJacuzziOff', 'source': 'Jacuzzi.Level3Pressure', 'dest': 'Jacuzzi.JacuzziOff'}, {'trigger': 'ResumeJets', 'source': 'Jacuzzi.Pause', 'dest': 'Jacuzzi.Level1Pressure'}, {'trigger': 'ChangeEjectionPattern', 'source': 'Jacuzzi.PatternSelection', 'dest': 'Jacuzzi.Level1Pressure'}, {'trigger': 'TurnJacuzziOn', 'source': 'Jacuzzi.Off', 'dest': 'Jacuzzi.H', 'before': 'Resumelastactivesubstate'}]
+Parallel Regions: []
+---
+State Machine
+---
+stateDiagram-v2
+  direction LR
+  classDef s_default fill:white,color:black
+  classDef s_inactive fill:white,color:black
+  classDef s_parallel color:black,fill:white
+  classDef s_active color:red,fill:darksalmon
+  classDef s_previous color:blue,fill:azure
+  
+  state "Pause" as Pause
+  Class Pause s_default
+  state "Jacuzzi.Level1Pressure" as Jacuzzi.Level1Pressure
+  Class Jacuzzi.Level1Pressure s_default
+  state "Jacuzzi" as Jacuzzi
+  Class Jacuzzi s_default
+  state Jacuzzi {
+    state "JacuzziOff" as Jacuzzi_JacuzziOff
+    state "Level1Pressure" as Jacuzzi_Level1Pressure
+    state "Level2Pressure" as Jacuzzi_Level2Pressure
+    state "Level3Pressure" as Jacuzzi_Level3Pressure
+    state "PatternSelection" as Jacuzzi_PatternSelection
+    state "Pause" as Jacuzzi_Pause
+  }
+  state "MaintainingTemperature" as MaintainingTemperature
+  Class MaintainingTemperature s_default
+  state "Sauna.SaunaOff" as Sauna.SaunaOff
+  Class Sauna.SaunaOff s_default
+  state "Jacuzzi.Level3Pressure" as Jacuzzi.Level3Pressure
+  Class Jacuzzi.Level3Pressure s_default
+  state "Sauna.DispensingWater" as Sauna.DispensingWater
+  Class Sauna.DispensingWater s_default
+  state "FanActive" as FanActive
+  Class FanActive s_default
+  state "Jacuzzi.Off" as Jacuzzi.Off
+  Class Jacuzzi.Off s_default
+  state "Level3Pressure" as Level3Pressure
+  Class Level3Pressure s_default
+  state "PatternSelection" as PatternSelection
+  Class PatternSelection s_default
+  state "DispensingWater" as DispensingWater
+  Class DispensingWater s_default
+  state "Jacuzzi.JacuzziOff" as Jacuzzi.JacuzziOff
+  Class Jacuzzi.JacuzziOff s_default
+  state "Level2Pressure" as Level2Pressure
+  Class Level2Pressure s_default
+  state "Sauna.FanInactive" as Sauna.FanInactive
+  Class Sauna.FanInactive s_default
+  state "SaunaOff" as SaunaOff
+  Class SaunaOff s_active
+  state "Jacuzzi.Level2Pressure" as Jacuzzi.Level2Pressure
+  Class Jacuzzi.Level2Pressure s_default
+  state "Jacuzzi.Pause" as Jacuzzi.Pause
+  Class Jacuzzi.Pause s_default
+  state "Jacuzzi.H" as Jacuzzi.H
+  Class Jacuzzi.H s_default
+  state "Sauna.Heating" as Sauna.Heating
+  Class Sauna.Heating s_default
+  state "Sauna.FanActive" as Sauna.FanActive
+  Class Sauna.FanActive s_default
+  state "JacuzziOff" as JacuzziOff
+  Class JacuzziOff s_default
+  state "Level1Pressure" as Level1Pressure
+  Class Level1Pressure s_default
+  state "FanInactive" as FanInactive
+  Class FanInactive s_default
+  state "Jacuzzi.PatternSelection" as Jacuzzi.PatternSelection
+  Class Jacuzzi.PatternSelection s_default
+  state "Sauna.MaintainingTemperature" as Sauna.MaintainingTemperature
+  Class Sauna.MaintainingTemperature s_default
+  state "Sauna" as Sauna
+  Class Sauna s_default
+  state Sauna {
+    state "SaunaOff" as Sauna_SaunaOff
+    state "Heating" as Sauna_Heating
+    state "MaintainingTemperature" as Sauna_MaintainingTemperature
+    state "FanActive" as Sauna_FanActive
+    state "FanInactive" as Sauna_FanInactive
+    state "DispensingWater" as Sauna_DispensingWater
+  }
+  state "Heating" as Heating
+  Class Heating s_default
+  
+  Sauna.SaunaOff --> Sauna.Heating: TurnSaunaOn
+  Sauna.Heating --> Sauna.Heating: StoveStartHeating
+  Sauna.Heating --> Sauna.MaintainingTemperature: StoveStopHeating
+  Sauna.Heating --> Sauna.DispensingWater: PourWater
+  Sauna.MaintainingTemperature --> Sauna.Heating: StoveStartHeating
+  Sauna.MaintainingTemperature --> Sauna.FanActive: FanActivate
+  Sauna.MaintainingTemperature --> Sauna.MaintainingTemperature: FanDeactivate
+  Sauna.FanActive --> Sauna.FanInactive: FanDeactivate
+  Sauna.FanActive --> Sauna.SaunaOff: TurnSaunaOff
+  Jacuzzi.JacuzziOff --> Jacuzzi.Level1Pressure: TurnJacuzziOn
+  Jacuzzi.Off --> Jacuzzi.H: TurnJacuzziOn
+  Jacuzzi.Level1Pressure --> Jacuzzi.Level2Pressure: IncreasePressureLevel
+  Jacuzzi.Level1Pressure --> Jacuzzi.Level1Pressure: ChangeEjectionPattern
+  Jacuzzi.Level1Pressure --> Jacuzzi.Pause: PauseJets
+  Jacuzzi.Level1Pressure --> Jacuzzi.JacuzziOff: TurnJacuzziOff
+  Jacuzzi.Level2Pressure --> Jacuzzi.Level3Pressure: IncreasePressureLevel
+  Jacuzzi.Level2Pressure --> Jacuzzi.PatternSelection: ChangeEjectionPattern
+  Jacuzzi.Level2Pressure --> Jacuzzi.Pause: PauseJets
+  Jacuzzi.Level2Pressure --> Jacuzzi.JacuzziOff: TurnJacuzziOff
+  Jacuzzi.Level2Pressure --> Jacuzzi.Level1Pressure: DecreasePressureLevel
+  Jacuzzi.Level3Pressure --> Jacuzzi.PatternSelection: ChangeEjectionPattern
+  Jacuzzi.Level3Pressure --> Jacuzzi.Pause: PauseJets
+  Jacuzzi.Level3Pressure --> Jacuzzi.JacuzziOff: TurnJacuzziOff
+  Jacuzzi.Level3Pressure --> Jacuzzi.Level2Pressure: DecreasePressureLevel
+  Jacuzzi.PatternSelection --> Jacuzzi.Level1Pressure: ChangeEjectionPattern
+  Jacuzzi.Pause --> Jacuzzi.Level1Pressure: ResumeJets
+  [*] --> SaunaOff

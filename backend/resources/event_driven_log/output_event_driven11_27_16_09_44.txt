@@ -1,0 +1,1333 @@
+Running start_event_driven_system_name_search...
+SpaManager
+Running start_event_driven_state_search...
+<table border="1">
+<tr> <th>State Name</th> </tr>
+<tr> <td>Sauna Off</td> </tr>
+<tr> <td>Sauna Heating</td> </tr>
+<tr> <td>Sauna Standby</td> </tr>
+<tr> <td>Fan Inactive</td> </tr>
+<tr> <td>Fan Active</td> </tr>
+<tr> <td>Water Dispersion Ready</td> </tr>
+<tr> <td>Water Dispersion Not Allowed</td> </tr>
+<tr> <td>Jacuzzi Off</td> </tr>
+<tr> <td>Jets Level 1</td> </tr>
+<tr> <td>Jets Level 2</td> </tr>
+<tr> <td>Jets Level 3</td> </tr>
+<tr> <td>Jets Paused</td> </tr>
+<tr> <td>Ejection Pattern Setting</td> </tr>
+<tr> <td>Remote Control Active</td> </tr>
+<tr> <td>Panel Control Active</td> </tr>
+</table>
+Running start_event_driven_initial_state_search...
+Sauna Off
+Running start_event_driven_event_search...
+<table border="1">
+<tr> <th>Event Name</th> </tr>
+<tr> <td>Turn sauna on</td> </tr>
+<tr> <td>Turn sauna off</td> </tr>
+<tr> <td>Temperature reaches 90°C</td> </tr>
+<tr> <td>Temperature falls below 85°C</td> </tr>
+<tr> <td>Humidity exceeds 40% for more than 3 minutes</td> </tr>
+<tr> <td>Fan turns off after 5 minutes</td> </tr>
+<tr> <td>User requests water dispersion</td> </tr>
+<tr> <td>15 minutes have passed since last water dispersion</td> </tr>
+<tr> <td>Turn Jacuzzi on</td> </tr>
+<tr> <td>Turn Jacuzzi off</td> </tr>
+<tr> <td>Increase jet level to 2</td> </tr>
+<tr> <td>Increase jet level to 3</td> </tr>
+<tr> <td>Decrease jet level to 2</td> </tr>
+<tr> <td>Decrease jet level to 1</td> </tr>
+<tr> <td>Select ejection pattern</td> </tr>
+<tr> <td>Pause jets</td> </tr>
+<tr> <td>Resume jets after 2 minutes</td> </tr>
+<tr> <td>Control via attached panel</td> </tr>
+</table>
+Running start_event_driven_associate_events_with_states_action
+['Turn sauna on']
+['Temperature reaches 90']
+['Turn sauna on\n\nThe events listed are most relevant to the']
+['Humidity exceeds 40']
+['Humidity exceeds 40']
+['User requests water dispersion', '15 minutes have passed since last water dispersion']
+['Humidity exceeds 40']
+['Turn Jacuzzi on', 'Turn Jacuzzi off']
+['Increase jet level to 2', 'Select ejection pattern', 'Pause jets', 'Turn Jacuzzi off', 'Control via attached panel']
+['Increase jet level to 2', 'Increase jet level to 3', 'Decrease jet level to 1', 'Select ejection pattern', 'Pause jets', 'Control via attached panel']
+['Decrease jet level to 2', 'Select ejection pattern', 'Pause jets', 'Control via attached panel', 'Turn Jacuzzi off']
+['Pause jets', 'Resume jets after 2 minutes']
+['Turn Jacuzzi on', 'Select ejection pattern', 'Control via attached panel']
+['Turn sauna on', 'Turn sauna off', 'User requests water dispersion', '15 minutes have passed since last water dispersion', 'Turn Jacuzzi on', 'Turn Jacuzzi off', 'Increase jet level to 2', 'Increase jet level to 3', 'Decrease jet level to 2', 'Decrease jet level to 1', 'Select ejection pattern', 'Pause jets', 'Resume jets after 2 minutes']
+['Turn Jacuzzi on', 'Turn Jacuzzi off', 'Increase jet level to 2', 'Increase jet level to 3', 'Decrease jet level to 2', 'Decrease jet level to 1', 'Select ejection pattern', 'Pause jets', 'Resume jets after 2 minutes']
+{'Sauna Off': ['Turn sauna on'], 'Sauna Heating': ['Temperature reaches 90'], 'Sauna Standby': ['Turn sauna on\n\nThe events listed are most relevant to the'], 'Fan Inactive': ['Humidity exceeds 40'], 'Fan Active': ['Humidity exceeds 40'], 'Water Dispersion Ready': ['User requests water dispersion', '15 minutes have passed since last water dispersion'], 'Water Dispersion Not Allowed': ['Humidity exceeds 40'], 'Jacuzzi Off': ['Turn Jacuzzi on', 'Turn Jacuzzi off'], 'Jets Level 1': ['Increase jet level to 2', 'Select ejection pattern', 'Pause jets', 'Turn Jacuzzi off', 'Control via attached panel'], 'Jets Level 2': ['Increase jet level to 2', 'Increase jet level to 3', 'Decrease jet level to 1', 'Select ejection pattern', 'Pause jets', 'Control via attached panel'], 'Jets Level 3': ['Decrease jet level to 2', 'Select ejection pattern', 'Pause jets', 'Control via attached panel', 'Turn Jacuzzi off'], 'Jets Paused': ['Pause jets', 'Resume jets after 2 minutes'], 'Ejection Pattern Setting': ['Turn Jacuzzi on', 'Select ejection pattern', 'Control via attached panel'], 'Remote Control Active': ['Turn sauna on', 'Turn sauna off', 'User requests water dispersion', '15 minutes have passed since last water dispersion', 'Turn Jacuzzi on', 'Turn Jacuzzi off', 'Increase jet level to 2', 'Increase jet level to 3', 'Decrease jet level to 2', 'Decrease jet level to 1', 'Select ejection pattern', 'Pause jets', 'Resume jets after 2 minutes'], 'Panel Control Active': ['Turn Jacuzzi on', 'Turn Jacuzzi off', 'Increase jet level to 2', 'Increase jet level to 3', 'Decrease jet level to 2', 'Decrease jet level to 1', 'Select ejection pattern', 'Pause jets', 'Resume jets after 2 minutes']}
+Running start_event_driven_create_transitions...
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Sauna Off</td> <td>Sauna Heating</td> <td>Turn sauna on</td> <td>NONE</td> <td>Start stove heating</td> </tr>
+</table>
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Sauna Heating</td> <td>Sauna Standby</td> <td>Temperature reaches 90</td> <td>NONE</td> <td>Stop stove heating</td> </tr>
+</table>
+No transitions created.
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Fan Inactive</td> <td>Fan Active</td> <td>Humidity exceeds 40</td> <td>Humidity &gt; 40% for more than 3 minutes</td> <td>Activate fan</td> </tr>
+</table>
+No transitions created.
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Water Dispersion Ready</td> <td>Water Dispersion Not Allowed</td> <td>User requests water dispersion</td> <td>Humidity &lt; 40% and Fan is not active</td> <td>Disperse predetermined amount of water</td> </tr>
+</table>
+No transitions created.
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Water Dispersion Not Allowed</td> <td>Fan Active</td> <td>Humidity exceeds 40</td> <td>Humidity &gt; 40% for more than 3 minutes</td> <td>Activate fan</td> </tr>
+</table>
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Jacuzzi Off</td> <td>Jets Level 1</td> <td>Turn Jacuzzi on</td> <td>NONE</td> <td>Set jets to Level 1</td> </tr>
+</table>
+No transitions created.
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Jets Level 1</td> <td>Jets Level 2</td> <td>Increase jet level to 2</td> <td>NONE</td> <td>NONE</td> </tr>
+</table>
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Jets Level 1</td> <td>Ejection Pattern Setting</td> <td>Select ejection pattern</td> <td>NONE</td> <td>NONE</td> </tr>
+</table>
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Jets Level 1</td> <td>Jets Paused</td> <td>Pause jets</td> <td>NONE</td> <td>Stop jets ejection for 2 minutes</td> </tr>
+</table>
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Jets Level 1</td> <td>Jacuzzi Off</td> <td>Turn Jacuzzi off</td> <td>NONE</td> <td>NONE</td> </tr>
+</table>
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Jets Level 1</td> <td>Panel Control Active</td> <td>Control via attached panel</td> <td>NONE</td> <td>NONE</td> </tr>
+</table>
+No transitions created.
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Jets Level 2</td> <td>Jets Level 3</td> <td>Increase jet level to 3</td> <td>NONE</td> <td>NONE</td> </tr>
+</table>
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Jets Level 2</td> <td>Jets Level 1</td> <td>Decrease jet level to 1</td> <td>NONE</td> <td>NONE</td> </tr>
+</table>
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Jets Level 2</td> <td>Ejection Pattern Setting</td> <td>Select ejection pattern</td> <td>NONE</td> <td>NONE</td> </tr>
+</table>
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Jets Level 2</td> <td>Jets Paused</td> <td>Pause jets</td> <td>NONE</td> <td>NONE</td> </tr>
+</table>
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Jets Level 2</td> <td>Panel Control Active</td> <td>Control via attached panel</td> <td>NONE</td> <td>NONE</td> </tr>
+</table>
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Jets Level 3</td> <td>Jets Level 2</td> <td>Decrease jet level to 2</td> <td>NONE</td> <td>NONE</td> </tr>
+</table>
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Jets Level 3</td> <td>Ejection Pattern Setting</td> <td>Select ejection pattern</td> <td>NONE</td> <td>NONE</td> </tr>
+</table>
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Jets Level 3</td> <td>Jets Paused</td> <td>Pause jets</td> <td>NONE</td> <td>Stop jets for 2 minutes</td> </tr>
+</table>
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Jets Level 3</td> <td>Panel Control Active</td> <td>Control via attached panel</td> <td>NONE</td> <td>NONE</td> </tr>
+</table>
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Jets Level 3</td> <td>Jacuzzi Off</td> <td>Turn Jacuzzi off</td> <td>NONE</td> <td>NONE</td> </tr>
+</table>
+No transitions created.
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Jets Paused</td> <td>Jets Level 1</td> <td>Resume jets after 2 minutes</td> <td>NONE</td> <td>NONE</td> </tr>
+</table>
+No transitions created.
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Ejection Pattern Setting</td> <td>Ejection Pattern Setting</td> <td>Select ejection pattern</td> <td>NONE</td> <td>NONE</td> </tr>
+</table>
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Ejection Pattern Setting</td> <td>Panel Control Active</td> <td>Control via attached panel</td> <td>NONE</td> <td>NONE</td> </tr>
+</table>
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Remote Control Active</td> <td>Sauna Heating</td> <td>Turn sauna on</td> <td>NONE</td> <td>Start stove heating</td> </tr>
+</table>
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Remote Control Active</td> <td>Sauna Off</td> <td>Turn sauna off</td> <td>NONE</td> <td>NONE</td> </tr>
+</table>
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Remote Control Active</td> <td>Water Dispersion Ready</td> <td>User requests water dispersion</td> <td>Humidity &lt; 40% AND Fan Inactive</td> <td>Disperse water</td> </tr>
+</table>
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Remote Control Active</td> <td>Water Dispersion Ready</td> <td>15 minutes have passed since last water dispersion</td> <td>NONE</td> <td>Set water dispersion to allowed</td> </tr>
+</table>
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Remote Control Active</td> <td>Jets Level 1</td> <td>Turn Jacuzzi on</td> <td>NONE</td> <td>Start jets at level 1</td> </tr>
+</table>
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Remote Control Active</td> <td>Jacuzzi Off</td> <td>Turn Jacuzzi off</td> <td>NONE</td> <td>NONE</td> </tr>
+</table>
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td rowspan="1"> Jets Level 1 </td> <td> Jets Level 2 </td> <td> Increase jet level to 2 </td> <td> NONE </td> <td> NONE </td> </tr>
+<tr> <td rowspan="1"> Jets Level 3 </td> <td> Jets Level 2 </td> <td> Increase jet level to 2 </td> <td> NONE </td> <td> NONE </td> </tr>
+</table>
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Jets Level 2</td> <td>Jets Level 3</td> <td>Increase jet level to 3</td> <td>Current jet level is 2</td> <td>NONE</td> </tr>
+</table>
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td rowspan="3"> Remote Control Active </td> <td> Jets Level 2 </td> <td> Decrease jet level to 2 </td> <td> Current jet level is 3 </td> <td> NONE </td> </tr>
+</table>
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Remote Control Active</td> <td>Jets Level 1</td> <td>Decrease jet level to 1</td> <td>NONE</td> <td>NONE</td> </tr>
+</table>
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Remote Control Active</td> <td>Ejection Pattern Setting</td> <td>Select ejection pattern</td> <td>NONE</td> <td>NONE</td> </tr>
+</table>
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Remote Control Active</td> <td>Jets Paused</td> <td>Pause jets</td> <td>NONE</td> <td>NONE</td> </tr>
+</table>
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Jets Paused</td> <td>Previous Jets Level</td> <td>Resume jets after 2 minutes</td> <td>NONE</td> <td>NONE</td> </tr>
+</table>
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td> Panel Control Active </td> <td> Jets Level 1 </td> <td> Turn Jacuzzi on </td> <td> NONE </td> <td> Set jets to level 1 </td> </tr>
+</table>
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Panel Control Active</td> <td>Jacuzzi Off</td> <td>Turn Jacuzzi off</td> <td>NONE</td> <td>NONE</td> </tr>
+</table>
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Panel Control Active</td> <td>Jets Level 2</td> <td>Increase jet level to 2</td> <td>NONE</td> <td>NONE</td> </tr>
+</table>
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Panel Control Active</td> <td>Jets Level 3</td> <td>Increase jet level to 3</td> <td>NONE</td> <td>Set jets to level 3</td> </tr>
+</table>
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Jets Level 3</td> <td>Jets Level 2</td> <td>Decrease jet level to 2</td> <td>NONE</td> <td>NONE</td> </tr>
+</table>
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Panel Control Active</td> <td>Jets Level 1</td> <td>Decrease jet level to 1</td> <td>NONE</td> <td>NONE</td> </tr>
+</table>
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Panel Control Active</td> <td>Ejection Pattern Setting</td> <td>Select ejection pattern</td> <td>NONE</td> <td>NONE</td> </tr>
+</table>
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Panel Control Active</td> <td>Jets Paused</td> <td>Pause jets</td> <td>NONE</td> <td>Pause jets for two minutes</td> </tr>
+</table>
+No transitions created.
+<table border="1"><tr><th>From State</th><th>To State</th><th>Event</th><th>Guard</th><th>Action</th></tr><tr><td>Sauna Off</td><td>Sauna Heating</td><td>Turn sauna on</td><td>NONE</td><td>Start stove heating</td></tr><tr><td>Sauna Heating</td><td>Sauna Standby</td><td>Temperature reaches 90</td><td>NONE</td><td>Stop stove heating</td></tr><tr><td>Fan Inactive</td><td>Fan Active</td><td>Humidity exceeds 40</td><td>Humidity &gt; 40% for more than 3 minutes</td><td>Activate fan</td></tr><tr><td>Water Dispersion Ready</td><td>Water Dispersion Not Allowed</td><td>User requests water dispersion</td><td>Humidity &lt; 40% and Fan is not active</td><td>Disperse predetermined amount of water</td></tr><tr><td>Water Dispersion Not Allowed</td><td>Fan Active</td><td>Humidity exceeds 40</td><td>Humidity &gt; 40% for more than 3 minutes</td><td>Activate fan</td></tr><tr><td>Jacuzzi Off</td><td>Jets Level 1</td><td>Turn Jacuzzi on</td><td>NONE</td><td>Set jets to Level 1</td></tr><tr><td>Jets Level 1</td><td>Jets Level 2</td><td>Increase jet level to 2</td><td>NONE</td><td>NONE</td></tr><tr><td>Jets Level 1</td><td>Ejection Pattern Setting</td><td>Select ejection pattern</td><td>NONE</td><td>NONE</td></tr><tr><td>Jets Level 1</td><td>Jets Paused</td><td>Pause jets</td><td>NONE</td><td>Stop jets ejection for 2 minutes</td></tr><tr><td>Jets Level 1</td><td>Jacuzzi Off</td><td>Turn Jacuzzi off</td><td>NONE</td><td>NONE</td></tr><tr><td>Jets Level 1</td><td>Panel Control Active</td><td>Control via attached panel</td><td>NONE</td><td>NONE</td></tr><tr><td>Jets Level 2</td><td>Jets Level 3</td><td>Increase jet level to 3</td><td>NONE</td><td>NONE</td></tr><tr><td>Jets Level 2</td><td>Jets Level 1</td><td>Decrease jet level to 1</td><td>NONE</td><td>NONE</td></tr><tr><td>Jets Level 2</td><td>Ejection Pattern Setting</td><td>Select ejection pattern</td><td>NONE</td><td>NONE</td></tr><tr><td>Jets Level 2</td><td>Jets Paused</td><td>Pause jets</td><td>NONE</td><td>NONE</td></tr><tr><td>Jets Level 2</td><td>Panel Control Active</td><td>Control via attached panel</td><td>NONE</td><td>NONE</td></tr><tr><td>Jets Level 3</td><td>Jets Level 2</td><td>Decrease jet level to 2</td><td>NONE</td><td>NONE</td></tr><tr><td>Jets Level 3</td><td>Ejection Pattern Setting</td><td>Select ejection pattern</td><td>NONE</td><td>NONE</td></tr><tr><td>Jets Level 3</td><td>Jets Paused</td><td>Pause jets</td><td>NONE</td><td>Stop jets for 2 minutes</td></tr><tr><td>Jets Level 3</td><td>Panel Control Active</td><td>Control via attached panel</td><td>NONE</td><td>NONE</td></tr><tr><td>Jets Level 3</td><td>Jacuzzi Off</td><td>Turn Jacuzzi off</td><td>NONE</td><td>NONE</td></tr><tr><td>Jets Paused</td><td>Jets Level 1</td><td>Resume jets after 2 minutes</td><td>NONE</td><td>NONE</td></tr><tr><td>Ejection Pattern Setting</td><td>Ejection Pattern Setting</td><td>Select ejection pattern</td><td>NONE</td><td>NONE</td></tr><tr><td>Ejection Pattern Setting</td><td>Panel Control Active</td><td>Control via attached panel</td><td>NONE</td><td>NONE</td></tr><tr><td>Remote Control Active</td><td>Sauna Heating</td><td>Turn sauna on</td><td>NONE</td><td>Start stove heating</td></tr><tr><td>Remote Control Active</td><td>Sauna Off</td><td>Turn sauna off</td><td>NONE</td><td>NONE</td></tr><tr><td>Remote Control Active</td><td>Water Dispersion Ready</td><td>User requests water dispersion</td><td>Humidity &lt; 40% AND Fan Inactive</td><td>Disperse water</td></tr><tr><td>Remote Control Active</td><td>Water Dispersion Ready</td><td>15 minutes have passed since last water dispersion</td><td>NONE</td><td>Set water dispersion to allowed</td></tr><tr><td>Remote Control Active</td><td>Jets Level 1</td><td>Turn Jacuzzi on</td><td>NONE</td><td>Start jets at level 1</td></tr><tr><td>Remote Control Active</td><td>Jacuzzi Off</td><td>Turn Jacuzzi off</td><td>NONE</td><td>NONE</td></tr><tr><td> Jets Level 1 </td><td> Jets Level 2 </td><td> Increase jet level to 2 </td><td> NONE </td><td> NONE </td></tr><tr><td> Jets Level 3 </td><td> Jets Level 2 </td><td> Increase jet level to 2 </td><td> NONE </td><td> NONE </td></tr><tr><td>Jets Level 2</td><td>Jets Level 3</td><td>Increase jet level to 3</td><td>Current jet level is 2</td><td>NONE</td></tr><tr><td> Remote Control Active </td><td> Jets Level 2 </td><td> Decrease jet level to 2 </td><td> Current jet level is 3 </td><td> NONE </td></tr><tr><td>Remote Control Active</td><td>Jets Level 1</td><td>Decrease jet level to 1</td><td>NONE</td><td>NONE</td></tr><tr><td>Remote Control Active</td><td>Ejection Pattern Setting</td><td>Select ejection pattern</td><td>NONE</td><td>NONE</td></tr><tr><td>Remote Control Active</td><td>Jets Paused</td><td>Pause jets</td><td>NONE</td><td>NONE</td></tr><tr><td>Jets Paused</td><td>Previous Jets Level</td><td>Resume jets after 2 minutes</td><td>NONE</td><td>NONE</td></tr><tr><td> Panel Control Active </td><td> Jets Level 1 </td><td> Turn Jacuzzi on </td><td> NONE </td><td> Set jets to level 1 </td></tr><tr><td>Panel Control Active</td><td>Jacuzzi Off</td><td>Turn Jacuzzi off</td><td>NONE</td><td>NONE</td></tr><tr><td>Panel Control Active</td><td>Jets Level 2</td><td>Increase jet level to 2</td><td>NONE</td><td>NONE</td></tr><tr><td>Panel Control Active</td><td>Jets Level 3</td><td>Increase jet level to 3</td><td>NONE</td><td>Set jets to level 3</td></tr><tr><td>Jets Level 3</td><td>Jets Level 2</td><td>Decrease jet level to 2</td><td>NONE</td><td>NONE</td></tr><tr><td>Panel Control Active</td><td>Jets Level 1</td><td>Decrease jet level to 1</td><td>NONE</td><td>NONE</td></tr><tr><td>Panel Control Active</td><td>Ejection Pattern Setting</td><td>Select ejection pattern</td><td>NONE</td><td>NONE</td></tr><tr><td>Panel Control Active</td><td>Jets Paused</td><td>Pause jets</td><td>NONE</td><td>Pause jets for two minutes</td></tr></table>
+Running start_event_driven_create_hierarchical_states
+<table border="1">
+<tr> <th>Superstate</th> <th>Substate</th> </tr>
+<tr> <td> Sauna Control </td> <td> Sauna Off </td> </tr>
+<tr> <td> Sauna Control </td> <td> Sauna Heating </td> </tr>
+<tr> <td> Sauna Control </td> <td> Sauna Standby </td> </tr>
+<tr> <td> Fan Control </td> <td> Fan Inactive </td> </tr>
+<tr> <td> Fan Control </td> <td> Fan Active </td> </tr>
+<tr> <td> Water Dispersion Control </td> <td> Water Dispersion Ready </td> </tr>
+<tr> <td> Water Dispersion Control </td> <td> Water Dispersion Not Allowed </td> </tr>
+<tr> <td> Jacuzzi Control </td> <td> Jacuzzi Off </td> </tr>
+<tr> <td> Jacuzzi Control </td> <td> Jets Level 1 </td> </tr>
+<tr> <td> Jacuzzi Control </td> <td> Jets Level 2 </td> </tr>
+<tr> <td> Jacuzzi Control </td> <td> Jets Level 3 </td> </tr>
+<tr> <td> Jacuzzi Control </td> <td> Jets Paused </td> </tr>
+<tr> <td> Jacuzzi Control </td> <td> Ejection Pattern Setting </td> </tr>
+<tr> <td> Jacuzzi Control </td> <td> Panel Control Active </td> </tr>
+<tr> <td> Remote Control Active </td> <td> Sauna Off </td> </tr>
+<tr> <td> Remote Control Active </td> <td> Water Dispersion Ready </td> </tr>
+<tr> <td> Remote Control Active </td> <td> Jets Level 1 </td> </tr>
+<tr> <td> - </td> <td> Remote Control Active </td> </tr>
+</table>
+Running start_event_driven_hierarchical_initial_state_search...
+{'Sauna Control': 'Sauna Off', 'Fan Control': 'Fan Inactive', 'Water Dispersion Control': 'Water Dispersion Ready', 'Jacuzzi Control': 'Jacuzzi Off', 'Remote Control Active': 'Sauna Off'}
+Running start_event_driven_refactor_transition_names...
+<table border="1"><tr><th>From State</th><th>To State</th><th>Event</th><th>Guard</th><th>Action</th></tr><tr><td>Remote Control Active.Sauna Off</td><td>Sauna Control.Sauna Heating</td><td>Turn sauna on</td><td>NONE</td><td>Start stove heating</td></tr><tr><td>Sauna Control.Sauna Heating</td><td>Sauna Control.Sauna Standby</td><td>Temperature reaches 90</td><td>NONE</td><td>Stop stove heating</td></tr><tr><td>Fan Control.Fan Inactive</td><td>Fan Control.Fan Active</td><td>Humidity exceeds 40</td><td>Humidity &gt; 40% for more than 3 minutes</td><td>Activate fan</td></tr><tr><td>Remote Control Active.Water Dispersion Ready</td><td>Water Dispersion Control.Water Dispersion Not Allowed</td><td>User requests water dispersion</td><td>Humidity &lt; 40% and Fan is not active</td><td>Disperse predetermined amount of water</td></tr><tr><td>Water Dispersion Control.Water Dispersion Not Allowed</td><td>Fan Control.Fan Active</td><td>Humidity exceeds 40</td><td>Humidity &gt; 40% for more than 3 minutes</td><td>Activate fan</td></tr><tr><td>Jacuzzi Control.Jacuzzi Off</td><td>Remote Control Active.Jets Level 1</td><td>Turn Jacuzzi on</td><td>NONE</td><td>Set jets to Level 1</td></tr><tr><td>Remote Control Active.Jets Level 1</td><td>Jacuzzi Control.Jets Level 2</td><td>Increase jet level to 2</td><td>NONE</td><td>NONE</td></tr><tr><td>Remote Control Active.Jets Level 1</td><td>Jacuzzi Control.Ejection Pattern Setting</td><td>Select ejection pattern</td><td>NONE</td><td>NONE</td></tr><tr><td>Remote Control Active.Jets Level 1</td><td>Jacuzzi Control.Jets Paused</td><td>Pause jets</td><td>NONE</td><td>Stop jets ejection for 2 minutes</td></tr><tr><td>Remote Control Active.Jets Level 1</td><td>Jacuzzi Control.Jacuzzi Off</td><td>Turn Jacuzzi off</td><td>NONE</td><td>NONE</td></tr><tr><td>Remote Control Active.Jets Level 1</td><td>Jacuzzi Control.Panel Control Active</td><td>Control via attached panel</td><td>NONE</td><td>NONE</td></tr><tr><td>Jacuzzi Control.Jets Level 2</td><td>Jacuzzi Control.Jets Level 3</td><td>Increase jet level to 3</td><td>NONE</td><td>NONE</td></tr><tr><td>Jacuzzi Control.Jets Level 2</td><td>Remote Control Active.Jets Level 1</td><td>Decrease jet level to 1</td><td>NONE</td><td>NONE</td></tr><tr><td>Jacuzzi Control.Jets Level 2</td><td>Jacuzzi Control.Ejection Pattern Setting</td><td>Select ejection pattern</td><td>NONE</td><td>NONE</td></tr><tr><td>Jacuzzi Control.Jets Level 2</td><td>Jacuzzi Control.Jets Paused</td><td>Pause jets</td><td>NONE</td><td>NONE</td></tr><tr><td>Jacuzzi Control.Jets Level 2</td><td>Jacuzzi Control.Panel Control Active</td><td>Control via attached panel</td><td>NONE</td><td>NONE</td></tr><tr><td>Jacuzzi Control.Jets Level 3</td><td>Jacuzzi Control.Jets Level 2</td><td>Decrease jet level to 2</td><td>NONE</td><td>NONE</td></tr><tr><td>Jacuzzi Control.Jets Level 3</td><td>Jacuzzi Control.Ejection Pattern Setting</td><td>Select ejection pattern</td><td>NONE</td><td>NONE</td></tr><tr><td>Jacuzzi Control.Jets Level 3</td><td>Jacuzzi Control.Jets Paused</td><td>Pause jets</td><td>NONE</td><td>Stop jets for 2 minutes</td></tr><tr><td>Jacuzzi Control.Jets Level 3</td><td>Jacuzzi Control.Panel Control Active</td><td>Control via attached panel</td><td>NONE</td><td>NONE</td></tr><tr><td>Jacuzzi Control.Jets Level 3</td><td>Jacuzzi Control.Jacuzzi Off</td><td>Turn Jacuzzi off</td><td>NONE</td><td>NONE</td></tr><tr><td>Jacuzzi Control.Jets Paused</td><td>Remote Control Active.Jets Level 1</td><td>Resume jets after 2 minutes</td><td>NONE</td><td>NONE</td></tr><tr><td>Jacuzzi Control.Ejection Pattern Setting</td><td>Jacuzzi Control.Ejection Pattern Setting</td><td>Select ejection pattern</td><td>NONE</td><td>NONE</td></tr><tr><td>Jacuzzi Control.Ejection Pattern Setting</td><td>Jacuzzi Control.Panel Control Active</td><td>Control via attached panel</td><td>NONE</td><td>NONE</td></tr><tr><td>Remote Control Active</td><td>Sauna Control.Sauna Heating</td><td>Turn sauna on</td><td>NONE</td><td>Start stove heating</td></tr><tr><td>Remote Control Active</td><td>Remote Control Active.Sauna Off</td><td>Turn sauna off</td><td>NONE</td><td>NONE</td></tr><tr><td>Remote Control Active</td><td>Remote Control Active.Water Dispersion Ready</td><td>User requests water dispersion</td><td>Humidity &lt; 40% AND Fan Inactive</td><td>Disperse water</td></tr><tr><td>Remote Control Active</td><td>Remote Control Active.Water Dispersion Ready</td><td>15 minutes have passed since last water dispersion</td><td>NONE</td><td>Set water dispersion to allowed</td></tr><tr><td>Remote Control Active</td><td>Remote Control Active.Jets Level 1</td><td>Turn Jacuzzi on</td><td>NONE</td><td>Start jets at level 1</td></tr><tr><td>Remote Control Active</td><td>Jacuzzi Control.Jacuzzi Off</td><td>Turn Jacuzzi off</td><td>NONE</td><td>NONE</td></tr><tr><td>Remote Control Active.Jets Level 1</td><td>Jacuzzi Control.Jets Level 2</td><td> Increase jet level to 2 </td><td> NONE </td><td> NONE </td></tr><tr><td>Jacuzzi Control.Jets Level 3</td><td>Jacuzzi Control.Jets Level 2</td><td> Increase jet level to 2 </td><td> NONE </td><td> NONE </td></tr><tr><td>Jacuzzi Control.Jets Level 2</td><td>Jacuzzi Control.Jets Level 3</td><td>Increase jet level to 3</td><td>Current jet level is 2</td><td>NONE</td></tr><tr><td>Remote Control Active</td><td>Jacuzzi Control.Jets Level 2</td><td> Decrease jet level to 2 </td><td> Current jet level is 3 </td><td> NONE </td></tr><tr><td>Remote Control Active</td><td>Remote Control Active.Jets Level 1</td><td>Decrease jet level to 1</td><td>NONE</td><td>NONE</td></tr><tr><td>Remote Control Active</td><td>Jacuzzi Control.Ejection Pattern Setting</td><td>Select ejection pattern</td><td>NONE</td><td>NONE</td></tr><tr><td>Remote Control Active</td><td>Jacuzzi Control.Jets Paused</td><td>Pause jets</td><td>NONE</td><td>NONE</td></tr><tr><td>Jacuzzi Control.Jets Paused</td><td>Previous Jets Level</td><td>Resume jets after 2 minutes</td><td>NONE</td><td>NONE</td></tr><tr><td>Jacuzzi Control.Panel Control Active</td><td>Remote Control Active.Jets Level 1</td><td> Turn Jacuzzi on </td><td> NONE </td><td> Set jets to level 1 </td></tr><tr><td>Jacuzzi Control.Panel Control Active</td><td>Jacuzzi Control.Jacuzzi Off</td><td>Turn Jacuzzi off</td><td>NONE</td><td>NONE</td></tr><tr><td>Jacuzzi Control.Panel Control Active</td><td>Jacuzzi Control.Jets Level 2</td><td>Increase jet level to 2</td><td>NONE</td><td>NONE</td></tr><tr><td>Jacuzzi Control.Panel Control Active</td><td>Jacuzzi Control.Jets Level 3</td><td>Increase jet level to 3</td><td>NONE</td><td>Set jets to level 3</td></tr><tr><td>Jacuzzi Control.Jets Level 3</td><td>Jacuzzi Control.Jets Level 2</td><td>Decrease jet level to 2</td><td>NONE</td><td>NONE</td></tr><tr><td>Jacuzzi Control.Panel Control Active</td><td>Remote Control Active.Jets Level 1</td><td>Decrease jet level to 1</td><td>NONE</td><td>NONE</td></tr><tr><td>Jacuzzi Control.Panel Control Active</td><td>Jacuzzi Control.Ejection Pattern Setting</td><td>Select ejection pattern</td><td>NONE</td><td>NONE</td></tr><tr><td>Jacuzzi Control.Panel Control Active</td><td>Jacuzzi Control.Jets Paused</td><td>Pause jets</td><td>NONE</td><td>Pause jets for two minutes</td></tr></table>
+Running start_event_driven_factor_out_transitions_for_hierarchal_states...
+Running start_event_driven_history_state_search_action...
+Not Found history state
+Not Found history state
+Found history state
+Found history state
+Not Found history state
+<table border="1">
+<tr>
+<th>From State</th>
+<th>To State</th>
+<th>Event</th>
+<th>Guard</th>
+<th>Action</th>
+</tr>
+<tr>
+<td>Remote Control Active.Sauna Off</td>
+<td>Sauna Control.Sauna Heating</td>
+<td>Turn sauna on</td>
+<td>NONE</td>
+<td>Start stove heating</td>
+</tr>
+<tr>
+<td>Sauna Control.Sauna Heating</td>
+<td>Sauna Control.Sauna Standby</td>
+<td>Temperature reaches 90</td>
+<td>NONE</td>
+<td>Stop stove heating</td>
+</tr>
+<tr>
+<td>Fan Control.Fan Inactive</td>
+<td>Fan Control.Fan Active</td>
+<td>Humidity exceeds 40</td>
+<td>Humidity &gt; 40% for more than 3 minutes</td>
+<td>Activate fan</td>
+</tr>
+<tr>
+<td>Remote Control Active.Water Dispersion Ready</td>
+<td>Water Dispersion Control.Water Dispersion Not Allowed</td>
+<td>User requests water dispersion</td>
+<td>Humidity &lt; 40% and Fan is not active</td>
+<td>Disperse predetermined amount of water</td>
+</tr>
+<tr>
+<td>Water Dispersion Control.Water Dispersion Not Allowed</td>
+<td>Fan Control.Fan Active</td>
+<td>Humidity exceeds 40</td>
+<td>Humidity &gt; 40% for more than 3 minutes</td>
+<td>Activate fan</td>
+</tr>
+<tr>
+<td>Jacuzzi Control.Jacuzzi Off</td>
+<td>Remote Control Active.Jets Level 1</td>
+<td>Turn Jacuzzi on</td>
+<td>NONE</td>
+<td>Set jets to Level 1</td>
+</tr>
+<tr>
+<td>Remote Control Active.Jets Level 1</td>
+<td>Jacuzzi Control.Jets Level 2</td>
+<td>Increase jet level to 2</td>
+<td>NONE</td>
+<td>NONE</td>
+</tr>
+<tr>
+<td>Remote Control Active.Jets Level 1</td>
+<td>Jacuzzi Control.Ejection Pattern Setting</td>
+<td>Select ejection pattern</td>
+<td>NONE</td>
+<td>NONE</td>
+</tr>
+<tr>
+<td>Remote Control Active.Jets Level 1</td>
+<td>Jacuzzi Control.Jets Paused</td>
+<td>Pause jets</td>
+<td>NONE</td>
+<td>Stop jets ejection for 2 minutes</td>
+</tr>
+<tr>
+<td>Remote Control Active.Jets Level 1</td>
+<td>Jacuzzi Control.Jacuzzi Off</td>
+<td>Turn Jacuzzi off</td>
+<td>NONE</td>
+<td>NONE</td>
+</tr>
+<tr>
+<td>Remote Control Active.Jets Level 1</td>
+<td>Jacuzzi Control.Panel Control Active</td>
+<td>Control via attached panel</td>
+<td>NONE</td>
+<td>NONE</td>
+</tr>
+<tr>
+<td>Jacuzzi Control.Jets Level 2</td>
+<td>Jacuzzi Control.Jets Level 3</td>
+<td>Increase jet level to 3</td>
+<td>NONE</td>
+<td>NONE</td>
+</tr>
+<tr>
+<td>Jacuzzi Control.Jets Level 2</td>
+<td>Remote Control Active.Jets Level 1</td>
+<td>Decrease jet level to 1</td>
+<td>NONE</td>
+<td>NONE</td>
+</tr>
+<tr>
+<td>Jacuzzi Control.Jets Level 2</td>
+<td>Jacuzzi Control.Ejection Pattern Setting</td>
+<td>Select ejection pattern</td>
+<td>NONE</td>
+<td>NONE</td>
+</tr>
+<tr>
+<td>Jacuzzi Control.Jets Level 2</td>
+<td>Jacuzzi Control.Jets Paused</td>
+<td>Pause jets</td>
+<td>NONE</td>
+<td>NONE</td>
+</tr>
+<tr>
+<td>Jacuzzi Control.Jets Level 2</td>
+<td>Jacuzzi Control.Panel Control Active</td>
+<td>Control via attached panel</td>
+<td>NONE</td>
+<td>NONE</td>
+</tr>
+<tr>
+<td>Jacuzzi Control.Jets Level 3</td>
+<td>Jacuzzi Control.Jets Level 2</td>
+<td>Decrease jet level to 2</td>
+<td>NONE</td>
+<td>NONE</td>
+</tr>
+<tr>
+<td>Jacuzzi Control.Jets Level 3</td>
+<td>Jacuzzi Control.Ejection Pattern Setting</td>
+<td>Select ejection pattern</td>
+<td>NONE</td>
+<td>NONE</td>
+</tr>
+<tr>
+<td>Jacuzzi Control.Jets Level 3</td>
+<td>Jacuzzi Control.Jets Paused</td>
+<td>Pause jets</td>
+<td>NONE</td>
+<td>Stop jets for 2 minutes</td>
+</tr>
+<tr>
+<td>Jacuzzi Control.Jets Level 3</td>
+<td>Jacuzzi Control.Panel Control Active</td>
+<td>Control via attached panel</td>
+<td>NONE</td>
+<td>NONE</td>
+</tr>
+<tr>
+<td>Jacuzzi Control.Jets Level 3</td>
+<td>Jacuzzi Control.Jacuzzi Off</td>
+<td>Turn Jacuzzi off</td>
+<td>NONE</td>
+<td>NONE</td>
+</tr>
+<tr>
+<td>Jacuzzi Control.Jets Paused</td>
+<td>Remote Control Active.Jets Level 1</td>
+<td>Resume jets after 2 minutes</td>
+<td>NONE</td>
+<td>NONE</td>
+</tr>
+<tr>
+<td>Jacuzzi Control.Ejection Pattern Setting</td>
+<td>Jacuzzi Control.Ejection Pattern Setting</td>
+<td>Select ejection pattern</td>
+<td>NONE</td>
+<td>NONE</td>
+</tr>
+<tr>
+<td>Jacuzzi Control.Ejection Pattern Setting</td>
+<td>Jacuzzi Control.Panel Control Active</td>
+<td>Control via attached panel</td>
+<td>NONE</td>
+<td>NONE</td>
+</tr>
+<tr>
+<td>Remote Control Active</td>
+<td>Sauna Control.Sauna Heating</td>
+<td>Turn sauna on</td>
+<td>NONE</td>
+<td>Start stove heating</td>
+</tr>
+<tr>
+<td>Remote Control Active</td>
+<td>Remote Control Active.Sauna Off</td>
+<td>Turn sauna off</td>
+<td>NONE</td>
+<td>NONE</td>
+</tr>
+<tr>
+<td>Remote Control Active</td>
+<td>Remote Control Active.Water Dispersion Ready</td>
+<td>User requests water dispersion</td>
+<td>Humidity &lt; 40% AND Fan Inactive</td>
+<td>Disperse water</td>
+</tr>
+<tr>
+<td>Remote Control Active</td>
+<td>Remote Control Active.Water Dispersion Ready</td>
+<td>15 minutes have passed since last water dispersion</td>
+<td>NONE</td>
+<td>Set water dispersion to allowed</td>
+</tr>
+<tr>
+<td>Remote Control Active</td>
+<td>Remote Control Active.Jets Level 1</td>
+<td>Turn Jacuzzi on</td>
+<td>NONE</td>
+<td>Start jets at level 1</td>
+</tr>
+<tr>
+<td>Remote Control Active</td>
+<td>Jacuzzi Control.Jacuzzi Off</td>
+<td>Turn Jacuzzi off</td>
+<td>NONE</td>
+<td>NONE</td>
+</tr>
+<tr>
+<td>Remote Control Active.Jets Level 1</td>
+<td>Jacuzzi Control.Jets Level 2</td>
+<td>Increase jet level to 2</td>
+<td>NONE</td>
+<td>NONE</td>
+</tr>
+<tr>
+<td>Jacuzzi Control.Jets Level 3</td>
+<td>Jacuzzi Control.Jets Level 2</td>
+<td>Increase jet level to 2</td>
+<td>NONE</td>
+<td>NONE</td>
+</tr>
+<tr>
+<td>Jacuzzi Control.Jets Level 2</td>
+<td>Jacuzzi Control.Jets Level 3</td>
+<td>Increase jet level to 3</td>
+<td>Current jet level is 2</td>
+<td>NONE</td>
+</tr>
+<tr>
+<td>Remote Control Active</td>
+<td>Jacuzzi Control.Jets Level 2</td>
+<td>Decrease jet level to 2</td>
+<td>Current jet level is 3</td>
+<td>NONE</td>
+</tr>
+<tr>
+<td>Remote Control Active</td>
+<td>Remote Control Active.Jets Level 1</td>
+<td>Decrease jet level to 1</td>
+<td>NONE</td>
+<td>NONE</td>
+</tr>
+<tr>
+<td>Remote Control Active</td>
+<td>Jacuzzi Control.Ejection Pattern Setting</td>
+<td>Select ejection pattern</td>
+<td>NONE</td>
+<td>NONE</td>
+</tr>
+<tr>
+<td>Remote Control Active</td>
+<td>Jacuzzi Control.Jets Paused</td>
+<td>Pause jets</td>
+<td>NONE</td>
+<td>NONE</td>
+</tr>
+<tr>
+<td>Jacuzzi Control.Jets Paused</td>
+<td>Previous Jets Level</td>
+<td>Resume jets after 2 minutes</td>
+<td>NONE</td>
+<td>NONE</td>
+</tr>
+<tr>
+<td>Jacuzzi Control.Panel Control Active</td>
+<td>Remote Control Active.Jets Level 1</td>
+<td>Turn Jacuzzi on</td>
+<td>NONE</td>
+<td>Set jets to level 1</td>
+</tr>
+<tr>
+<td>Jacuzzi Control.Panel Control Active</td>
+<td>Jacuzzi Control.Jacuzzi Off</td>
+<td>Turn Jacuzzi off</td>
+<td>NONE</td>
+<td>NONE</td>
+</tr>
+<tr>
+<td>Jacuzzi Control.Panel Control Active</td>
+<td>Jacuzzi Control.Jets Level 2</td>
+<td>Increase jet level to 2</td>
+<td>NONE</td>
+<td>NONE</td>
+</tr>
+<tr>
+<td>Jacuzzi Control.Panel Control Active</td>
+<td>Jacuzzi Control.Jets Level 3</td>
+<td>Increase jet level to 3</td>
+<td>NONE</td>
+<td>Set jets to level 3</td>
+</tr>
+<tr>
+<td>Jacuzzi Control.Jets Level 3</td>
+<td>Jacuzzi Control.Jets Level 2</td>
+<td>Decrease jet level to 2</td>
+<td>NONE</td>
+<td>NONE</td>
+</tr>
+<tr>
+<td>Jacuzzi Control.Panel Control Active</td>
+<td>Remote Control Active.Jets Level 1</td>
+<td>Decrease jet level to 1</td>
+<td>NONE</td>
+<td>NONE</td>
+</tr>
+<tr>
+<td>Jacuzzi Control.Panel Control Active</td>
+<td>Jacuzzi Control.Ejection Pattern Setting</td>
+<td>Select ejection pattern</td>
+<td>NONE</td>
+<td>NONE</td>
+</tr>
+<tr>
+<td>Jacuzzi Control.Panel Control Active</td>
+<td>Jacuzzi Control.Jets Paused</td>
+<td>Pause jets</td>
+<td>NONE</td>
+<td>Pause jets for two minutes</td>
+</tr>
+<tr> <td>Jacuzzi Control.Panel Control Active</td><td>RemoteControlActive.H</td> <td>Turn Jacuzzi on</td> <td>NONE</td> <td>Set jets to level 1</td> </tr><tr> <td>Jacuzzi Control.Jets Paused</td><td>RemoteControlActive.H</td> <td>Resume jets after 2 minutes</td> <td>NONE</td> <td>NONE</td> </tr><tr> <td>Remote Control Active</td><td>RemoteControlActive.H</td> <td>Turn sauna off</td> <td>NONE</td> <td>NONE</td> </tr><tr> <td>Remote Control Active</td><td>RemoteControlActive.H</td> <td>User requests water dispersion</td> <td>Humidity &lt; 40% AND Fan Inactive</td> <td>Disperse water</td> </tr><tr> <td>Jacuzzi Control.Panel Control Active</td><td>JacuzziControl.H</td> <td>Turn Jacuzzi on</td> <td>NONE</td> <td>Set jets to level 1</td> </tr><tr> <td>Jacuzzi Control.Jets Paused</td><td>JacuzziControl.H</td> <td>Resume jets after 2 minutes</td> <td>NONE</td> <td>NONE</td> </tr></table>
+Running start_event_driven_parallel_regions_search_action...
+<table border='1'>
+  <tr>
+    <th>From State</th>
+    <th>To State</th>
+    <th>Event</th>
+    <th>Guard</th>
+    <th>Action</th>
+  </tr>
+  <tr>
+    <td>Remote Control Active.Sauna Off</td>
+    <td>Sauna Control.Sauna Heating</td>
+    <td>Turn sauna on</td>
+    <td>NONE</td>
+    <td>Start stove heating</td>
+  </tr>
+  <tr>
+    <td>Sauna Control.Sauna Heating</td>
+    <td>Sauna Control.Sauna Standby</td>
+    <td>Temperature reaches 90</td>
+    <td>NONE</td>
+    <td>Stop stove heating</td>
+  </tr>
+  <tr>
+    <td>Fan Control.Fan Inactive</td>
+    <td>Fan Control.Fan Active</td>
+    <td>Humidity exceeds 40</td>
+    <td>Humidity > 40% for more than 3 minutes</td>
+    <td>Activate fan</td>
+  </tr>
+  <tr>
+    <td>Remote Control Active.Water Dispersion Ready</td>
+    <td>Water Dispersion Control.Water Dispersion Not Allowed</td>
+    <td>User requests water dispersion</td>
+    <td>Humidity < 40% and Fan is not active</td>
+    <td>Disperse predetermined amount of water</td>
+  </tr>
+  <tr>
+    <td>Water Dispersion Control.Water Dispersion Not Allowed</td>
+    <td>Fan Control.Fan Active</td>
+    <td>Humidity exceeds 40</td>
+    <td>Humidity > 40% for more than 3 minutes</td>
+    <td>Activate fan</td>
+  </tr>
+  <tr>
+    <td>Jacuzzi Control.Jacuzzi Off</td>
+    <td>Remote Control Active.Jets Level 1</td>
+    <td>Turn Jacuzzi on</td>
+    <td>NONE</td>
+    <td>Set jets to Level 1</td>
+  </tr>
+  <tr>
+    <td>Remote Control Active.Jets Level 1</td>
+    <td>Jacuzzi Control.Jets Level 2</td>
+    <td>Increase jet level to 2</td>
+    <td>NONE</td>
+    <td>NONE</td>
+  </tr>
+  <tr>
+    <td>Remote Control Active.Jets Level 1</td>
+    <td>Jacuzzi Control.Ejection Pattern Setting</td>
+    <td>Select ejection pattern</td>
+    <td>NONE</td>
+    <td>NONE</td>
+  </tr>
+  <tr>
+    <td>Remote Control Active.Jets Level 1</td>
+    <td>Jacuzzi Control.Jets Paused</td>
+    <td>Pause jets</td>
+    <td>NONE</td>
+    <td>Stop jets ejection for 2 minutes</td>
+  </tr>
+  <tr>
+    <td>Remote Control Active.Jets Level 1</td>
+    <td>Jacuzzi Control.Jacuzzi Off</td>
+    <td>Turn Jacuzzi off</td>
+    <td>NONE</td>
+    <td>NONE</td>
+  </tr>
+  <tr>
+    <td>Remote Control Active.Jets Level 1</td>
+    <td>Jacuzzi Control.Panel Control Active</td>
+    <td>Control via attached panel</td>
+    <td>NONE</td>
+    <td>NONE</td>
+  </tr>
+  <tr>
+    <td>Jacuzzi Control.Jets Level 2</td>
+    <td>Jacuzzi Control.Jets Level 3</td>
+    <td>Increase jet level to 3</td>
+    <td>NONE</td>
+    <td>NONE</td>
+  </tr>
+  <tr>
+    <td>Jacuzzi Control.Jets Level 2</td>
+    <td>Remote Control Active.Jets Level 1</td>
+    <td>Decrease jet level to 1</td>
+    <td>NONE</td>
+    <td>NONE</td>
+  </tr>
+  <tr>
+    <td>Jacuzzi Control.Jets Level 2</td>
+    <td>Jacuzzi Control.Ejection Pattern Setting</td>
+    <td>Select ejection pattern</td>
+    <td>NONE</td>
+    <td>NONE</td>
+  </tr>
+  <tr>
+    <td>Jacuzzi Control.Jets Level 2</td>
+    <td>Jacuzzi Control.Jets Paused</td>
+    <td>Pause jets</td>
+    <td>NONE</td>
+    <td>NONE</td>
+  </tr>
+  <tr>
+    <td>Jacuzzi Control.Jets Level 2</td>
+    <td>Jacuzzi Control.Panel Control Active</td>
+    <td>Control via attached panel</td>
+    <td>NONE</td>
+    <td>NONE</td>
+  </tr>
+  <tr>
+    <td>Jacuzzi Control.Jets Level 3</td>
+    <td>Jacuzzi Control.Jets Level 2</td>
+    <td>Decrease jet level to 2</td>
+    <td>NONE</td>
+    <td>NONE</td>
+  </tr>
+  <tr>
+    <td>Jacuzzi Control.Jets Level 3</td>
+    <td>Jacuzzi Control.Ejection Pattern Setting</td>
+    <td>Select ejection pattern</td>
+    <td>NONE</td>
+    <td>NONE</td>
+  </tr>
+  <tr>
+    <td>Jacuzzi Control.Jets Level 3</td>
+    <td>Jacuzzi Control.Jets Paused</td>
+    <td>Pause jets</td>
+    <td>NONE</td>
+    <td>Stop jets for 2 minutes</td>
+  </tr>
+  <tr>
+    <td>Jacuzzi Control.Jets Level 3</td>
+    <td>Jacuzzi Control.Panel Control Active</td>
+    <td>Control via attached panel</td>
+    <td>NONE</td>
+    <td>NONE</td>
+  </tr>
+  <tr>
+    <td>Jacuzzi Control.Jets Level 3</td>
+    <td>Jacuzzi Control.Jacuzzi Off</td>
+    <td>Turn Jacuzzi off</td>
+    <td>NONE</td>
+    <td>NONE</td>
+  </tr>
+  <tr>
+    <td>Jacuzzi Control.Jets Paused</td>
+    <td>Remote Control Active.Jets Level 1</td>
+    <td>Resume jets after 2 minutes</td>
+    <td>NONE</td>
+    <td>NONE</td>
+  </tr>
+  <tr>
+    <td>Jacuzzi Control.Ejection Pattern Setting</td>
+    <td>Jacuzzi Control.Ejection Pattern Setting</td>
+    <td>Select ejection pattern</td>
+    <td>NONE</td>
+    <td>NONE</td>
+  </tr>
+  <tr>
+    <td>Jacuzzi Control.Ejection Pattern Setting</td>
+    <td>Jacuzzi Control.Panel Control Active</td>
+    <td>Control via attached panel</td>
+    <td>NONE</td>
+    <td>NONE</td>
+  </tr>
+  <tr>
+    <td>Remote Control Active</td>
+    <td>Sauna Control.Sauna Heating</td>
+    <td>Turn sauna on</td>
+    <td>NONE</td>
+    <td>Start stove heating</td>
+  </tr>
+  <tr>
+    <td>Remote Control Active</td>
+    <td>Remote Control Active.Sauna Off</td>
+    <td>Turn sauna off</td>
+    <td>NONE</td>
+    <td>NONE</td>
+  </tr>
+  <tr>
+    <td>Remote Control Active</td>
+    <td>Remote Control Active.Water Dispersion Ready</td>
+    <td>User requests water dispersion</td>
+    <td>Humidity < 40% AND Fan Inactive</td>
+    <td>Disperse water</td>
+  </tr>
+  <tr>
+    <td>Remote Control Active</td>
+    <td>Remote Control Active.Water Dispersion Ready</td>
+    <td>15 minutes have passed since last water dispersion</td>
+    <td>NONE</td>
+    <td>Set water dispersion to allowed</td>
+  </tr>
+  <tr>
+    <td>Remote Control Active</td>
+    <td>Remote Control Active.Jets Level 1</td>
+    <td>Turn Jacuzzi on</td>
+    <td>NONE</td>
+    <td>Start jets at level 1</td>
+  </tr>
+  <tr>
+    <td>Remote Control Active</td>
+    <td>Jacuzzi Control.Jacuzzi Off</td>
+    <td>Turn Jacuzzi off</td>
+    <td>NONE</td>
+    <td>NONE</td>
+  </tr>
+  <tr>
+    <td>Remote Control Active.Jets Level 1</td>
+    <td>Jacuzzi Control.Jets Level 2</td>
+    <td>Increase jet level to 2</td>
+    <td>NONE</td>
+    <td>NONE</td>
+  </tr>
+  <tr>
+    <td>Jacuzzi Control.Jets Level 3</td>
+    <td>Jacuzzi Control.Jets Level 2</td>
+    <td>Increase jet level to 2</td>
+    <td>NONE</td>
+    <td>NONE</td>
+  </tr>
+  <tr>
+    <td>Jacuzzi Control.Jets Level 2</td>
+    <td>Jacuzzi Control.Jets Level 3</td>
+    <td>Increase jet level to 3</td>
+    <td>Current jet level is 2</td>
+    <td>NONE</td>
+  </tr>
+  <tr>
+    <td>Remote Control Active</td>
+    <td>Jacuzzi Control.Jets Level 2</td>
+    <td>Decrease jet level to 2</td>
+    <td>Current jet level is 3</td>
+    <td>NONE</td>
+  </tr>
+  <tr>
+    <td>Remote Control Active</td>
+    <td>Remote Control Active.Jets Level 1</td>
+    <td>Decrease jet level to 1</td>
+    <td>NONE</td>
+    <td>NONE</td>
+  </tr>
+  <tr>
+    <td>Remote Control Active</td>
+    <td>Jacuzzi Control.Ejection Pattern Setting</td>
+    <td>Select ejection pattern</td>
+    <td>NONE</td>
+    <td>NONE</td>
+  </tr>
+  <tr>
+    <td>Remote Control Active</td>
+    <td>Jacuzzi Control.Jets Paused</td>
+    <td>Pause jets</td>
+    <td>NONE</td>
+    <td>NONE</td>
+  </tr>
+  <tr>
+    <td>Jacuzzi Control.Jets Paused</td>
+    <td>Previous Jets Level</td>
+    <td>Resume jets after 2 minutes</td>
+    <td>NONE</td>
+    <td>NONE</td>
+  </tr>
+  <tr>
+    <td>Jacuzzi Control.Panel Control Active</td>
+    <td>Remote Control Active.Jets Level 1</td>
+    <td>Turn Jacuzzi on</td>
+    <td>NONE</td>
+    <td>Set jets to level 1</td>
+  </tr>
+  <tr>
+    <td>Jacuzzi Control.Panel Control Active</td>
+    <td>Jacuzzi Control.Jacuzzi Off</td>
+    <td>Turn Jacuzzi off</td>
+    <td>NONE</td>
+    <td>NONE</td>
+  </tr>
+  <tr>
+    <td>Jacuzzi Control.Panel Control Active</td>
+    <td>Jacuzzi Control.Jets Level 2</td>
+    <td>Increase jet level to 2</td>
+    <td>NONE</td>
+    <td>NONE</td>
+  </tr>
+  <tr>
+    <td>Jacuzzi Control.Panel Control Active</td>
+    <td>Jacuzzi Control.Jets Level 3</td>
+    <td>Increase jet level to 3</td>
+    <td>NONE</td>
+    <td>Set jets to level 3</td>
+  </tr>
+  <tr>
+    <td>Jacuzzi Control.Jets Level 3</td>
+    <td>Jacuzzi Control.Jets Level 2</td>
+    <td>Decrease jet level to 2</td>
+    <td>NONE</td>
+    <td>NONE</td>
+  </tr>
+  <tr>
+    <td>Jacuzzi Control.Panel Control Active</td>
+    <td>Remote Control Active.Jets Level 1</td>
+    <td>Decrease jet level to 1</td>
+    <td>NONE</td>
+    <td>NONE</td>
+  </tr>
+  <tr>
+    <td>Jacuzzi Control.Panel Control Active</td>
+    <td>Jacuzzi Control.Ejection Pattern Setting</td>
+    <td>Select ejection pattern</td>
+    <td>NONE</td>
+    <td>NONE</td>
+  </tr>
+  <tr>
+    <td>Jacuzzi Control.Panel Control Active</td>
+    <td>Jacuzzi Control.Jets Paused</td>
+    <td>Pause jets</td>
+    <td>NONE</td>
+    <td>Pause jets for two minutes</td>
+  </tr>
+</table>
+SpaManager
+[{'name': 'SaunaControl', 'children': ['SaunaOff', 'SaunaHeating', 'SaunaStandby']}, {'name': 'FanControl', 'children': ['FanInactive', 'FanActive']}, {'name': 'RemoteControlActive', 'children': ['SaunaOff', 'WaterDispersionReady', 'JetsLevel1']}, {'name': 'JacuzziControl', 'children': ['JacuzziOff', 'JetsLevel1', 'JetsLevel2', 'JetsLevel3', 'JetsPaused', 'EjectionPatternSetting', 'PanelControlActive']}, {'name': 'WaterDispersionControl', 'children': ['WaterDispersionReady', 'WaterDispersionNotAllowed']}]
+<table border="1">
+<tr> <th>Event Name</th> </tr>
+<tr> <td>Turn sauna on</td> </tr>
+<tr> <td>Turn sauna off</td> </tr>
+<tr> <td>Temperature reaches 90°C</td> </tr>
+<tr> <td>Temperature falls below 85°C</td> </tr>
+<tr> <td>Humidity exceeds 40% for more than 3 minutes</td> </tr>
+<tr> <td>Fan turns off after 5 minutes</td> </tr>
+<tr> <td>User requests water dispersion</td> </tr>
+<tr> <td>15 minutes have passed since last water dispersion</td> </tr>
+<tr> <td>Turn Jacuzzi on</td> </tr>
+<tr> <td>Turn Jacuzzi off</td> </tr>
+<tr> <td>Increase jet level to 2</td> </tr>
+<tr> <td>Increase jet level to 3</td> </tr>
+<tr> <td>Decrease jet level to 2</td> </tr>
+<tr> <td>Decrease jet level to 1</td> </tr>
+<tr> <td>Select ejection pattern</td> </tr>
+<tr> <td>Pause jets</td> </tr>
+<tr> <td>Resume jets after 2 minutes</td> </tr>
+<tr> <td>Control via attached panel</td> </tr>
+</table>
+Running start_event_driven_display_results_action...
+Hierarchical States Table:
+<table border="1">
+<tr> <th>Superstate</th> <th>Substate</th> </tr>
+<tr> <td> Sauna Control </td> <td> Sauna Off </td> </tr>
+<tr> <td> Sauna Control </td> <td> Sauna Heating </td> </tr>
+<tr> <td> Sauna Control </td> <td> Sauna Standby </td> </tr>
+<tr> <td> Fan Control </td> <td> Fan Inactive </td> </tr>
+<tr> <td> Fan Control </td> <td> Fan Active </td> </tr>
+<tr> <td> Water Dispersion Control </td> <td> Water Dispersion Ready </td> </tr>
+<tr> <td> Water Dispersion Control </td> <td> Water Dispersion Not Allowed </td> </tr>
+<tr> <td> Jacuzzi Control </td> <td> Jacuzzi Off </td> </tr>
+<tr> <td> Jacuzzi Control </td> <td> Jets Level 1 </td> </tr>
+<tr> <td> Jacuzzi Control </td> <td> Jets Level 2 </td> </tr>
+<tr> <td> Jacuzzi Control </td> <td> Jets Level 3 </td> </tr>
+<tr> <td> Jacuzzi Control </td> <td> Jets Paused </td> </tr>
+<tr> <td> Jacuzzi Control </td> <td> Ejection Pattern Setting </td> </tr>
+<tr> <td> Jacuzzi Control </td> <td> Panel Control Active </td> </tr>
+<tr> <td> Remote Control Active </td> <td> Sauna Off </td> </tr>
+<tr> <td> Remote Control Active </td> <td> Water Dispersion Ready </td> </tr>
+<tr> <td> Remote Control Active </td> <td> Jets Level 1 </td> </tr>
+<tr> <td> - </td> <td> Remote Control Active </td> </tr>
+</table>
+Initial System State: Sauna Off
+Hierarchical Initial States:
+{'Sauna Control': 'Sauna Off', 'Fan Control': 'Fan Inactive', 'Water Dispersion Control': 'Water Dispersion Ready', 'Jacuzzi Control': 'Jacuzzi Off', 'Remote Control Active': 'Sauna Off'}
+Transitions:
+<table border="1">
+<tr>
+<th>From State</th>
+<th>To State</th>
+<th>Event</th>
+<th>Guard</th>
+<th>Action</th>
+</tr>
+<tr>
+<td>Remote Control Active.Sauna Off</td>
+<td>Sauna Control.Sauna Heating</td>
+<td>Turn sauna on</td>
+<td>NONE</td>
+<td>Start stove heating</td>
+</tr>
+<tr>
+<td>Sauna Control.Sauna Heating</td>
+<td>Sauna Control.Sauna Standby</td>
+<td>Temperature reaches 90</td>
+<td>NONE</td>
+<td>Stop stove heating</td>
+</tr>
+<tr>
+<td>Fan Control.Fan Inactive</td>
+<td>Fan Control.Fan Active</td>
+<td>Humidity exceeds 40</td>
+<td>Humidity &gt; 40% for more than 3 minutes</td>
+<td>Activate fan</td>
+</tr>
+<tr>
+<td>Remote Control Active.Water Dispersion Ready</td>
+<td>Water Dispersion Control.Water Dispersion Not Allowed</td>
+<td>User requests water dispersion</td>
+<td>Humidity &lt; 40% and Fan is not active</td>
+<td>Disperse predetermined amount of water</td>
+</tr>
+<tr>
+<td>Water Dispersion Control.Water Dispersion Not Allowed</td>
+<td>Fan Control.Fan Active</td>
+<td>Humidity exceeds 40</td>
+<td>Humidity &gt; 40% for more than 3 minutes</td>
+<td>Activate fan</td>
+</tr>
+<tr>
+<td>Jacuzzi Control.Jacuzzi Off</td>
+<td>Remote Control Active.Jets Level 1</td>
+<td>Turn Jacuzzi on</td>
+<td>NONE</td>
+<td>Set jets to Level 1</td>
+</tr>
+<tr>
+<td>Remote Control Active.Jets Level 1</td>
+<td>Jacuzzi Control.Jets Level 2</td>
+<td>Increase jet level to 2</td>
+<td>NONE</td>
+<td>NONE</td>
+</tr>
+<tr>
+<td>Remote Control Active.Jets Level 1</td>
+<td>Jacuzzi Control.Ejection Pattern Setting</td>
+<td>Select ejection pattern</td>
+<td>NONE</td>
+<td>NONE</td>
+</tr>
+<tr>
+<td>Remote Control Active.Jets Level 1</td>
+<td>Jacuzzi Control.Jets Paused</td>
+<td>Pause jets</td>
+<td>NONE</td>
+<td>Stop jets ejection for 2 minutes</td>
+</tr>
+<tr>
+<td>Remote Control Active.Jets Level 1</td>
+<td>Jacuzzi Control.Jacuzzi Off</td>
+<td>Turn Jacuzzi off</td>
+<td>NONE</td>
+<td>NONE</td>
+</tr>
+<tr>
+<td>Remote Control Active.Jets Level 1</td>
+<td>Jacuzzi Control.Panel Control Active</td>
+<td>Control via attached panel</td>
+<td>NONE</td>
+<td>NONE</td>
+</tr>
+<tr>
+<td>Jacuzzi Control.Jets Level 2</td>
+<td>Jacuzzi Control.Jets Level 3</td>
+<td>Increase jet level to 3</td>
+<td>NONE</td>
+<td>NONE</td>
+</tr>
+<tr>
+<td>Jacuzzi Control.Jets Level 2</td>
+<td>Remote Control Active.Jets Level 1</td>
+<td>Decrease jet level to 1</td>
+<td>NONE</td>
+<td>NONE</td>
+</tr>
+<tr>
+<td>Jacuzzi Control.Jets Level 2</td>
+<td>Jacuzzi Control.Ejection Pattern Setting</td>
+<td>Select ejection pattern</td>
+<td>NONE</td>
+<td>NONE</td>
+</tr>
+<tr>
+<td>Jacuzzi Control.Jets Level 2</td>
+<td>Jacuzzi Control.Jets Paused</td>
+<td>Pause jets</td>
+<td>NONE</td>
+<td>NONE</td>
+</tr>
+<tr>
+<td>Jacuzzi Control.Jets Level 2</td>
+<td>Jacuzzi Control.Panel Control Active</td>
+<td>Control via attached panel</td>
+<td>NONE</td>
+<td>NONE</td>
+</tr>
+<tr>
+<td>Jacuzzi Control.Jets Level 3</td>
+<td>Jacuzzi Control.Jets Level 2</td>
+<td>Decrease jet level to 2</td>
+<td>NONE</td>
+<td>NONE</td>
+</tr>
+<tr>
+<td>Jacuzzi Control.Jets Level 3</td>
+<td>Jacuzzi Control.Ejection Pattern Setting</td>
+<td>Select ejection pattern</td>
+<td>NONE</td>
+<td>NONE</td>
+</tr>
+<tr>
+<td>Jacuzzi Control.Jets Level 3</td>
+<td>Jacuzzi Control.Jets Paused</td>
+<td>Pause jets</td>
+<td>NONE</td>
+<td>Stop jets for 2 minutes</td>
+</tr>
+<tr>
+<td>Jacuzzi Control.Jets Level 3</td>
+<td>Jacuzzi Control.Panel Control Active</td>
+<td>Control via attached panel</td>
+<td>NONE</td>
+<td>NONE</td>
+</tr>
+<tr>
+<td>Jacuzzi Control.Jets Level 3</td>
+<td>Jacuzzi Control.Jacuzzi Off</td>
+<td>Turn Jacuzzi off</td>
+<td>NONE</td>
+<td>NONE</td>
+</tr>
+<tr>
+<td>Jacuzzi Control.Jets Paused</td>
+<td>Remote Control Active.Jets Level 1</td>
+<td>Resume jets after 2 minutes</td>
+<td>NONE</td>
+<td>NONE</td>
+</tr>
+<tr>
+<td>Jacuzzi Control.Ejection Pattern Setting</td>
+<td>Jacuzzi Control.Ejection Pattern Setting</td>
+<td>Select ejection pattern</td>
+<td>NONE</td>
+<td>NONE</td>
+</tr>
+<tr>
+<td>Jacuzzi Control.Ejection Pattern Setting</td>
+<td>Jacuzzi Control.Panel Control Active</td>
+<td>Control via attached panel</td>
+<td>NONE</td>
+<td>NONE</td>
+</tr>
+<tr>
+<td>Remote Control Active</td>
+<td>Sauna Control.Sauna Heating</td>
+<td>Turn sauna on</td>
+<td>NONE</td>
+<td>Start stove heating</td>
+</tr>
+<tr>
+<td>Remote Control Active</td>
+<td>Remote Control Active.Sauna Off</td>
+<td>Turn sauna off</td>
+<td>NONE</td>
+<td>NONE</td>
+</tr>
+<tr>
+<td>Remote Control Active</td>
+<td>Remote Control Active.Water Dispersion Ready</td>
+<td>User requests water dispersion</td>
+<td>Humidity &lt; 40% AND Fan Inactive</td>
+<td>Disperse water</td>
+</tr>
+<tr>
+<td>Remote Control Active</td>
+<td>Remote Control Active.Water Dispersion Ready</td>
+<td>15 minutes have passed since last water dispersion</td>
+<td>NONE</td>
+<td>Set water dispersion to allowed</td>
+</tr>
+<tr>
+<td>Remote Control Active</td>
+<td>Remote Control Active.Jets Level 1</td>
+<td>Turn Jacuzzi on</td>
+<td>NONE</td>
+<td>Start jets at level 1</td>
+</tr>
+<tr>
+<td>Remote Control Active</td>
+<td>Jacuzzi Control.Jacuzzi Off</td>
+<td>Turn Jacuzzi off</td>
+<td>NONE</td>
+<td>NONE</td>
+</tr>
+<tr>
+<td>Remote Control Active.Jets Level 1</td>
+<td>Jacuzzi Control.Jets Level 2</td>
+<td>Increase jet level to 2</td>
+<td>NONE</td>
+<td>NONE</td>
+</tr>
+<tr>
+<td>Jacuzzi Control.Jets Level 3</td>
+<td>Jacuzzi Control.Jets Level 2</td>
+<td>Increase jet level to 2</td>
+<td>NONE</td>
+<td>NONE</td>
+</tr>
+<tr>
+<td>Jacuzzi Control.Jets Level 2</td>
+<td>Jacuzzi Control.Jets Level 3</td>
+<td>Increase jet level to 3</td>
+<td>Current jet level is 2</td>
+<td>NONE</td>
+</tr>
+<tr>
+<td>Remote Control Active</td>
+<td>Jacuzzi Control.Jets Level 2</td>
+<td>Decrease jet level to 2</td>
+<td>Current jet level is 3</td>
+<td>NONE</td>
+</tr>
+<tr>
+<td>Remote Control Active</td>
+<td>Remote Control Active.Jets Level 1</td>
+<td>Decrease jet level to 1</td>
+<td>NONE</td>
+<td>NONE</td>
+</tr>
+<tr>
+<td>Remote Control Active</td>
+<td>Jacuzzi Control.Ejection Pattern Setting</td>
+<td>Select ejection pattern</td>
+<td>NONE</td>
+<td>NONE</td>
+</tr>
+<tr>
+<td>Remote Control Active</td>
+<td>Jacuzzi Control.Jets Paused</td>
+<td>Pause jets</td>
+<td>NONE</td>
+<td>NONE</td>
+</tr>
+<tr>
+<td>Jacuzzi Control.Jets Paused</td>
+<td>Previous Jets Level</td>
+<td>Resume jets after 2 minutes</td>
+<td>NONE</td>
+<td>NONE</td>
+</tr>
+<tr>
+<td>Jacuzzi Control.Panel Control Active</td>
+<td>Remote Control Active.Jets Level 1</td>
+<td>Turn Jacuzzi on</td>
+<td>NONE</td>
+<td>Set jets to level 1</td>
+</tr>
+<tr>
+<td>Jacuzzi Control.Panel Control Active</td>
+<td>Jacuzzi Control.Jacuzzi Off</td>
+<td>Turn Jacuzzi off</td>
+<td>NONE</td>
+<td>NONE</td>
+</tr>
+<tr>
+<td>Jacuzzi Control.Panel Control Active</td>
+<td>Jacuzzi Control.Jets Level 2</td>
+<td>Increase jet level to 2</td>
+<td>NONE</td>
+<td>NONE</td>
+</tr>
+<tr>
+<td>Jacuzzi Control.Panel Control Active</td>
+<td>Jacuzzi Control.Jets Level 3</td>
+<td>Increase jet level to 3</td>
+<td>NONE</td>
+<td>Set jets to level 3</td>
+</tr>
+<tr>
+<td>Jacuzzi Control.Jets Level 3</td>
+<td>Jacuzzi Control.Jets Level 2</td>
+<td>Decrease jet level to 2</td>
+<td>NONE</td>
+<td>NONE</td>
+</tr>
+<tr>
+<td>Jacuzzi Control.Panel Control Active</td>
+<td>Remote Control Active.Jets Level 1</td>
+<td>Decrease jet level to 1</td>
+<td>NONE</td>
+<td>NONE</td>
+</tr>
+<tr>
+<td>Jacuzzi Control.Panel Control Active</td>
+<td>Jacuzzi Control.Ejection Pattern Setting</td>
+<td>Select ejection pattern</td>
+<td>NONE</td>
+<td>NONE</td>
+</tr>
+<tr>
+<td>Jacuzzi Control.Panel Control Active</td>
+<td>Jacuzzi Control.Jets Paused</td>
+<td>Pause jets</td>
+<td>NONE</td>
+<td>Pause jets for two minutes</td>
+</tr>
+<tr> <td>Jacuzzi Control.Panel Control Active</td><td>RemoteControlActive.H</td> <td>Turn Jacuzzi on</td> <td>NONE</td> <td>Set jets to level 1</td> </tr><tr> <td>Jacuzzi Control.Jets Paused</td><td>RemoteControlActive.H</td> <td>Resume jets after 2 minutes</td> <td>NONE</td> <td>NONE</td> </tr><tr> <td>Remote Control Active</td><td>RemoteControlActive.H</td> <td>Turn sauna off</td> <td>NONE</td> <td>NONE</td> </tr><tr> <td>Remote Control Active</td><td>RemoteControlActive.H</td> <td>User requests water dispersion</td> <td>Humidity &lt; 40% AND Fan Inactive</td> <td>Disperse water</td> </tr><tr> <td>Jacuzzi Control.Panel Control Active</td><td>JacuzziControl.H</td> <td>Turn Jacuzzi on</td> <td>NONE</td> <td>Set jets to level 1</td> </tr><tr> <td>Jacuzzi Control.Jets Paused</td><td>JacuzziControl.H</td> <td>Resume jets after 2 minutes</td> <td>NONE</td> <td>NONE</td> </tr></table>
+States: ['FanActive', {'name': 'SaunaControl', 'children': ['SaunaOff', 'SaunaHeating', 'SaunaStandby']}, 'JacuzziControl.JetsLevel2', 'JacuzziControl.EjectionPatternSetting', 'JetsLevel3', {'name': 'FanControl', 'children': ['FanInactive', 'FanActive']}, {'name': 'RemoteControlActive', 'children': ['SaunaOff', 'WaterDispersionReady', 'JetsLevel1']}, 'SaunaHeating', 'JetsPaused', 'RemoteControlActive.H', 'PreviousJetsLevel', 'RemoteControlActive.JetsLevel1', 'SaunaOff', 'FanInactive', 'WaterDispersionReady', 'JacuzziOff', 'WaterDispersionControl.WaterDispersionNotAllowed', 'SaunaControl.SaunaStandby', 'SaunaStandby', 'JacuzziControl.JacuzziOff', 'JacuzziControl.JetsPaused', 'JacuzziControl.H', 'JetsLevel2', 'EjectionPatternSetting', 'FanControl.FanInactive', {'name': 'JacuzziControl', 'children': ['JacuzziOff', 'JetsLevel1', 'JetsLevel2', 'JetsLevel3', 'JetsPaused', 'EjectionPatternSetting', 'PanelControlActive']}, 'RemoteControlActive.SaunaOff', 'JacuzziControl.JetsLevel3', 'JacuzziControl.PanelControlActive', {'name': 'WaterDispersionControl', 'children': ['WaterDispersionReady', 'WaterDispersionNotAllowed']}, 'PanelControlActive', 'WaterDispersionNotAllowed', 'RemoteControlActive.WaterDispersionReady', 'JetsLevel1', 'FanControl.FanActive', 'SaunaControl.SaunaHeating', 'RemoteControlActive']
+Transitions: [{'trigger': 'Turnsaunaon', 'source': 'RemoteControlActive.SaunaOff', 'dest': 'SaunaControl.SaunaHeating', 'before': 'Startstoveheating'}, {'trigger': 'Temperaturereaches90', 'source': 'SaunaControl.SaunaHeating', 'dest': 'SaunaControl.SaunaStandby', 'before': 'Stopstoveheating'}, {'trigger': 'Humidityexceeds40', 'source': 'FanControl.FanInactive', 'dest': 'FanControl.FanActive', 'before': 'Activatefan', 'conditions': 'Humidity>40%formorethan3minutes'}, {'trigger': 'Userrequestswaterdispersion', 'source': 'RemoteControlActive.WaterDispersionReady', 'dest': 'WaterDispersionControl.WaterDispersionNotAllowed', 'before': 'Dispersepredeterminedamountofwater', 'conditions': 'Humidity<40%andFanisnotactive'}, {'trigger': 'Humidityexceeds40', 'source': 'WaterDispersionControl.WaterDispersionNotAllowed', 'dest': 'FanControl.FanActive', 'before': 'Activatefan', 'conditions': 'Humidity>40%formorethan3minutes'}, {'trigger': 'TurnJacuzzion', 'source': 'JacuzziControl.JacuzziOff', 'dest': 'RemoteControlActive.JetsLevel1', 'before': 'SetjetstoLevel1'}, {'trigger': 'Increasejetlevelto2', 'source': 'RemoteControlActive.JetsLevel1', 'dest': 'JacuzziControl.JetsLevel2'}, {'trigger': 'Selectejectionpattern', 'source': 'RemoteControlActive.JetsLevel1', 'dest': 'JacuzziControl.EjectionPatternSetting'}, {'trigger': 'Pausejets', 'source': 'RemoteControlActive.JetsLevel1', 'dest': 'JacuzziControl.JetsPaused', 'before': 'Stopjetsejectionfor2minutes'}, {'trigger': 'TurnJacuzzioff', 'source': 'RemoteControlActive.JetsLevel1', 'dest': 'JacuzziControl.JacuzziOff'}, {'trigger': 'Controlviaattachedpanel', 'source': 'RemoteControlActive.JetsLevel1', 'dest': 'JacuzziControl.PanelControlActive'}, {'trigger': 'Increasejetlevelto3', 'source': 'JacuzziControl.JetsLevel2', 'dest': 'JacuzziControl.JetsLevel3'}, {'trigger': 'Decreasejetlevelto1', 'source': 'JacuzziControl.JetsLevel2', 'dest': 'RemoteControlActive.JetsLevel1'}, {'trigger': 'Selectejectionpattern', 'source': 'JacuzziControl.JetsLevel2', 'dest': 'JacuzziControl.EjectionPatternSetting'}, {'trigger': 'Pausejets', 'source': 'JacuzziControl.JetsLevel2', 'dest': 'JacuzziControl.JetsPaused'}, {'trigger': 'Controlviaattachedpanel', 'source': 'JacuzziControl.JetsLevel2', 'dest': 'JacuzziControl.PanelControlActive'}, {'trigger': 'Decreasejetlevelto2', 'source': 'JacuzziControl.JetsLevel3', 'dest': 'JacuzziControl.JetsLevel2'}, {'trigger': 'Selectejectionpattern', 'source': 'JacuzziControl.JetsLevel3', 'dest': 'JacuzziControl.EjectionPatternSetting'}, {'trigger': 'Pausejets', 'source': 'JacuzziControl.JetsLevel3', 'dest': 'JacuzziControl.JetsPaused', 'before': 'Stopjetsfor2minutes'}, {'trigger': 'Controlviaattachedpanel', 'source': 'JacuzziControl.JetsLevel3', 'dest': 'JacuzziControl.PanelControlActive'}, {'trigger': 'TurnJacuzzioff', 'source': 'JacuzziControl.JetsLevel3', 'dest': 'JacuzziControl.JacuzziOff'}, {'trigger': 'Resumejetsafter2minutes', 'source': 'JacuzziControl.JetsPaused', 'dest': 'RemoteControlActive.JetsLevel1'}, {'trigger': 'Selectejectionpattern', 'source': 'JacuzziControl.EjectionPatternSetting', 'dest': 'JacuzziControl.EjectionPatternSetting'}, {'trigger': 'Controlviaattachedpanel', 'source': 'JacuzziControl.EjectionPatternSetting', 'dest': 'JacuzziControl.PanelControlActive'}, {'trigger': 'Turnsaunaon', 'source': 'RemoteControlActive', 'dest': 'SaunaControl.SaunaHeating', 'before': 'Startstoveheating'}, {'trigger': 'Turnsaunaoff', 'source': 'RemoteControlActive', 'dest': 'RemoteControlActive.SaunaOff'}, {'trigger': 'Userrequestswaterdispersion', 'source': 'RemoteControlActive', 'dest': 'RemoteControlActive.WaterDispersionReady', 'before': 'Dispersewater', 'conditions': 'Humidity<40%ANDFanInactive'}, {'trigger': '15minuteshavepassedsincelastwaterdispersion', 'source': 'RemoteControlActive', 'dest': 'RemoteControlActive.WaterDispersionReady', 'before': 'Setwaterdispersiontoallowed'}, {'trigger': 'TurnJacuzzion', 'source': 'RemoteControlActive', 'dest': 'RemoteControlActive.JetsLevel1', 'before': 'Startjetsatlevel1'}, {'trigger': 'TurnJacuzzioff', 'source': 'RemoteControlActive', 'dest': 'JacuzziControl.JacuzziOff'}, {'trigger': 'Increasejetlevelto2', 'source': 'RemoteControlActive.JetsLevel1', 'dest': 'JacuzziControl.JetsLevel2'}, {'trigger': 'Increasejetlevelto2', 'source': 'JacuzziControl.JetsLevel3', 'dest': 'JacuzziControl.JetsLevel2'}, {'trigger': 'Increasejetlevelto3', 'source': 'JacuzziControl.JetsLevel2', 'dest': 'JacuzziControl.JetsLevel3', 'conditions': 'Currentjetlevelis2'}, {'trigger': 'Decreasejetlevelto2', 'source': 'RemoteControlActive', 'dest': 'JacuzziControl.JetsLevel2', 'conditions': 'Currentjetlevelis3'}, {'trigger': 'Decreasejetlevelto1', 'source': 'RemoteControlActive', 'dest': 'RemoteControlActive.JetsLevel1'}, {'trigger': 'Selectejectionpattern', 'source': 'RemoteControlActive', 'dest': 'JacuzziControl.EjectionPatternSetting'}, {'trigger': 'Pausejets', 'source': 'RemoteControlActive', 'dest': 'JacuzziControl.JetsPaused'}, {'trigger': 'Resumejetsafter2minutes', 'source': 'JacuzziControl.JetsPaused', 'dest': 'PreviousJetsLevel'}, {'trigger': 'TurnJacuzzion', 'source': 'JacuzziControl.PanelControlActive', 'dest': 'RemoteControlActive.JetsLevel1', 'before': 'Setjetstolevel1'}, {'trigger': 'TurnJacuzzioff', 'source': 'JacuzziControl.PanelControlActive', 'dest': 'JacuzziControl.JacuzziOff'}, {'trigger': 'Increasejetlevelto2', 'source': 'JacuzziControl.PanelControlActive', 'dest': 'JacuzziControl.JetsLevel2'}, {'trigger': 'Increasejetlevelto3', 'source': 'JacuzziControl.PanelControlActive', 'dest': 'JacuzziControl.JetsLevel3', 'before': 'Setjetstolevel3'}, {'trigger': 'Decreasejetlevelto2', 'source': 'JacuzziControl.JetsLevel3', 'dest': 'JacuzziControl.JetsLevel2'}, {'trigger': 'Decreasejetlevelto1', 'source': 'JacuzziControl.PanelControlActive', 'dest': 'RemoteControlActive.JetsLevel1'}, {'trigger': 'Selectejectionpattern', 'source': 'JacuzziControl.PanelControlActive', 'dest': 'JacuzziControl.EjectionPatternSetting'}, {'trigger': 'Pausejets', 'source': 'JacuzziControl.PanelControlActive', 'dest': 'JacuzziControl.JetsPaused', 'before': 'Pausejetsfortwominutes'}, {'trigger': 'TurnJacuzzion', 'source': 'JacuzziControl.PanelControlActive', 'dest': 'RemoteControlActive.H', 'before': 'Setjetstolevel1'}, {'trigger': 'Resumejetsafter2minutes', 'source': 'JacuzziControl.JetsPaused', 'dest': 'RemoteControlActive.H'}, {'trigger': 'Turnsaunaoff', 'source': 'RemoteControlActive', 'dest': 'RemoteControlActive.H'}, {'trigger': 'Userrequestswaterdispersion', 'source': 'RemoteControlActive', 'dest': 'RemoteControlActive.H', 'before': 'Dispersewater', 'conditions': 'Humidity<40%ANDFanInactive'}, {'trigger': 'TurnJacuzzion', 'source': 'JacuzziControl.PanelControlActive', 'dest': 'JacuzziControl.H', 'before': 'Setjetstolevel1'}, {'trigger': 'Resumejetsafter2minutes', 'source': 'JacuzziControl.JetsPaused', 'dest': 'JacuzziControl.H'}]
+Parallel Regions: []

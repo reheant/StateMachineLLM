@@ -1,0 +1,312 @@
+Running start_event_driven_system_name_search...
+SpaManager
+Running start_event_driven_state_search...
+<table border="1">
+<tr> <th>State Name</th> </tr>
+<tr> <td>Sauna Off</td> </tr>
+<tr> <td>Heating</td> </tr>
+<tr> <td>Standby Heating</td> </tr>
+<tr> <td>Fan Active</td> </tr>
+<tr> <td>Fan Inactive</td> </tr>
+<tr> <td>Water Dispersal Allowed</td> </tr>
+<tr> <td>Water Dispersal Blocked</td> </tr>
+<tr> <td>Jacuzzi Off</td> </tr>
+<tr> <td>Level 1 Pressure</td> </tr>
+<tr> <td>Level 2 Pressure</td> </tr>
+<tr> <td>Level 3 Pressure</td> </tr>
+<tr> <td>Pause</td> </tr>
+<tr> <td>Pattern Selection</td> </tr>
+<tr> <td>Central Control</td> </tr>
+<tr> <td>Panel Control</td> </tr>
+</table>
+Running start_event_driven_initial_state_search...
+Sauna Off
+Running start_event_driven_event_search...
+<table border="1">
+<tr> <th>Event Name</th> </tr>
+<tr> <td>Turn sauna on</td> </tr>
+<tr> <td>Turn sauna off</td> </tr>
+<tr> <td>Temperature reaches 90°C</td> </tr>
+<tr> <td>Temperature falls below 85°C</td> </tr>
+<tr> <td>Humidity exceeds 40% for more than 3 minutes</td> </tr>
+<tr> <td>Humidity falls below 40%</td> </tr>
+<tr> <td>User requests water dispersal</td> </tr>
+<tr> <td>15 minutes elapsed since last water dispersal</td> </tr>
+<tr> <td>Turn Jacuzzi on</td> </tr>
+<tr> <td>Turn Jacuzzi off</td> </tr>
+<tr> <td>Increase jet pressure to level 2</td> </tr>
+<tr> <td>Increase jet pressure to level 3</td> </tr>
+<tr> <td>Decrease jet pressure to level 2</td> </tr>
+<tr> <td>Decrease jet pressure to level 1</td> </tr>
+<tr> <td>User selects ejection pattern</td> </tr>
+<tr> <td>Activate pause feature</td> </tr>
+<tr> <td>Pause duration elapses (2 minutes)</td> </tr>
+<tr> <td>Control via panel attached to Jacuzzi</td> </tr>
+</table>
+Running start_event_driven_associate_events_with_states_action
+['Turn sauna on']
+['Temperature reaches 90']
+['Temperature falls below 85']
+['Humidity exceeds 40']
+['Turn sauna on', 'Turn sauna off', 'Temperature reaches 90']
+['User requests water dispersal', '15 minutes elapsed since last water dispersal']
+['Humidity exceeds 40']
+['Turn Jacuzzi on']
+['Increase jet pressure to level 2', 'User selects ejection pattern', 'Activate pause feature', 'Turn Jacuzzi off', 'Control via panel attached to Jacuzzi']
+['Increase jet pressure to level 3', 'Decrease jet pressure to level 1', 'Activate pause feature', 'Pause duration elapses']
+['Decrease jet pressure to level 2', 'User selects ejection pattern', 'Activate pause feature', 'Pause duration elapses']
+['Activate pause feature', 'Pause duration elapses']
+['User selects ejection pattern']
+['Turn sauna on', 'Turn sauna off', 'Turn Jacuzzi on', 'Turn Jacuzzi off', 'User requests water dispersal', 'User selects ejection pattern', 'Activate pause feature']
+['Turn Jacuzzi on', 'Turn Jacuzzi off', 'Increase jet pressure to level 2', 'Increase jet pressure to level 3', 'Decrease jet pressure to level 2', 'Decrease jet pressure to level 1', 'User selects ejection pattern', 'Activate pause feature', 'Pause duration elapses']
+{'Sauna Off': ['Turn sauna on'], 'Heating': ['Temperature reaches 90'], 'Standby Heating': ['Temperature falls below 85'], 'Fan Active': ['Humidity exceeds 40'], 'Fan Inactive': ['Turn sauna on', 'Turn sauna off', 'Temperature reaches 90'], 'Water Dispersal Allowed': ['User requests water dispersal', '15 minutes elapsed since last water dispersal'], 'Water Dispersal Blocked': ['Humidity exceeds 40'], 'Jacuzzi Off': ['Turn Jacuzzi on'], 'Level 1 Pressure': ['Increase jet pressure to level 2', 'User selects ejection pattern', 'Activate pause feature', 'Turn Jacuzzi off', 'Control via panel attached to Jacuzzi'], 'Level 2 Pressure': ['Increase jet pressure to level 3', 'Decrease jet pressure to level 1', 'Activate pause feature', 'Pause duration elapses'], 'Level 3 Pressure': ['Decrease jet pressure to level 2', 'User selects ejection pattern', 'Activate pause feature', 'Pause duration elapses'], 'Pause': ['Activate pause feature', 'Pause duration elapses'], 'Pattern Selection': ['User selects ejection pattern'], 'Central Control': ['Turn sauna on', 'Turn sauna off', 'Turn Jacuzzi on', 'Turn Jacuzzi off', 'User requests water dispersal', 'User selects ejection pattern', 'Activate pause feature'], 'Panel Control': ['Turn Jacuzzi on', 'Turn Jacuzzi off', 'Increase jet pressure to level 2', 'Increase jet pressure to level 3', 'Decrease jet pressure to level 2', 'Decrease jet pressure to level 1', 'User selects ejection pattern', 'Activate pause feature', 'Pause duration elapses']}
+Running start_event_driven_create_transitions...
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Sauna Off</td> <td>Heating</td> <td>Turn sauna on</td> <td>NONE</td> <td>Start heating stove</td> </tr>
+</table>
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Heating</td> <td>Standby Heating</td> <td>Temperature reaches 90</td> <td>NONE</td> <td>Stove stops heating</td> </tr>
+</table>
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td> Standby Heating </td> <td> Heating </td> <td> Temperature falls below 85 </td> <td> NONE </td> <td> Stove starts heating </td> </tr>
+</table>
+No transitions created.
+No transitions created.
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Fan Inactive</td> <td>Sauna Off</td> <td>Turn sauna off</td> <td>NONE</td> <td>NONE</td> </tr>
+</table>
+No transitions created.
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td> Water Dispersal Allowed </td> <td> Water Dispersal Blocked </td> <td> User requests water dispersal </td> <td> Humidity below threshold; Fan inactive; Dispersal allowed every 15 minutes </td> <td> Disperse water </td> </tr>
+</table>
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Water Dispersal Allowed</td> <td>Water Dispersal Allowed</td> <td>15 minutes elapsed since last water dispersal</td> <td>Humidity &lt; 40% and Fan Inactive</td> <td>NONE</td> </tr>
+</table>
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Water Dispersal Blocked</td> <td>Fan Active</td> <td>Humidity exceeds 40</td> <td>NONE</td> <td>Activate Fan</td> </tr>
+</table>
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Jacuzzi Off</td> <td>Level 1 Pressure</td> <td>Turn Jacuzzi on</td> <td>NONE</td> <td>Jets start at Level 1 Pressure</td> </tr>
+</table>
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Level 1 Pressure</td> <td>Level 2 Pressure</td> <td>Increase jet pressure to level 2</td> <td>NONE</td> <td>NONE</td> </tr>
+</table>
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Level 1 Pressure</td> <td>Pattern Selection</td> <td>User selects ejection pattern</td> <td>NONE</td> <td>NONE</td> </tr>
+</table>
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Level 1 Pressure</td> <td>Pause</td> <td>Activate pause feature</td> <td>NONE</td> <td>NONE</td> </tr>
+</table>
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Level 1 Pressure</td> <td>Jacuzzi Off</td> <td>Turn Jacuzzi off</td> <td>NONE</td> <td>NONE</td> </tr>
+</table>
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Level 1 Pressure</td> <td>Panel Control</td> <td>Control via panel attached to Jacuzzi</td> <td>NONE</td> <td>NONE</td> </tr>
+</table>
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Level 2 Pressure</td> <td>Level 3 Pressure</td> <td>Increase jet pressure to level 3</td> <td>NONE</td> <td>NONE</td> </tr>
+</table>
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Level 2 Pressure</td> <td>Level 1 Pressure</td> <td>Decrease jet pressure to level 1</td> <td>NONE</td> <td>NONE</td> </tr>
+</table>
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Level 2 Pressure</td> <td>Pause</td> <td>Activate pause feature</td> <td>NONE</td> <td>Stop jets for two minutes</td> </tr>
+</table>
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td> Pause </td> <td> Level 2 Pressure </td> <td> Pause duration elapses </td> <td> NONE </td> <td> NONE </td> </tr>
+</table>
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Level 3 Pressure</td> <td>Level 2 Pressure</td> <td>Decrease jet pressure to level 2</td> <td>NONE</td> <td>NONE</td> </tr>
+</table>
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Level 3 Pressure</td> <td>Pattern Selection</td> <td>User selects ejection pattern</td> <td>NONE</td> <td>NONE</td> </tr>
+</table>
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Level 3 Pressure</td> <td>Pause</td> <td>Activate pause feature</td> <td>NONE</td> <td>NONE</td> </tr>
+</table>
+No transitions created.
+No transitions created.
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Pause</td> <td>Level 1 Pressure</td> <td>Pause duration elapses</td> <td>NONE</td> <td>NONE</td> </tr>
+</table>
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Pattern Selection</td> <td>Level 1 Pressure</td> <td>User selects ejection pattern</td> <td>NONE</td> <td>NONE</td> </tr>
+</table>
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Central Control</td> <td>Heating</td> <td>Turn sauna on</td> <td>NONE</td> <td>Stove starts heating</td> </tr>
+</table>
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Central Control</td> <td>Sauna Off</td> <td>Turn sauna off</td> <td>NONE</td> <td>NONE</td> </tr>
+</table>
+No transitions created.
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Central Control</td> <td>Jacuzzi Off</td> <td>Turn Jacuzzi off</td> <td>NONE</td> <td>NONE</td> </tr>
+</table>
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Central Control</td> <td>Water Dispersal Allowed</td> <td>User requests water dispersal</td> <td>Humidity below safety threshold; Fan inactive</td> <td>Disperse water</td> </tr>
+</table>
+Running start_event_driven_create_transitions...
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Sauna Off</td> <td>Heating</td> <td>Turn sauna on</td> <td>NONE</td> <td>NONE</td> </tr>
+</table>
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Heating</td> <td>Standby Heating</td> <td>Temperature reaches 90</td> <td>NONE</td> <td>Stove stops heating</td> </tr>
+</table>
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Standby Heating</td> <td>Heating</td> <td>Temperature falls below 85</td> <td>NONE</td> <td>Stove starts heating</td> </tr>
+</table>
+No transitions created.
+No transitions created.
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Fan Inactive</td> <td>Sauna Off</td> <td>Turn sauna off</td> <td>NONE</td> <td>NONE</td> </tr>
+</table>
+No transitions created.
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Water Dispersal Allowed</td> <td>Water Dispersal Allowed</td> <td>User requests water dispersal</td> <td>NONE</td> <td>Disperse water</td> </tr>
+</table>
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Water Dispersal Allowed</td> <td>Water Dispersal Blocked</td> <td>15 minutes elapsed since last water dispersal</td> <td>Humidity below threshold and fan inactive</td> <td>Disperse water</td> </tr>
+</table>
+No transitions created.
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Jacuzzi Off</td> <td>Level 1 Pressure</td> <td>Turn Jacuzzi on</td> <td>NONE</td> <td>Start jets at level 1 pressure</td> </tr>
+</table>
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Level 1 Pressure</td> <td>Level 2 Pressure</td> <td>Increase jet pressure to level 2</td> <td>NONE</td> <td>NONE</td> </tr>
+</table>
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Level 1 Pressure</td> <td>Pattern Selection</td> <td>User selects ejection pattern</td> <td>NONE</td> <td>NONE</td> </tr>
+</table>
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Level 1 Pressure</td> <td>Pause</td> <td>Activate pause feature</td> <td>NONE</td> <td>Stop jets for 2 minutes</td> </tr>
+</table>
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Level 1 Pressure</td> <td>Jacuzzi Off</td> <td>Turn Jacuzzi off</td> <td>NONE</td> <td>NONE</td> </tr>
+</table>
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Level 1 Pressure</td> <td>Panel Control</td> <td>Control via panel attached to Jacuzzi</td> <td>NONE</td> <td>NONE</td> </tr>
+</table>
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Level 2 Pressure</td> <td>Level 3 Pressure</td> <td>Increase jet pressure to level 3</td> <td>NONE</td> <td>NONE</td> </tr>
+</table>
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Level 2 Pressure</td> <td>Level 1 Pressure</td> <td>Decrease jet pressure to level 1</td> <td>NONE</td> <td>NONE</td> </tr>
+</table>
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Level 2 Pressure</td> <td>Pause</td> <td>Activate pause feature</td> <td>NONE</td> <td>Stop jets</td> </tr>
+</table>
+No transitions created.
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Level 3 Pressure</td> <td>Level 2 Pressure</td> <td>Decrease jet pressure to level 2</td> <td>NONE</td> <td>NONE</td> </tr>
+</table>
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td> Level 3 Pressure </td> <td> Pattern Selection </td> <td> User selects ejection pattern </td> <td> NONE </td> <td> NONE </td> </tr>
+</table>
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Level 3 Pressure</td> <td>Pause</td> <td>Activate pause feature</td> <td>NONE</td> <td>Stop jets for two minutes</td> </tr>
+</table>
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Level 3 Pressure</td> <td>Level 3 Pressure</td> <td>Pause duration elapses</td> <td>NONE</td> <td>NONE</td> </tr>
+</table>
+No transitions created.
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Pause</td> <td>Level 1 Pressure</td> <td>Pause duration elapses</td> <td>NONE</td> <td>NONE</td> </tr>
+</table>
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Pattern Selection</td> <td>Level 1 Pressure</td> <td>User selects ejection pattern</td> <td>NONE</td> <td>Set ejection pattern</td> </tr>
+</table>
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Central Control</td> <td>Heating</td> <td>Turn sauna on</td> <td>NONE</td> <td>NONE</td> </tr>
+</table>
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Central Control</td> <td>Sauna Off</td> <td>Turn sauna off</td> <td>NONE</td> <td>NONE</td> </tr>
+</table>
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Central Control</td> <td>Level 1 Pressure</td> <td>Turn Jacuzzi on</td> <td>NONE</td> <td>NONE</td> </tr>
+</table>
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Central Control</td> <td>Jacuzzi Off</td> <td>Turn Jacuzzi off</td> <td>NONE</td> <td>NONE</td> </tr>
+</table>
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Central Control</td> <td>Water Dispersal Allowed</td> <td>User requests water dispersal</td> <td>Humidity &lt; 40% and Fan inactive</td> <td>Disperse water</td> </tr>
+</table>
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Central Control</td> <td>Pattern Selection</td> <td>User selects ejection pattern</td> <td>NONE</td> <td>NONE</td> </tr>
+</table>
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Central Control</td> <td>Pause</td> <td>Activate pause feature</td> <td>NONE</td> <td>NONE</td> </tr>
+</table>
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Panel Control</td> <td>Level 1 Pressure</td> <td>Turn Jacuzzi on</td> <td>NONE</td> <td>Activate jets at Level 1 pressure</td> </tr>
+</table>
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Panel Control</td> <td>Jacuzzi Off</td> <td>Turn Jacuzzi off</td> <td>NONE</td> <td>NONE</td> </tr>
+</table>
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Panel Control</td> <td>Level 2 Pressure</td> <td>Increase jet pressure to level 2</td> <td>NONE</td> <td>NONE</td> </tr>
+</table>
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td rowspan="1"> Panel Control </td> <td> Level 3 Pressure </td> <td> Increase jet pressure to level 3 </td> <td> NONE </td> <td> NONE </td> </tr>
+</table>
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td> Panel Control </td> <td> Level 2 Pressure </td> <td> Decrease jet pressure to level 2 </td> <td> NONE </td> <td> NONE </td> </tr>
+</table>

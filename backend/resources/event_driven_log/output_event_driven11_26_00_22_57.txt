@@ -1,0 +1,59 @@
+Running start_event_driven_system_name_search...
+SpaManager
+Running start_event_driven_state_search...
+<table border="1">
+<tr> <th>State Name</th> </tr>
+<tr> <td>Sauna Off</td> </tr>
+<tr> <td>Heating</td> </tr>
+<tr> <td>Maintaining Temperature</td> </tr>
+<tr> <td>Fan Active</td> </tr>
+<tr> <td>Water Dispersing</td> </tr>
+<tr> <td>Jacuzzi Off</td> </tr>
+<tr> <td>Level 1 Pressure</td> </tr>
+<tr> <td>Level 2 Pressure</td> </tr>
+<tr> <td>Level 3 Pressure</td> </tr>
+<tr> <td>Pattern Selection</td> </tr>
+<tr> <td>Paused</td> </tr>
+</table>
+Running start_event_driven_initial_state_search...
+Sauna Off
+Running start_event_driven_event_search...
+<table border="1">
+<tr> <th>Event Name</th> </tr>
+<tr> <td>TurnSaunaOn</td> </tr>
+<tr> <td>TurnSaunaOff</td> </tr>
+<tr> <td>TemperatureReached90</td> </tr>
+<tr> <td>TemperatureBelow85</td> </tr>
+<tr> <td>HumidityExceeds40</td> </tr>
+<tr> <td>HumidityBelow40</td> </tr>
+<tr> <td>FanActivated</td> </tr>
+<tr> <td>FanTurnsOffAfter5Mins</td> </tr>
+<tr> <td>RequestWaterDispersion</td> </tr>
+<tr> <td>WaterDispensed</td> </tr>
+<tr> <td>TurnJacuzziOn</td> </tr>
+<tr> <td>TurnJacuzziOff</td> </tr>
+<tr> <td>IncreasePressureLevel</td> </tr>
+<tr> <td>DecreasePressureLevel</td> </tr>
+<tr> <td>SelectEjectionPattern</td> </tr>
+<tr> <td>PauseJets</td> </tr>
+<tr> <td>ResumeJets</td> </tr>
+</table>
+Running start_event_driven_associate_events_with_states_action
+['TurnSaunaOn', 'TurnSaunaOff']
+['TurnSaunaOn', 'TemperatureReached90', 'TemperatureBelow85', 'HumidityExceeds40', 'FanActivated', 'RequestWaterDispersion']
+['TemperatureReached90', 'TemperatureBelow85']
+['HumidityExceeds40', 'FanActivated', 'FanTurnsOffAfter5Mins']
+['RequestWaterDispersion', 'WaterDispensed']
+['TurnJacuzziOn', 'TurnJacuzziOff']
+['TurnJacuzziOn', 'IncreasePressureLevel', 'SelectEjectionPattern', 'PauseJets', 'TurnJacuzziOff']
+['IncreasePressureLevel', 'DecreasePressureLevel', 'SelectEjectionPattern', 'PauseJets', 'ResumeJets']
+['IncreasePressureLevel', 'DecreasePressureLevel', 'SelectEjectionPattern', 'PauseJets', 'ResumeJets', 'TurnJacuzziOff']
+['SelectEjectionPattern']
+['PauseJets', 'ResumeJets']
+{'Sauna Off': ['TurnSaunaOn', 'TurnSaunaOff'], 'Heating': ['TurnSaunaOn', 'TemperatureReached90', 'TemperatureBelow85', 'HumidityExceeds40', 'FanActivated', 'RequestWaterDispersion'], 'Maintaining Temperature': ['TemperatureReached90', 'TemperatureBelow85'], 'Fan Active': ['HumidityExceeds40', 'FanActivated', 'FanTurnsOffAfter5Mins'], 'Water Dispersing': ['RequestWaterDispersion', 'WaterDispensed'], 'Jacuzzi Off': ['TurnJacuzziOn', 'TurnJacuzziOff'], 'Level 1 Pressure': ['TurnJacuzziOn', 'IncreasePressureLevel', 'SelectEjectionPattern', 'PauseJets', 'TurnJacuzziOff'], 'Level 2 Pressure': ['IncreasePressureLevel', 'DecreasePressureLevel', 'SelectEjectionPattern', 'PauseJets', 'ResumeJets'], 'Level 3 Pressure': ['IncreasePressureLevel', 'DecreasePressureLevel', 'SelectEjectionPattern', 'PauseJets', 'ResumeJets', 'TurnJacuzziOff'], 'Pattern Selection': ['SelectEjectionPattern'], 'Paused': ['PauseJets', 'ResumeJets']}
+Running start_event_driven_create_transitions...
+<table border="1">
+<tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr>
+<tr> <td>Sauna Off</td> <td>Heating</td> <td>TurnSaunaOn</td> <td>NONE</td> <td>Start heating stove</td> </tr>
+</table>
+Running start_event_driven_create_transitions...
