@@ -41,4 +41,4 @@ class StateEventSearchAction(BaseAction):
 
         print(f"System name: {system_name}")
         print(f"State event table: {state_events_table}")
-        return (system_name, state_events_table)
+        return state_events_table
