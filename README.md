@@ -1,4 +1,4 @@
-# State Machine-Driven LLM Framework for UML Modeling Automation
+# AutoState: State Machine-Driven LLM Framework for UML Modeling Automation
 
 ## Library Overview
 
