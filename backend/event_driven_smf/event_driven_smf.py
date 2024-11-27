@@ -127,5 +127,4 @@ def run_event_driven_smf():
         render.to_png('ExhibitA.png')
 
 if __name__ == "__main__":
-    choose_model()
     run_event_driven_smf()

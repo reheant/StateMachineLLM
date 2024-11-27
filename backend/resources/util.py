@@ -1,5 +1,7 @@
 import os
 import openai
+import anthropic
+import groq
 import re
 from bs4 import BeautifulSoup, Tag
 from getpass import getpass
@@ -7,10 +9,12 @@ import aisuite as ai
 
 
 openai.api_key = os.environ.get("OPENAI_API_KEY")
+groq.api_key = os.environ.get("GROQ_API_KEY")
+anthropic.api_key = os.environ.get("ANTHROPIC_API_KEY")
+
 
 client = ai.Client()
 
-model = ""
 
 def choose_model():
     print("Please pick the model you want to use to power your assistant:")
@@ -24,22 +28,19 @@ def choose_model():
         try:
             choice = int(input("Enter the number corresponding to your model (1, 2, 3, 4): "))
             if choice == 1:
-                model =  "openai:gpt-4o"
-                return
+                return "openai:gpt-4o"
             elif choice == 2:
-                model =  "anthropic:claude-3-5-sonnet-20241022"
-                return
+                return  "anthropic:claude-3-5-sonnet-20241022"
             elif choice == 3:
-                model = "groq:llama-3.2-3b-preview"
-                return
+                return "groq:llama-3.2-3b-preview"
             elif choice == 4:
-                model = "google:gemini-1.5-pro-001"
-                return
+                return "google:gemini-1.5-pro-001"
             else:
                 print("Invalid choice. Please enter 1, 2, 3 or 4.")
         except ValueError:
             print("Invalid input. Please enter a number (1, 2, 3, or 4).")
 
+model = choose_model()
 
 def call_llm(prompt, max_tokens=1200, temperature=0.7):
     response = client.chat.completions.create(
@@ -49,7 +50,7 @@ def call_llm(prompt, max_tokens=1200, temperature=0.7):
         temperature=temperature,
         max_tokens=max_tokens
     )
-    return response.choices[0].message.content
+    return str (response.choices[0].message.content)
 
 
 if __name__ == "__main__":

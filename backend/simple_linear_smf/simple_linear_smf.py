@@ -79,6 +79,5 @@ def run_sherpa_task():
         render.to_png(f'{os.path.dirname(__file__)}\\ExhibitA.png')
 
 if __name__ == "__main__":
-    choose_model()
     run_sherpa_task()
     

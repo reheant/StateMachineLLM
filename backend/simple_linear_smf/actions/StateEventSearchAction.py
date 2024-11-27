@@ -32,6 +32,8 @@ class StateEventSearchAction(BaseAction):
 
             Output:
         """)
+
+        print(states_response_in_html)
         
         system_name = re.search(r"System:\s*\"(.*?)\"", states_response_in_html).group(1)
 
