@@ -78,6 +78,7 @@ refactor_transition_names = {
     "before": "event_driven_refactor_transition_names_action"
 }
 
+# step 11: move common transitions amongst children states to parent state
 factor_out_hierarchal_transitions = {
     "trigger": "start_event_driven_factor_out_transitions_for_hierarchal_states",
     "source": "FactorOutHierarchalTransitions",
@@ -85,7 +86,7 @@ factor_out_hierarchal_transitions = {
     "before": "event_driven_factor_out_transitions_for_hierarchal_states_action"
 }
 
-# step 11: identify necessary history states in the UML State Machine using EventDrivenHistoryStateSearchAction
+# step 12: identify necessary history states in the UML State Machine using EventDrivenHistoryStateSearchAction
 history_state_search = {
     "trigger": "start_event_driven_history_state_search_action",
     "source": "HistoryStateSearch",
@@ -93,7 +94,7 @@ history_state_search = {
     "before": "event_driven_history_state_search_action"
 }
 
-# step 12: print the final tables representing the UML State Machine
+# step 13: print the final tables representing the UML State Machine
 display_results = {
     "trigger": "start_event_driven_display_results_action",
     "source": "DisplayResults",

@@ -1,3 +1,11 @@
+import sys
+import os
+
+script_dir = os.path.dirname(__file__)
+resources_dir = os.path.join(script_dir, '..')
+print(resources_dir)
+sys.path.append(resources_dir)
+
 from sherpa_ai.memory.belief import Belief
 from sherpa_ai.memory.state_machine import SherpaStateMachine
 from transitions.extensions import HierarchicalGraphMachine
