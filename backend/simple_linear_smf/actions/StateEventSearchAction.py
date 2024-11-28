@@ -52,4 +52,6 @@ class StateEventSearchAction(BaseAction):
         # get the states and events table
         state_events_table = extract_states_events_table(states_response_in_html)
 
+        print(f"System name: {system_name}")
+        print(f"State event table: {state_events_table}")
         return (system_name, state_events_table)

@@ -74,8 +74,15 @@ hierarchical_initial_state_search = {
 refactor_transition_names = {
     "trigger": "start_event_driven_refactor_transition_names",
     "source": "RefactorTransitionNames",
-    "dest": "HistoryStateSearch",
+    "dest": "FactorOutHierarchalTransitions",
     "before": "event_driven_refactor_transition_names_action"
+}
+
+factor_out_hierarchal_transitions = {
+    "trigger": "start_event_driven_factor_out_transitions_for_hierarchal_states",
+    "source": "FactorOutHierarchalTransitions",
+    "dest": "HistoryStateSearch",
+    "before": "event_driven_factor_out_transitions_for_hierarchal_states_action"
 }
 
 # step 11: identify necessary history states in the UML State Machine using EventDrivenHistoryStateSearchAction
@@ -103,7 +110,8 @@ transitions = [
                 create_transitions,
                 create_hierarchical_states,
                 hierarchical_initial_state_search,
-                refactor_transition_names,
+                refactor_transition_names,                
+                factor_out_hierarchal_transitions,
                 history_state_search,
                 display_results
               ]

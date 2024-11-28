@@ -18,37 +18,15 @@ from actions.EventDrivenRefactorTransitionNamesAction import EventDrivenRefactor
 from actions.EventDrivenDisplayResultsAction import EventDrivenDisplayResultsAction
 from actions.EventDrivenFilterTransitionsAction import EventDrivenFilterTransitionsAction
 from actions.EventDrivenHistoryStateSearchAction import EventDrivenHistoryStateSearchAction
+from actions.EventDrivenFactorOutTransitionsForHierarchalStates import EventDrivenFactorOutTransitionsForHierarchalStates
 from event_driven_smf_transitions import transitions
+from resources.state_machine_descriptions import thermomix_fall_2021
+import mermaid as md
+from mermaid.graph import Graph
+from resources.util import gsm_tables_to_dict
+import time
 
-# running example description of the fictitious Thermomix TM6 system description
-description = """
-              The Thermomix TM6 is an all-in-one kitchen appliance that
-              preps ingredients and cooks them to perfection.
-              On delivery, the Thermomix TM6 is set to transportation
-              mode. When the selector (button) is pressed to start up the
-              Thermomix TM6 for the first time, the transportation
-              mode is automatically deactivated, and the home screen is
-              shown. To turn the Thermomix TM6 off, hold the selector
-              down for at least five seconds until a message appears to
-              confirm that the Thermomix TM6 is switching off. You can
-              then release the selector. If the Thermomix TM6 has been
-              turned off, pressing the selector turns it back on and the
-              home screen is shown. To save energy, the Thermomix TM6 switches off automatically after 15
-              minutes when not in use. A message appears for the last 30 seconds, allowing automatic shutdown to
-              be canceled and the home screen to be shown (by selecting cancel on the appliance's screen or by
-              removing the cooking bowl).
-              To cook a meal, select a recipe on the screen and then select start to follow the step-by-step
-              instructions. First, add ingredients as instructed. The integrated scale weighs them and allows the
-              next step only if the correct amount has been added. Continue to the next step by selecting next on
-              the screen. The Thermomix TM6 chops the ingredients for as long as and at the speed required for
-              the recipe. When the chopping step is done, select next for the Thermomix TM6 to start the cooking
-              step. Again, the Thermomix TM6 cooks the meal at the temperature and time required for the
-              recipe. At the end of any recipe step, the Thermomix TM6 may prompt you to add further
-              ingredients, which are then again weighed, chopped, and cooked. After the last step, the
-              Thermomix TM6 informs you that the meal is ready to be served. When the cooking bowl is
-              removed, the Thermomix TM6 returns to the home screen. It is not possible to cook a meal if the
-              cooking bowl is not correctly placed on the Thermomix TM6.
-              """
+description = thermomix_fall_2021
 
 belief = Belief()
 belief.set("description", description)
@@ -74,6 +52,8 @@ event_driven_hierarchical_initial_state_search_action = EventDrivenHierarchicalI
                                                                                                         description=description)
 event_driven_refactor_transition_names_action =  EventDrivenRefactorTransitionNamesAction(belief=belief,
                                                                                           description=description)
+event_driven_factor_out_transitions_for_hierarchal_states = EventDrivenFactorOutTransitionsForHierarchalStates(belief=belief,
+                                                                                          description=description)
 event_driven_history_state_search_action =  EventDrivenHistoryStateSearchAction(belief=belief,
                                                                                           description=description)
 event_driven_display_results_action = EventDrivenDisplayResultsAction(belief=belief,
@@ -91,6 +71,7 @@ event_driven_action_map = {
     event_driven_create_hierarchical_states_action.name: event_driven_create_hierarchical_states_action,
     event_driven_hierarchical_initial_state_search_action.name: event_driven_hierarchical_initial_state_search_action,
     event_driven_refactor_transition_names_action.name: event_driven_refactor_transition_names_action,
+    event_driven_factor_out_transitions_for_hierarchal_states.name: event_driven_factor_out_transitions_for_hierarchal_states,
     event_driven_history_state_search_action.name: event_driven_history_state_search_action,
     event_driven_display_results_action.name: event_driven_display_results_action
 }
@@ -107,6 +88,7 @@ states = [
             "CreateHierarchicalStates",
             "HierarchicalInitialStateSearch",
             "RefactorTransitionNames",
+            "FactorOutHierarchalTransitions",
             "HistoryStateSearch",
             "DisplayResults",
             "Done"
@@ -126,7 +108,7 @@ belief.set_current_task(Event(EventType.task,
                               "User wants to generate a UML State Machine from the provided system description and display the results at the end"))
 
 # set up task to be run
-llm = SherpaChatOpenAI(model_name="gpt-4o-mini", temperature=0.5)
+llm = SherpaChatOpenAI(model_name="gpt-4o-mini", temperature=0.7)
 policy = ReactPolicy(role_description="Help the user finish the task", output_instruction="Determine which action and arguments would be the best continuing the task", llm=llm)
 qa_agent = QAAgent(llm=llm, belief=belief, num_runs=100, policy=policy)
 
@@ -134,7 +116,19 @@ def run_event_driven_smf():
     """
     the run_event_driven_smf initiates the Sherpa Event Driven State Machine Framework
     """
-    qa_agent.run()
+    with open(f'{os.path.dirname(__file__)}\\..\\resources\\event_driven_log\\output_event_driven{time.strftime("%m_%d_%H_%M_%S")}.txt', 'w') as f:
+        sys.stdout = f
+        qa_agent.run()
+
+        gsm_states, gsm_transitions, gsm_parallel_regions = gsm_tables_to_dict(belief.get("event_driven_create_hierarchical_states_action"), belief.get("event_driven_history_state_search_action"), None)
+        print(f"States: {gsm_states}")
+        print(f"Transitions: {gsm_transitions}")
+        print(f"Parallel Regions: {gsm_parallel_regions}")
+        gsm = SherpaStateMachine(states=gsm_states, transitions=gsm_transitions, initial=belief.get("event_driven_initial_state_search_action").replace(' ',''), sm_cls=HierarchicalGraphMachine)
+        print(gsm.sm.get_graph().draw(None))
+        sequence = Graph('Sequence-diagram',gsm.sm.get_graph().draw(None))
+        render = md.Mermaid(sequence)
+        render.to_png('ExhibitA.png')
 
 if __name__ == "__main__":
     run_event_driven_smf()

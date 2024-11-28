@@ -249,7 +249,9 @@ def gsm_tables_to_dict(hierarchical_states_table : Tag, transitions_table : Tag,
     # States under '-' really don't have a superstate
     non_composite_state = [state for state in states if isinstance(state, dict) and state['name'] == '-']
     if non_composite_state:
-        states.extend(non_composite_state[0]['children'])
+        for child in non_composite_state[0]['children']:
+            if child not in states:
+                states.append(child)
         states.remove(non_composite_state[0])
 
     # Remove all spaces not to confuse mermaid
@@ -553,3 +555,66 @@ def find_events_for_transitions_table(transitions_table):
         events.add(event)
 
     return list(events) 
+
+def parse_html_table(html_table):
+    soup = BeautifulSoup(html_table, 'html.parser')
+    table = soup.find('table')
+
+    headers = []
+    header_row = table.find('tr')
+    if header_row:
+        for th in header_row.find_all('th'):
+            header = th.get_text(strip=True)
+            headers.append(header)
+    else:
+        first_row = table.find('tr')
+        num_columns = len(first_row.find_all(['th', 'td']))
+        headers = ['Column {}'.format(i+1) for i in range(num_columns)]
+
+    data = []
+
+    for row in table.find_all('tr')[1:]:
+        cols = row.find_all('td')
+        if len(cols) != len(headers):
+            continue
+        row_data = {}
+        for idx, col in enumerate(cols):
+            cell_data = col.get_text(strip=True)
+            row_data[headers[idx]] = cell_data
+        data.append(row_data)
+
+    return data
+
+def dict_to_html_table(data):
+    if not data:
+        return "<table></table>"
+
+    headers = data[0].keys()
+    
+    html = "<table border='1'>\n"
+    
+    html += "  <tr>\n"
+    for header in headers:
+        html += f"    <th>{header}</th>\n"
+    html += "  </tr>\n"
+
+    for row in data:
+        html += "  <tr>\n"
+        for header in headers:
+            html += f"    <td>{row.get(header, '')}</td>\n"
+        html += "  </tr>\n"
+    
+    html += "</table>"
+    return html
+
+def getStateHierarchyDictFromList(state_hierarchy_list):
+    hierarchy = {}
+    for entry in state_hierarchy_list:
+        superstate = entry['Superstate']
+        substate = entry['Substate']
+        if superstate != '-':
+            if superstate not in hierarchy:
+                hierarchy[superstate] = []
+            hierarchy[superstate].append(substate)
+    
+    return hierarchy
