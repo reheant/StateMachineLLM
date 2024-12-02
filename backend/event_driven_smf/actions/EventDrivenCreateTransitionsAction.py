@@ -2,12 +2,25 @@ from sherpa_ai.actions.base import BaseAction
 from resources.util import call_gpt4, extract_table_entries, extract_transitions_guards_actions_table, merge_tables
 
 class EventDrivenCreateTransitionsAction(BaseAction):
+    """
+    The EventDrivenCreateTransitionsAction iterates over the mapping of states and events identified in the
+    EventDrivenAssociateEventsWithStatesAction and prompts the LLM to create transitions.
+
+    Input(s): description of the system, name of the system, table of states of the system from EventDrivenStateSearchAction, dictionary mapping states to events from EventDrivenAssociateEventsWithStatesAction
+    Outputs(s): an HTML table with columns "From State", "To State", "Event", "Guard", and "Action" containing all transitions of the UML State Machine 
+    """
     name: str = "event_driven_create_transitions_action"
     args: dict = {}
     usage: str = "Given a description of a system, the states of the system, and the events of the system, identify all transitions in the UML state machine of the system"
     description: str = ""
 
     def create_transitions(self, system_name, state, event, states_table, max_retries=2):
+        """
+        The create_transitions() function examines a single state, the events that were identified to happen in that state,
+        and the list of all states. The LLM is prompted to create a transitions for each event starting from the provided 
+        state to one or more of the states in the states_table. 
+        """
+
         prompt = f"""
         You are an AI assistant specialized in designing UML state machines from a textual description of a system. Given the description of the system, one of the identified states of the system, one of the identified events of the system, and a table of all identified states of the system, your task is to solve a question answering task.
 
@@ -71,6 +84,13 @@ class EventDrivenCreateTransitionsAction(BaseAction):
         return None
 
     def execute(self):
+        """
+        The execute function gets the table of all states and the mapping of states to events from the
+        EventDrivenAssociateEventsWithStatesAction. For each state, the create_transitions() function
+        is called to prompt the LLM to create transitions exiting that state. The output is a table
+        containing the transitions of the UML State Machine.
+        """
+        
         print(f"Running {self.name}...")
 
         # get the system name for the prompt

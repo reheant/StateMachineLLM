@@ -3,12 +3,22 @@ from resources.util import call_gpt4, group_parent_child_states
 import re
 
 class EventDrivenHierarchicalInitialStateSearchAction(BaseAction):
+    """
+    The EventDrivenHierarchicalInitialStateSearchAction prompts the LLM 
+    to identify the initial state of each hierarchical state, as identified by the
+    EventDrivenCreateHierarchicalStatesAction
+    """
     name: str = "event_driven_hierarchical_initial_state_search"
     args: dict = {}
     usage: str = "Given a description of a system and the Hierarchical States of the system, identify the initial state of each Hierarchical State in the UML state machine of the system."
     description: str = ""
 
     def identify_initial_state(self, parent_state, child_states):
+        """
+        The identify_initial_state function takes a hierarchical parent state
+        and a list of its child states and prompts the LLM to choose an initial state
+        of the hierarchical parent state from the list of childstates
+        """
         system_name = self.belief.get("event_driven_system_name_search_action")
         formatted_child_states = ", ".join(child_states)
 
@@ -45,10 +55,14 @@ class EventDrivenHierarchicalInitialStateSearchAction(BaseAction):
 
 
     def execute(self):
+        """
+        The execute function uses the table of hierarchical states identified in EventDrivenCreateHierarchicalStatesAction,
+        map the parent states to a list of its child states, and prompts the LLM through the identify_initial_state()
+        function to find the initial state of each parent hierarchical state
+        """
         print(f"Running {self.name}...")
 
-        example_hierarchical_state_table = '<table border="1"><tr> <th>Superstate</th> <th>Substate</th> </tr><tr> <td> Inactive State </td> <td> Off State </td> </tr><tr> <td> Inactive State </td> <td> Home Screen </td> </tr><tr> <td> Inactive State </td> <td> Home Screen (Post-Cooking) </td> </tr><tr> <td> Cooking Process </td> <td> Recipe Selection </td> </tr><tr> <td> Cooking Process </td> <td> Ingredient Addition </td> </tr><tr> <td> Cooking Process </td> <td> Chopping </td> </tr><tr> <td> Cooking Process </td> <td> Cooking </td> </tr><tr> <td> Cooking Process </td> <td> Meal Ready </td> </tr><tr> <td> - </td> <td> Transportation Mode </td> </tr><tr> <td> - </td> <td> Error State </td> </tr></table>'
-        event_driven_hierarchical_state_table = self.belief.get("event_driven_create_hierarchical_states_action", example_hierarchical_state_table)
+        event_driven_hierarchical_state_table = self.belief.get("event_driven_create_hierarchical_states_action")
 
         parent_child_states_dict = group_parent_child_states(event_driven_hierarchical_state_table)
 

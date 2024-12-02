@@ -3,12 +3,24 @@ from resources.util import call_gpt4, extract_hierarchical_state_table, extract_
 from resources.n_shot_examples import get_n_shot_examples
 
 class HierarchicalStateSearchAction(BaseAction):
+    """
+    The HierarchicalStateSearchAction creates the Hierarchical State of the UML State Machine from the system description,
+    and updates the transitions table to reflect the new parent states
+
+    Input(s): description of the system, name of the system, and transitions table created by ActionSearchAction
+    Output(s): An HTML table containing the Hierarchical states and its child states, and the updated transitions table to reflect the new Hierarchical States
+    """
+
     name: str = "hierarchical_state_search_action"
     args: dict = {}
     usage: str = "Identify all hierarchical states in the system"
     description: str = ""
 
     def execute(self):
+        """
+        The execute function prompts the LLM to create hierarchical states and update transitions using a 2-shot prompting approach
+        """
+        
         print(f"Running {self.name}...")
 
         modeled_system, _ = self.belief.get('state_event_search_action')
