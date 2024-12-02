@@ -124,19 +124,57 @@ def run_event_driven_smf():
     """
     the run_event_driven_smf initiates the Sherpa Event Driven State Machine Framework
     """
-    with open(f'{os.path.dirname(__file__)}\\..\\resources\\event_driven_log\\output_event_driven{time.strftime("%m_%d_%H_%M_%S")}.txt', 'w') as f:
-        sys.stdout = f
-        qa_agent.run()
+    try:
+        # Define the base directory for logs
+        base_dir = os.path.join(os.path.dirname(__file__), "..", "resources", "event_driven_log")
+        os.makedirs(base_dir, exist_ok=True)  # Ensure the directory exists
 
-        gsm_states, gsm_transitions, gsm_parallel_regions = gsm_tables_to_dict(belief.get("event_driven_create_hierarchical_states_action"), belief.get("event_driven_history_state_search_action"), None)
-        print(f"States: {gsm_states}")
-        print(f"Transitions: {gsm_transitions}")
-        print(f"Parallel Regions: {gsm_parallel_regions}")
-        gsm = SherpaStateMachine(states=gsm_states, transitions=gsm_transitions, initial=belief.get("event_driven_initial_state_search_action").replace(' ',''), sm_cls=HierarchicalGraphMachine)
-        print(gsm.sm.get_graph().draw(None))
-        sequence = Graph('Sequence-diagram',gsm.sm.get_graph().draw(None))
-        render = md.Mermaid(sequence)
-        render.to_png('ExhibitA.png')
+        # Construct the log file path
+        log_file_name = f'output_event_driven_{time.strftime("%Y_%m_%d_%H_%M_%S")}.txt'
+        log_file_path = os.path.join(base_dir, log_file_name)
+
+        # Redirect stdout to the log file
+        with open(log_file_path, 'w') as f:
+            sys.stdout = f  # Redirect all print statements to the log file
+            try:
+                # Execute QA agent
+                qa_agent.run()
+
+                # Extract GSM state information
+                gsm_states, gsm_transitions, gsm_parallel_regions = gsm_tables_to_dict(
+                    belief.get("event_driven_create_hierarchical_states_action"),
+                    belief.get("event_driven_history_state_search_action"),
+                    None
+                )
+                print(f"States: {gsm_states}")
+                print(f"Transitions: {gsm_transitions}")
+                print(f"Parallel Regions: {gsm_parallel_regions}")
+
+                # Create the state machine
+                gsm = SherpaStateMachine(
+                    states=gsm_states,
+                    transitions=gsm_transitions,
+                    initial=belief.get("event_driven_initial_state_search_action").replace(' ', ''),
+                    sm_cls=HierarchicalGraphMachine
+                )
+                print(gsm.sm.get_graph().draw(None))
+
+                # Generate and render a sequence diagram
+                sequence = Graph('Sequence-diagram', gsm.sm.get_graph().draw(None))
+                render = md.Mermaid(sequence)
+                render.to_png('ExhibitA.png')
+
+            finally:
+                # Restore original stdout
+                sys.stdout = sys.__stdout__
+
+        print(f"Log successfully written to: {log_file_path}")
+
+    except Exception as e:
+        # Handle and print any errors that occur
+        sys.stdout = sys.__stdout__  # Ensure stdout is restored before printing
+        print(f"Error during event-driven logging: {e}")
+
 
 if __name__ == "__main__":
     run_event_driven_smf()
