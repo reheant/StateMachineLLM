@@ -1,5 +1,6 @@
 import re
 from sherpa_ai.actions.base import BaseAction
+from resources.n_shot_examples_event_driven import get_n_shot_examples
 from resources.util import call_gpt4, extract_table_entries
 
 class EventDrivenAssociateEventsWithStatesAction(BaseAction):
@@ -25,32 +26,41 @@ class EventDrivenAssociateEventsWithStatesAction(BaseAction):
         """
 
         prompt = f"""
-        You are an AI assistant specialized in designing UML state machines from a textual description of a system. Given the description of the system, a single identified state of the system, and all events of the system, you task is to solve a question answering task.
-
-        Name of the system:
-        {system_name}
-
-        Description of the system:
-        {self.description}
-
-        The single identified state of the system is:
-        {state}
-
-        The table of identified events of the system is:
-        {events_table}
+        You are a requirements engineer specialized in designing UML state machines from a textual description of a system.
+        You are given the name of the system you are modeling a state machine for, the description of the state machine, a single identified state of the system, and all events of the system.
+        Your task is to determine which events out of ALL events can trigger a transition in the state {state}.
 
         Solution structure:
         1. Begin the response with "Let's think step by step."
-        2. Examine the description of the system. Using the description of the system, determine partial orderings of ALL events. A partial ordering of events refers to a system where some events must occur in a specific sequence due to dependencies, while others can happen independently or concurrently.
-        3. Determine which events out of ALL events apply to the state {state} based on the partial orderings you determined in step 2. The events that occur in this state MUST adhere to the orderings that you generated in step 2. You MUST identify only the MOST RELEVANT events for the given state. Ensure no events that you identify can occur only before or after the event has been reached in the UML state machine. You MUST provide events for the given state, otherwise your solution will be rejected.
-        4. Finally, give a list of the events that apply to the state {state} in a comma seperated list in the following format:
+        2. Examine the description of the system. Using the description of the system, determine partial orderings of ALL events. A partial ordering of events is an ordering of events for a system where some events must occur in a specific sequence due to dependencies, while others can happen independently or concurrently.
+        3. Determine which events out of ALL events can trigger a transition in the state {state} based on the partial orderings you determined in step 2. The events that can trigger a transition for the state {state} MUST adhere to the orderings that you generated in step 2. You MUST identify only the MOST RELEVANT events for the given state. Ensure no events that you identify can occur only before or after the event has been reached in the UML state machine. You MUST provide events for the given state, otherwise your solution will be rejected.
+        4. Your output of the list of events that can trigger a transition in the state {state} MUST be in a comma seperated list in the following format:
 
-        Relevant Events: <first_event>, <second_event>, <third_event>, ...
+        <associated_events>first_event, second_event, third_event</associated_events>
         
         The events that you provide MUST come from the original events table provided to you above. DO NOT add events that do not exist.
-        Your solution MUST be in the above format, otherwise it will be rejected.
+        Keep your answer concise. If you answer incorrectly, you will be fired from your job.
+
+        Here is an example:
+        {get_n_shot_examples(['printer_winter_2017'],['system_name', 'system_description', 'events_table', 'state_inspected', 'associated_events'])}
+
+        Here is your input:
+        system_name:
+        <system_name>{system_name}</system_name>
+
+        system_description:
+        <system_description>{self.description}</system_description>
+
+        events_table:
+        <events_table>{events_table}</events_table>
+
+        state_inspected:
+        <state_inspected>{state}</state_inspected>
+
+        associated_events:
         """
 
+        print(prompt)
         # iterate over a max number of retries in order to get the correct format
         # if the LLM does not get the correct format after max_retries, then we return none
         retries = 0
@@ -58,15 +68,17 @@ class EventDrivenAssociateEventsWithStatesAction(BaseAction):
             response = call_gpt4(prompt=prompt, 
                                  temperature=0.7)
             
-            match = re.search(r"Relevant Events:\s*([\w\s,]+)", response)
-            if not match:
+            associated_events_search = re.search(r"<associated_events>(.*?)</associated_events>", response)
+
+            if not associated_events_search:
                 retries += 1
+                associated_events = "NOT FOUND"
             else:
-                events = match.group(1)
-                events = events.strip()
-                if events:
-                    events_list = [event.strip() for event in events.split(",") if event.strip()]
-                    print(events_list)
+                associated_events = associated_events_search.group(1)
+                associated_events = associated_events.strip()
+                if associated_events:
+                    events_list = [event.strip() for event in associated_events.split(",") if event.strip()]
+                    print(associated_events)
                     return events_list
 
             retries += 1

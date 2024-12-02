@@ -36,17 +36,17 @@ def factor_transitions(transitions, hierarchy):
         substates_set = set(substates)
         substate_transitions = defaultdict(set)
         for t in transitions:
-            from_state = t['From State']
+            from_state = t['FromState']
             if from_state in substates_set:
-                key = (t['To State'], t['Event'], t['Guard'], t['Action'])
+                key = (t['ToState'], t['Event'], t['Guard'], t['Action'])
                 substate_transitions[key].add(from_state)
 
         common_transitions = []
         for key, from_states in substate_transitions.items():
             if from_states == substates_set:
                 common_transition = {
-                    'From State': superstate,
-                    'To State': key[0],
+                    'FromState': superstate,
+                    'ToState': key[0],
                     'Event': key[1],
                     'Guard': key[2],
                     'Action': key[3]
@@ -55,7 +55,7 @@ def factor_transitions(transitions, hierarchy):
 
                 modified_transitions = [
                     t for t in modified_transitions if not (
-                        t['From State'] in substates_set and
+                        t['FromState'] in substates_set and
                         t['To State'] == key[0] and
                         t['Event'] == key[1] and
                         t['Guard'] == key[2] and

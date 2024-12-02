@@ -1,6 +1,6 @@
 from sherpa_ai.actions.base import BaseAction
 from resources.util import call_gpt4, extract_hierarchical_state_table, extract_transitions_guards_actions_table
-from resources.n_shot_examples import get_n_shot_examples
+from resources.n_shot_examples_simple_linear import get_n_shot_examples
 
 class HierarchicalStateSearchAction(BaseAction):
     name: str = "hierarchical_state_search_action"

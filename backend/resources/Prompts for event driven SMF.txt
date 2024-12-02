@@ -1,0 +1,972 @@
+Prompt for system_name_search:
+        You are a requirements engineer specialized in designing UML state machines from a textual description of a system.
+        You are given the description of the system.
+        Your task is to identify the name of the system for which you are creating the UML state machine from the description.
+
+        You MUST output the name of the system in the following format:
+        <system_name>System Name</system_name>
+
+        Keep your answer concise. If you answer incorrectly, you will be fired from your job.
+
+        Here is an example:
+        Example 1:
+
+system_description:
+<system_description>The printer has a master switch which turns the printer on or off. Once the printer is turned on, a user needs to log in before being able to print or scan a document. To login, a user taps her/his printer card on the printer's card reader. Each printer card has a unique ID. If the printer card is authorized, the user can either choose "scan" or "print". If the printer card is not authorized, a login error message is shown.
+For the "print" option, the user presses the start button to print the user's first document in the user's print queue. If there is no document in the print queue, an error message is shown instead of performing the printing task. For the "scan" option, the user presses the start button for the printer to scan an original document, which was placed by the user in the automatic page feeder. The scan is sent to the user's email inbox. If the printer does not detect an original document, an error message is shown instead of performing the scanning task. When the printer is done printing or scanning, the user can print or scan the next document. The user may also stop the printing/scanning task at any time by pressing the stop button. The user is allowed to logoff either before or after a printing/scanning task but not while the printer is in the middle of a printing/scanning task.
+If there is a paper jam, the printer will suspend the printing/scanning task to allow the user to clear the paper jam. The user may then either cancel the printing/scanning task or resume it. In case the printer runs out of paper during a printing task, the printer suspends the printing task to allow the user to resupply paper. The user may then either cancel the printing task or resume it.</system_description>
+
+system_name:
+<system_name>Printer</system_name>
+
+        Here is your input:
+        system_description:
+        <system_description>The Thermomix TM6 is an all-in-one kitchen appliance that preps ingredients and cooks them to perfection.
+On delivery, the Thermomix TM6 is set to transportation mode. When the selector (button) is pressed to start up the Thermomix TM6 for the first time, the transportation mode is automatically deactivated, and the home screen is shown. To turn the Thermomix TM6 off, hold the selector down for at least five seconds until a message appears to confirm that the Thermomix TM6 is switching off. You can then release the selector. If the Thermomix TM6 has been turned off, pressing the selector turns it back on and the home screen is shown. To save energy, the Thermomix TM6 switches off automatically after 15 minutes when not in use. A message appears for the last 30 seconds, allowing automatic shutdown to be canceled and the home screen to be shown (by selecting cancel on the appliance's screen or by removing the cooking bowl).
+To cook a meal, select a recipe on the screen and then select start to follow the step-by-step instructions. First, add ingredients as instructed. The integrated scale weighs them and allows the next step only if the correct amount has been added. Continue to the next step by selecting next on the screen. The Thermomix TM6 chops the ingredients for as long as and at the speed required for the recipe. When the chopping step is done, select next for the Thermomix TM6 to start the cooking step. Again, the Thermomix TM6 cooks the meal at the temperature and time required for the recipe. At the end of any recipe step, the Thermomix TM6 may prompt you to add further ingredients, which are then again weighed, chopped, and cooked. After the last step, the Thermomix TM6 informs you that the meal is ready to be served. When the cooking bowl is removed, the Thermomix TM6 returns to the home screen. It is not possible to cook a meal if the cooking bowl is not correctly placed on the Thermomix TM6.
+The selector button raises the following events: selectorPressed (the selector is pressed and released immediately), selectorHeld (the selector is pressed and not released immediately), and selectorReleased (the selector is released after being held).</system_description>
+
+        system_name:
+        
+Prompt for state_search:
+        You are a requirements engineer specialized in designing UML state machines from a textual description of a system.
+        You are given the name of the system you are modeling a state machine for, and the description of the state machine.
+        Your task is to identify all states of the UML state machine from the description of the system.
+
+        Solution structure:
+        1. Begin the response with "Let's think step by step."
+        2. Determine all states of the UML state machine from the description of the system.
+        3. You MUST output the list of all states in the following format HTML format:
+
+        <states_table>```html<table border="1"> 
+        <tr><th>StateName</th></tr> 
+        <tr><td>ExampleState1</td></tr> 
+        <tr><td>ExampleState2</td></tr> 
+        </table>```</states_table>
+
+        Keep your answer concise. If you answer incorrectly, you will be fired from your job.
+
+        Here is an example:
+        Example 1:
+
+system_name:
+<system_name>Printer</system_name>
+
+system_description:
+<system_description>The printer has a master switch which turns the printer on or off. Once the printer is turned on, a user needs to log in before being able to print or scan a document. To login, a user taps her/his printer card on the printer's card reader. Each printer card has a unique ID. If the printer card is authorized, the user can either choose "scan" or "print". If the printer card is not authorized, a login error message is shown.
+For the "print" option, the user presses the start button to print the user's first document in the user's print queue. If there is no document in the print queue, an error message is shown instead of performing the printing task. For the "scan" option, the user presses the start button for the printer to scan an original document, which was placed by the user in the automatic page feeder. The scan is sent to the user's email inbox. If the printer does not detect an original document, an error message is shown instead of performing the scanning task. When the printer is done printing or scanning, the user can print or scan the next document. The user may also stop the printing/scanning task at any time by pressing the stop button. The user is allowed to logoff either before or after a printing/scanning task but not while the printer is in the middle of a printing/scanning task.
+If there is a paper jam, the printer will suspend the printing/scanning task to allow the user to clear the paper jam. The user may then either cancel the printing/scanning task or resume it. In case the printer runs out of paper during a printing task, the printer suspends the printing task to allow the user to resupply paper. The user may then either cancel the printing task or resume it.</system_description>
+
+states_table:
+<states_table>```html<table border="1">
+        <tr><th>StateName</th></tr>
+        <tr><th>Off</th></tr>
+        <tr><td>On</td></tr>
+        <tr><td>Idle</td></tr>
+        <tr><td>Ready</td></tr>
+        <tr><td>Scan&Email</td></tr>
+        <tr><td>Print</td></tr>
+        <tr><td>Suspended</td></tr>
+        <tr><td>Busy</td></tr>
+        </table>```</states_table>
+
+        Here is your input:
+        system_name:
+        <system_name>Thermomix TM6</system_name>
+
+        system_description:
+        <system_description>The Thermomix TM6 is an all-in-one kitchen appliance that preps ingredients and cooks them to perfection.
+On delivery, the Thermomix TM6 is set to transportation mode. When the selector (button) is pressed to start up the Thermomix TM6 for the first time, the transportation mode is automatically deactivated, and the home screen is shown. To turn the Thermomix TM6 off, hold the selector down for at least five seconds until a message appears to confirm that the Thermomix TM6 is switching off. You can then release the selector. If the Thermomix TM6 has been turned off, pressing the selector turns it back on and the home screen is shown. To save energy, the Thermomix TM6 switches off automatically after 15 minutes when not in use. A message appears for the last 30 seconds, allowing automatic shutdown to be canceled and the home screen to be shown (by selecting cancel on the appliance's screen or by removing the cooking bowl).
+To cook a meal, select a recipe on the screen and then select start to follow the step-by-step instructions. First, add ingredients as instructed. The integrated scale weighs them and allows the next step only if the correct amount has been added. Continue to the next step by selecting next on the screen. The Thermomix TM6 chops the ingredients for as long as and at the speed required for the recipe. When the chopping step is done, select next for the Thermomix TM6 to start the cooking step. Again, the Thermomix TM6 cooks the meal at the temperature and time required for the recipe. At the end of any recipe step, the Thermomix TM6 may prompt you to add further ingredients, which are then again weighed, chopped, and cooked. After the last step, the Thermomix TM6 informs you that the meal is ready to be served. When the cooking bowl is removed, the Thermomix TM6 returns to the home screen. It is not possible to cook a meal if the cooking bowl is not correctly placed on the Thermomix TM6.
+The selector button raises the following events: selectorPressed (the selector is pressed and released immediately), selectorHeld (the selector is pressed and not released immediately), and selectorReleased (the selector is released after being held).</system_description>
+
+        states_table:
+        
+Prompt for initial_state_search:
+
+        You are a requirements engineer specialized in designing UML state machines from a textual description of a system.
+        You are given the name of the system you are modeling a state machine for, the description of the state machine, and a table containing all identified states of the system.
+        Your task is to identify exactly ONE (1) Initial State for the system.
+
+        Solution structure:
+        1. Begin the response with "Let's think step by step."
+        2. After examining the system description and the HTML table containing identified states, identify exactly ONE (1) Initial State of the system. The Initial State MUST be one of the states in the given table.
+        3. Your output the initial state of the system MUST be in the following format:  
+        
+        <initial_state>InitialState</initial_state>
+        
+        Keep your answer concise. If you answer incorrectly, you will be fired from your job.
+        
+        Here is an example:
+        Example 1:
+
+system_name:
+<system_name>Printer</system_name>
+
+system_description:
+<system_description>The printer has a master switch which turns the printer on or off. Once the printer is turned on, a user needs to log in before being able to print or scan a document. To login, a user taps her/his printer card on the printer's card reader. Each printer card has a unique ID. If the printer card is authorized, the user can either choose "scan" or "print". If the printer card is not authorized, a login error message is shown.
+For the "print" option, the user presses the start button to print the user's first document in the user's print queue. If there is no document in the print queue, an error message is shown instead of performing the printing task. For the "scan" option, the user presses the start button for the printer to scan an original document, which was placed by the user in the automatic page feeder. The scan is sent to the user's email inbox. If the printer does not detect an original document, an error message is shown instead of performing the scanning task. When the printer is done printing or scanning, the user can print or scan the next document. The user may also stop the printing/scanning task at any time by pressing the stop button. The user is allowed to logoff either before or after a printing/scanning task but not while the printer is in the middle of a printing/scanning task.
+If there is a paper jam, the printer will suspend the printing/scanning task to allow the user to clear the paper jam. The user may then either cancel the printing/scanning task or resume it. In case the printer runs out of paper during a printing task, the printer suspends the printing task to allow the user to resupply paper. The user may then either cancel the printing task or resume it.</system_description>
+
+states_table:
+<states_table>```html<table border="1">
+        <tr><th>StateName</th></tr>
+        <tr><th>Off</th></tr>
+        <tr><td>On</td></tr>
+        <tr><td>Idle</td></tr>
+        <tr><td>Ready</td></tr>
+        <tr><td>Scan&Email</td></tr>
+        <tr><td>Print</td></tr>
+        <tr><td>Suspended</td></tr>
+        <tr><td>Busy</td></tr>
+        </table>```</states_table>
+
+initial_state:
+<initial_state>Off</initial_state>
+
+        Here is your input:
+        system_name:
+        <system_name>Thermomix TM6</system_name>
+
+        system_description:
+        <system_description>The Thermomix TM6 is an all-in-one kitchen appliance that preps ingredients and cooks them to perfection.
+On delivery, the Thermomix TM6 is set to transportation mode. When the selector (button) is pressed to start up the Thermomix TM6 for the first time, the transportation mode is automatically deactivated, and the home screen is shown. To turn the Thermomix TM6 off, hold the selector down for at least five seconds until a message appears to confirm that the Thermomix TM6 is switching off. You can then release the selector. If the Thermomix TM6 has been turned off, pressing the selector turns it back on and the home screen is shown. To save energy, the Thermomix TM6 switches off automatically after 15 minutes when not in use. A message appears for the last 30 seconds, allowing automatic shutdown to be canceled and the home screen to be shown (by selecting cancel on the appliance's screen or by removing the cooking bowl).
+To cook a meal, select a recipe on the screen and then select start to follow the step-by-step instructions. First, add ingredients as instructed. The integrated scale weighs them and allows the next step only if the correct amount has been added. Continue to the next step by selecting next on the screen. The Thermomix TM6 chops the ingredients for as long as and at the speed required for the recipe. When the chopping step is done, select next for the Thermomix TM6 to start the cooking step. Again, the Thermomix TM6 cooks the meal at the temperature and time required for the recipe. At the end of any recipe step, the Thermomix TM6 may prompt you to add further ingredients, which are then again weighed, chopped, and cooked. After the last step, the Thermomix TM6 informs you that the meal is ready to be served. When the cooking bowl is removed, the Thermomix TM6 returns to the home screen. It is not possible to cook a meal if the cooking bowl is not correctly placed on the Thermomix TM6.
+The selector button raises the following events: selectorPressed (the selector is pressed and released immediately), selectorHeld (the selector is pressed and not released immediately), and selectorReleased (the selector is released after being held).</system_description>
+
+        states_table:
+        <states_table><table border="1">
+<tr><th>StateName</th></tr>
+<tr><td>TransportationMode</td></tr>
+<tr><td>Off</td></tr>
+<tr><td>On</td></tr>
+<tr><td>HomeScreen</td></tr>
+<tr><td>RecipeSelection</td></tr>
+<tr><td>AddIngredients</td></tr>
+<tr><td>Chopping</td></tr>
+<tr><td>Cooking</td></tr>
+<tr><td>MealReady</td></tr>
+<tr><td>Error</td></tr>
+</table></states_table>
+
+        initial_state:
+        
+Prompt for events_search:
+
+        You are a requirements engineer specialized in designing UML state machines from a textual description of a system.
+        You are given the name of the system you are modeling a state machine for, and the description of the state machine.
+        Your task is to identify all events of the UML state machine that could trigger state transitions.
+        
+        Solution structure:
+        1. Begin the response with "Let's think step by step."
+        2. Determine all events of the UML state machine from the description of the system that could trigger state transitions.
+        3. Your output of the list of the events MUST be in the following HTML table format:
+        
+        <events_table>```html<table border="1"> 
+        <tr><th>EventName</th></tr> 
+        <tr><td>ExampleEvent1</td></tr> 
+        <tr><td>ExampleEvent2</td></tr> 
+        </table>```</events_table>
+        
+        Keep your answer concise. If you answer incorrectly, you will be fired from your job.
+        
+        Here is an example:
+        Example 1:
+
+system_name:
+<system_name>Printer</system_name>
+
+system_description:
+<system_description>The printer has a master switch which turns the printer on or off. Once the printer is turned on, a user needs to log in before being able to print or scan a document. To login, a user taps her/his printer card on the printer's card reader. Each printer card has a unique ID. If the printer card is authorized, the user can either choose "scan" or "print". If the printer card is not authorized, a login error message is shown.
+For the "print" option, the user presses the start button to print the user's first document in the user's print queue. If there is no document in the print queue, an error message is shown instead of performing the printing task. For the "scan" option, the user presses the start button for the printer to scan an original document, which was placed by the user in the automatic page feeder. The scan is sent to the user's email inbox. If the printer does not detect an original document, an error message is shown instead of performing the scanning task. When the printer is done printing or scanning, the user can print or scan the next document. The user may also stop the printing/scanning task at any time by pressing the stop button. The user is allowed to logoff either before or after a printing/scanning task but not while the printer is in the middle of a printing/scanning task.
+If there is a paper jam, the printer will suspend the printing/scanning task to allow the user to clear the paper jam. The user may then either cancel the printing/scanning task or resume it. In case the printer runs out of paper during a printing task, the printer suspends the printing task to allow the user to resupply paper. The user may then either cancel the printing task or resume it.</system_description>
+
+events_table:
+<events_table>```html<table border="1">
+        <tr><th>on</th></tr>
+        <tr><td>off</td></tr>
+        <tr><td>login(cardID)</td></tr>
+        <tr><td>logoff</td></tr>
+        <tr><td>start</td></tr>
+        <tr><td>scan</td></tr>
+        <tr><td>cancel</td></tr>
+        <tr><td>jam</td></tr>
+        <tr><td>resume</td></tr>
+        <tr><td>outOfPaper</td></tr>
+        <tr><td>print</td></tr>
+        <tr><td>done</td></tr>
+        <tr><td>stop</td></tr>
+        </table>```</events_table>
+
+        Here is your input:
+        system_name:
+        <system_name>Thermomix TM6</system_name>
+
+        system_description:
+        <system_description>The Thermomix TM6 is an all-in-one kitchen appliance that preps ingredients and cooks them to perfection.
+On delivery, the Thermomix TM6 is set to transportation mode. When the selector (button) is pressed to start up the Thermomix TM6 for the first time, the transportation mode is automatically deactivated, and the home screen is shown. To turn the Thermomix TM6 off, hold the selector down for at least five seconds until a message appears to confirm that the Thermomix TM6 is switching off. You can then release the selector. If the Thermomix TM6 has been turned off, pressing the selector turns it back on and the home screen is shown. To save energy, the Thermomix TM6 switches off automatically after 15 minutes when not in use. A message appears for the last 30 seconds, allowing automatic shutdown to be canceled and the home screen to be shown (by selecting cancel on the appliance's screen or by removing the cooking bowl).
+To cook a meal, select a recipe on the screen and then select start to follow the step-by-step instructions. First, add ingredients as instructed. The integrated scale weighs them and allows the next step only if the correct amount has been added. Continue to the next step by selecting next on the screen. The Thermomix TM6 chops the ingredients for as long as and at the speed required for the recipe. When the chopping step is done, select next for the Thermomix TM6 to start the cooking step. Again, the Thermomix TM6 cooks the meal at the temperature and time required for the recipe. At the end of any recipe step, the Thermomix TM6 may prompt you to add further ingredients, which are then again weighed, chopped, and cooked. After the last step, the Thermomix TM6 informs you that the meal is ready to be served. When the cooking bowl is removed, the Thermomix TM6 returns to the home screen. It is not possible to cook a meal if the cooking bowl is not correctly placed on the Thermomix TM6.
+The selector button raises the following events: selectorPressed (the selector is pressed and released immediately), selectorHeld (the selector is pressed and not released immediately), and selectorReleased (the selector is released after being held).</system_description>
+
+        events_table:
+       
+Prompt for associate_events_with_states:
+
+        You are a requirements engineer specialized in designing UML state machines from a textual description of a system.
+        You are given the name of the system you are modeling a state machine for, the description of the state machine, a single identified state of the system, and all events of the system.
+        Your task is to determine which events out of ALL events can trigger a transition in the state TransportationMode.
+
+        Solution structure:
+        1. Begin the response with "Let's think step by step."
+        2. Examine the description of the system. Using the description of the system, determine partial orderings of ALL events. A partial ordering of events is an ordering of events for a system where some events must occur in a specific sequence due to dependencies, while others can happen independently or concurrently.
+        3. Determine which events out of ALL events can trigger a transition in the state TransportationMode based on the partial orderings you determined in step 2. The events that can trigger a transition for the state TransportationMode MUST adhere to the orderings that you generated in step 2. You MUST identify only the MOST RELEVANT events for the given state. Ensure no events that you identify can occur only before or after the event has been reached in the UML state machine. You MUST provide events for the given state, otherwise your solution will be rejected.
+        4. Your output of the list of events that can trigger a transition in the state TransportationMode MUST be in a comma seperated list in the following format:
+
+        <associated_events>first_event, second_event, third_event</associated_events>
+        
+        The events that you provide MUST come from the original events table provided to you above. DO NOT add events that do not exist.
+        Keep your answer concise. If you answer incorrectly, you will be fired from your job.
+
+        Here is an example:
+        Example 1:
+
+system_name:
+<system_name>Printer</system_name>
+
+system_description:
+<system_description>The printer has a master switch which turns the printer on or off. Once the printer is turned on, a user needs to log in before being able to print or scan a document. To login, a user taps her/his printer card on the printer's card reader. Each printer card has a unique ID. If the printer card is authorized, the user can either choose "scan" or "print". If the printer card is not authorized, a login error message is shown.
+For the "print" option, the user presses the start button to print the user's first document in the user's print queue. If there is no document in the print queue, an error message is shown instead of performing the printing task. For the "scan" option, the user presses the start button for the printer to scan an original document, which was placed by the user in the automatic page feeder. The scan is sent to the user's email inbox. If the printer does not detect an original document, an error message is shown instead of performing the scanning task. When the printer is done printing or scanning, the user can print or scan the next document. The user may also stop the printing/scanning task at any time by pressing the stop button. The user is allowed to logoff either before or after a printing/scanning task but not while the printer is in the middle of a printing/scanning task.
+If there is a paper jam, the printer will suspend the printing/scanning task to allow the user to clear the paper jam. The user may then either cancel the printing/scanning task or resume it. In case the printer runs out of paper during a printing task, the printer suspends the printing task to allow the user to resupply paper. The user may then either cancel the printing task or resume it.</system_description>
+
+events_table:
+<events_table>```html<table border="1">
+        <tr><th>on</th></tr>
+        <tr><td>off</td></tr>
+        <tr><td>login(cardID)</td></tr>
+        <tr><td>logoff</td></tr>
+        <tr><td>start</td></tr>
+        <tr><td>scan</td></tr>
+        <tr><td>cancel</td></tr>
+        <tr><td>jam</td></tr>
+        <tr><td>resume</td></tr>
+        <tr><td>outOfPaper</td></tr>
+        <tr><td>print</td></tr>
+        <tr><td>done</td></tr>
+        <tr><td>stop</td></tr>
+        </table>```</events_table>
+
+state_inspected:
+<state_inspected>Ready</state_inspected>
+
+associated_events:
+<associated_events>logoff, start, scan, print</associated_events>
+
+        Here is your input:
+        system_name:
+        <system_name>Thermomix TM6</system_name>
+
+        system_description:
+        <system_description>The Thermomix TM6 is an all-in-one kitchen appliance that preps ingredients and cooks them to perfection.
+On delivery, the Thermomix TM6 is set to transportation mode. When the selector (button) is pressed to start up the Thermomix TM6 for the first time, the transportation mode is automatically deactivated, and the home screen is shown. To turn the Thermomix TM6 off, hold the selector down for at least five seconds until a message appears to confirm that the Thermomix TM6 is switching off. You can then release the selector. If the Thermomix TM6 has been turned off, pressing the selector turns it back on and the home screen is shown. To save energy, the Thermomix TM6 switches off automatically after 15 minutes when not in use. A message appears for the last 30 seconds, allowing automatic shutdown to be canceled and the home screen to be shown (by selecting cancel on the appliance's screen or by removing the cooking bowl).
+To cook a meal, select a recipe on the screen and then select start to follow the step-by-step instructions. First, add ingredients as instructed. The integrated scale weighs them and allows the next step only if the correct amount has been added. Continue to the next step by selecting next on the screen. The Thermomix TM6 chops the ingredients for as long as and at the speed required for the recipe. When the chopping step is done, select next for the Thermomix TM6 to start the cooking step. Again, the Thermomix TM6 cooks the meal at the temperature and time required for the recipe. At the end of any recipe step, the Thermomix TM6 may prompt you to add further ingredients, which are then again weighed, chopped, and cooked. After the last step, the Thermomix TM6 informs you that the meal is ready to be served. When the cooking bowl is removed, the Thermomix TM6 returns to the home screen. It is not possible to cook a meal if the cooking bowl is not correctly placed on the Thermomix TM6.
+The selector button raises the following events: selectorPressed (the selector is pressed and released immediately), selectorHeld (the selector is pressed and not released immediately), and selectorReleased (the selector is released after being held).</system_description>
+
+        events_table:
+        <events_table><table border="1">
+<tr><th>EventName</th></tr>
+<tr><td>selectorPressed</td></tr>
+<tr><td>selectorHeld</td></tr>
+<tr><td>selectorReleased</td></tr>
+<tr><td>autoShutdown</td></tr>
+<tr><td>cancelAutoShutdown</td></tr>
+<tr><td>startRecipe</td></tr>
+<tr><td>nextStep</td></tr>
+<tr><td>bowlRemoved</td></tr>
+</table></events_table>
+
+        state_inspected:
+        <state_inspected>TransportationMode</state_inspected>
+
+        associated_events:
+
+Prompt for create_transitions:
+
+        You are a requirements engineer specialized in designing UML state machines from a textual description of a system.
+        You are given the name of the system you are modeling a state machine for, the description of the state machine, one of the identified states of the system, one of the identified events of the system, and a table of all identified states of the system.
+        Your task is to determine ALL transitions that the event selectorPressed can trigger for the state TransportationMode.
+
+        Solution structure:
+        1. Begin the response with "Let's think step by step."
+        2. Determine all the transitions that can be triggered by the event selectorPressed when the system is in the state TransportationMode
+        3. If any transitions were identified, identify any guard conditions for each of the identified transitions. Note that guard conditions are NOT required for transitions, so it is possible that a transition may not have a guard condition. If there are no guard conditions identified for one of the transitions, output "NONE" in the guard column of the table.
+        4. If any transitions were identified, identify any actions that could occur for each of the identified transitions. Note that actions are NOT required for transitions, so it is possible that a transition may not have an associated action. If there are no actions identified for one of the transitions, output "NONE" in the guard column of the table.
+        5. If no transitions can be triggered by the event selectorPressed in the state TransportationMode, reply with "NO TRANSITIONS". Otherwise, give a list of transitions in the following HTML table format:
+        
+        <create_transitions>```html<table border="1">
+        <tr><th>FromState</th><th>ToState</th><th>Event</th><th>Guard</th><th>Action</th></tr>
+        <tr><td rowspan="3">State1</td><td>State2</td><td>Event1</td><td>Condition1</td><td>Action1</td></tr>
+        <tr><td rowspan="3">State2</td><td>State3</td><td>Event1</td><td>Condition1</td><td>NONE</td></tr>
+        </table>```<create_transitions>
+
+        Keep your answer concise. If you answer incorrectly, you will be fired from your job.
+
+        Here is an example:
+        Example 1:
+
+system_name:
+<system_name>Printer</system_name>
+
+system_description:
+<system_description>The printer has a master switch which turns the printer on or off. Once the printer is turned on, a user needs to log in before being able to print or scan a document. To login, a user taps her/his printer card on the printer's card reader. Each printer card has a unique ID. If the printer card is authorized, the user can either choose "scan" or "print". If the printer card is not authorized, a login error message is shown.
+For the "print" option, the user presses the start button to print the user's first document in the user's print queue. If there is no document in the print queue, an error message is shown instead of performing the printing task. For the "scan" option, the user presses the start button for the printer to scan an original document, which was placed by the user in the automatic page feeder. The scan is sent to the user's email inbox. If the printer does not detect an original document, an error message is shown instead of performing the scanning task. When the printer is done printing or scanning, the user can print or scan the next document. The user may also stop the printing/scanning task at any time by pressing the stop button. The user is allowed to logoff either before or after a printing/scanning task but not while the printer is in the middle of a printing/scanning task.
+If there is a paper jam, the printer will suspend the printing/scanning task to allow the user to clear the paper jam. The user may then either cancel the printing/scanning task or resume it. In case the printer runs out of paper during a printing task, the printer suspends the printing task to allow the user to resupply paper. The user may then either cancel the printing task or resume it.</system_description>
+
+state_inspected:
+<state_inspected>Ready</state_inspected>
+
+event_inspected:
+<event_inspected>start</event_inspected>
+
+states_table:
+<states_table>```html<table border="1">
+        <tr><th>StateName</th></tr>
+        <tr><th>Off</th></tr>
+        <tr><td>On</td></tr>
+        <tr><td>Idle</td></tr>
+        <tr><td>Ready</td></tr>
+        <tr><td>Scan&Email</td></tr>
+        <tr><td>Print</td></tr>
+        <tr><td>Suspended</td></tr>
+        <tr><td>Busy</td></tr>
+        </table>```</states_table>
+
+create_transitions:
+<create_transitions>```html<table border="1">
+        <tr><th>FromState</th><th>ToState</th><th>Event</th><th>Guard</th><th>Action</th></tr>
+        <tr><td rowspan="3">Ready</td><td>Ready</td><td>start</td><td>action=="scan"&&!originalLoaded()</td><td>NONE</td></tr>
+        <tr><td rowspan="3">Ready</td><td>Ready</td><td>start</td><td>action=="print"&&!documentInQueue()</td><td>NONE</td></tr>
+        <tr><td rowspan="3">Ready</td><td>Scan&Email</td><td>start</td><td>action=="scan"&&originalLoaded()</td><td>NONE</td></tr>
+        <tr><td rowspan="3">Ready</td><td>Print</td><td>start</td><td>action=="print"&&documentInQueue()</td><td>NONE</td></tr>
+        </table>```</create_transitions>
+
+        Here is your input:
+        system_name:
+        <system_name>Thermomix TM6</system_name>
+
+        system_description:
+        <system_description>The Thermomix TM6 is an all-in-one kitchen appliance that preps ingredients and cooks them to perfection.
+On delivery, the Thermomix TM6 is set to transportation mode. When the selector (button) is pressed to start up the Thermomix TM6 for the first time, the transportation mode is automatically deactivated, and the home screen is shown. To turn the Thermomix TM6 off, hold the selector down for at least five seconds until a message appears to confirm that the Thermomix TM6 is switching off. You can then release the selector. If the Thermomix TM6 has been turned off, pressing the selector turns it back on and the home screen is shown. To save energy, the Thermomix TM6 switches off automatically after 15 minutes when not in use. A message appears for the last 30 seconds, allowing automatic shutdown to be canceled and the home screen to be shown (by selecting cancel on the appliance's screen or by removing the cooking bowl).
+To cook a meal, select a recipe on the screen and then select start to follow the step-by-step instructions. First, add ingredients as instructed. The integrated scale weighs them and allows the next step only if the correct amount has been added. Continue to the next step by selecting next on the screen. The Thermomix TM6 chops the ingredients for as long as and at the speed required for the recipe. When the chopping step is done, select next for the Thermomix TM6 to start the cooking step. Again, the Thermomix TM6 cooks the meal at the temperature and time required for the recipe. At the end of any recipe step, the Thermomix TM6 may prompt you to add further ingredients, which are then again weighed, chopped, and cooked. After the last step, the Thermomix TM6 informs you that the meal is ready to be served. When the cooking bowl is removed, the Thermomix TM6 returns to the home screen. It is not possible to cook a meal if the cooking bowl is not correctly placed on the Thermomix TM6.
+The selector button raises the following events: selectorPressed (the selector is pressed and released immediately), selectorHeld (the selector is pressed and not released immediately), and selectorReleased (the selector is released after being held).</system_description>
+
+        state_inspected:
+        <state_inspected>TransportationMode</state_inspected>
+
+        event_inspected:
+        <event_inspected>selectorPressed</event_inspected>
+
+        states_table:
+        <states_table><table border="1">
+<tr><th>StateName</th></tr>
+<tr><td>TransportationMode</td></tr>
+<tr><td>Off</td></tr>
+<tr><td>On</td></tr>
+<tr><td>HomeScreen</td></tr>
+<tr><td>RecipeSelection</td></tr>
+<tr><td>AddIngredients</td></tr>
+<tr><td>Chopping</td></tr>
+<tr><td>Cooking</td></tr>
+<tr><td>MealReady</td></tr>
+<tr><td>Error</td></tr>
+</table></states_table>
+        
+        create_transitions:
+
+Prompt for create_hierarchical_states:
+
+        You are a requirements engineer specialized in designing UML state machines from a textual description of a system.
+        You are given the name of the system you are modeling a state machine for, the description of the state machine, a table of all identified states of the system, and a table of all transitions of the system.
+        Your task is to determine ALL superstat
+
+        Solution structure:
+        1. Begin the response with "Let's think step by step."
+        2. Using the transitions in the identified transitions table, determine the superstates and substates of the system (hierarchical state machine). A Hierarchical state machine design captures the commonality by organizing the states as a hierarchy. The states at the higher level in hierarchy perform the common message handling, while the lower level states inherit the commonality from higher level ones and perform the state specific functions.
+        3. Your output MUST be a table with the following format:
+        
+        <hierarchical_table>```html<table border="1"> 
+        <tr><th>Superstate</th><th>Substate</th></tr>
+        <tr><td>State1</td><td>State2</td></tr> 
+        <tr><td>State3</td><td>State4</td></tr>
+        <tr><td>-</td><td>State5</td></tr>
+        </table>```</hierarchical_table>
+
+        For the solution, ALL states from the original table of identified transitions MUST appear in the "Substate" column EXACTLY ONCE; otherwise, your solution will be rejected. If a state from the original table of identified transitions DOES NOT have a parent state in your design of the Hierarchical State Machine, enter "-" in the "Superstate" column, as demonstrated in the example above.
+        
+        Here is an example:
+        Example 1:
+
+system_name:
+<system_name>Printer</system_name>
+
+system_description:
+<system_description>The printer has a master switch which turns the printer on or off. Once the printer is turned on, a user needs to log in before being able to print or scan a document. To login, a user taps her/his printer card on the printer's card reader. Each printer card has a unique ID. If the printer card is authorized, the user can either choose "scan" or "print". If the printer card is not authorized, a login error message is shown.
+For the "print" option, the user presses the start button to print the user's first document in the user's print queue. If there is no document in the print queue, an error message is shown instead of performing the printing task. For the "scan" option, the user presses the start button for the printer to scan an original document, which was placed by the user in the automatic page feeder. The scan is sent to the user's email inbox. If the printer does not detect an original document, an error message is shown instead of performing the scanning task. When the printer is done printing or scanning, the user can print or scan the next document. The user may also stop the printing/scanning task at any time by pressing the stop button. The user is allowed to logoff either before or after a printing/scanning task but not while the printer is in the middle of a printing/scanning task.
+If there is a paper jam, the printer will suspend the printing/scanning task to allow the user to clear the paper jam. The user may then either cancel the printing/scanning task or resume it. In case the printer runs out of paper during a printing task, the printer suspends the printing task to allow the user to resupply paper. The user may then either cancel the printing task or resume it.</system_description>
+
+states_table:
+<states_table>```html<table border="1">
+        <tr><th>StateName</th></tr>
+        <tr><th>Off</th></tr>
+        <tr><td>On</td></tr>
+        <tr><td>Idle</td></tr>
+        <tr><td>Ready</td></tr>
+        <tr><td>Scan&Email</td></tr>
+        <tr><td>Print</td></tr>
+        <tr><td>Suspended</td></tr>
+        <tr><td>Busy</td></tr>
+        </table>```</states_table>
+
+transitions_table:
+<transitions_table>```html<table border="1">
+        <tr><th>FromState</th><th>ToState</th><th>Event</th><th>Guard</th><th>Action</th></tr>
+        <tr><td>Off</td><td>On</td><td>on</td><td>NONE</td><td>NONE</td></tr>
+        <tr><td>On</td><td>Off</td><td>off</td><td>NONE</td><td>NONE</td></tr>
+        <tr><td>Idle</td><td>Idle</td><td>login(cardID)</td><td>!idAuthorized(cardID)</td><td>NONE</td></tr>
+        <tr><td>Idle</td><td>Ready</td><td>login(cardID)</td><td>idAuthorized(cardID)</td><td>action="none";</td></tr>
+        <tr><td>Ready</td><td>Idle</td><td>logoff</td><td>NONE</td><td>NONE</td></tr>
+        <tr><td>Ready</td><td>Ready</td><td>start</td><td>action=="scan"&&!originalLoaded()</td><td>NONE</td></tr>
+        <tr><td>Ready</td><td>Ready</td><td>start</td><td>action=="print"&&!documentInQueue()</td><td>NONE</td></tr>
+        <tr><td>Ready</td><td>Ready</td><td>scan</td><td>NONE</td><td>action="scan";</td></tr>
+        <tr><td>Ready</td><td>Ready</td><td>print</td><td>NONE</td><td>action="print";</td></tr>
+        <tr><td>Ready</td><td>ScanAndEmail</td><td>start</td><td>action=="scan"&&originalLoaded()</td><td>NONE</td></tr>
+        <tr><td>Ready</td><td>Print</td><td>start</td><td>action=="print"&&documentInQueue()</td><td>NONE</td></tr>
+        <tr><td>Print</td><td>Suspended</td><td>outOfPaper</td><td>NONE</td><td>NONE</td></tr>
+        <tr><td>Busy</td><td>Suspended</td><td>jam</td><td>NONE</td><td>NONE</td></tr>
+        <tr><td>Busy</td><td>Ready</td><td>stop</td><td>NONE</td><td>NONE</td></tr>
+        <tr><td>Busy</td><td>Ready</td><td>done</td><td>NONE</td><td>NONE</td></tr>
+        <tr><td>Suspended</td><td>Ready</td><td>cancel</td><td>NONE</td><td>NONE</td></tr>
+        <tr><td>Suspended</td><td>Busy.H</td><td>resume</td><td>NONE</td><td>NONE</td></tr></table>```</transitions_table>
+
+hierarchical_table:
+<hierarchical_table>```html<table border="1">
+        <tr><th>Superstate</th><th>Substate</th></tr>
+        <tr><td>-</td><td>Off</td></tr>
+        <tr><td>-</td><td>On</td></tr>
+        <tr><td>On</td><td>Idle</td></tr>
+        <tr><td>On</td><td>Ready</td></tr>
+        <tr><td>On</td><td>Busy</td></tr>
+        <tr><td>On</td><td>Suspended</td></tr>
+        <tr><td>Busy</td><td>ScanAndEmail</td></tr>
+        <tr><td>Busy</td><td>Print</td></tr></table>```</hierarchical_table>
+
+        Here is your input:
+        system_name:
+        <system_name>Thermomix TM6</system_name>
+
+        system_description:
+        <system_description>The Thermomix TM6 is an all-in-one kitchen appliance that preps ingredients and cooks them to perfection.
+On delivery, the Thermomix TM6 is set to transportation mode. When the selector (button) is pressed to start up the Thermomix TM6 for the first time, the transportation mode is automatically deactivated, and the home screen is shown. To turn the Thermomix TM6 off, hold the selector down for at least five seconds until a message appears to confirm that the Thermomix TM6 is switching off. You can then release the selector. If the Thermomix TM6 has been turned off, pressing the selector turns it back on and the home screen is shown. To save energy, the Thermomix TM6 switches off automatically after 15 minutes when not in use. A message appears for the last 30 seconds, allowing automatic shutdown to be canceled and the home screen to be shown (by selecting cancel on the appliance's screen or by removing the cooking bowl).
+To cook a meal, select a recipe on the screen and then select start to follow the step-by-step instructions. First, add ingredients as instructed. The integrated scale weighs them and allows the next step only if the correct amount has been added. Continue to the next step by selecting next on the screen. The Thermomix TM6 chops the ingredients for as long as and at the speed required for the recipe. When the chopping step is done, select next for the Thermomix TM6 to start the cooking step. Again, the Thermomix TM6 cooks the meal at the temperature and time required for the recipe. At the end of any recipe step, the Thermomix TM6 may prompt you to add further ingredients, which are then again weighed, chopped, and cooked. After the last step, the Thermomix TM6 informs you that the meal is ready to be served. When the cooking bowl is removed, the Thermomix TM6 returns to the home screen. It is not possible to cook a meal if the cooking bowl is not correctly placed on the Thermomix TM6.
+The selector button raises the following events: selectorPressed (the selector is pressed and released immediately), selectorHeld (the selector is pressed and not released immediately), and selectorReleased (the selector is released after being held).</system_description>
+
+        states_table:
+        <states_table><table border="1">
+<tr><th>StateName</th></tr>
+<tr><td>TransportationMode</td></tr>
+<tr><td>Off</td></tr>
+<tr><td>On</td></tr>
+<tr><td>HomeScreen</td></tr>
+<tr><td>RecipeSelection</td></tr>
+<tr><td>AddIngredients</td></tr>
+<tr><td>Chopping</td></tr>
+<tr><td>Cooking</td></tr>
+<tr><td>MealReady</td></tr>
+<tr><td>Error</td></tr>
+</table></states_table>
+        
+        transitions_table:
+        <transitions_table><table border="1"><tr><th>FromState</th><th>ToState</th><th>Event</th><th>Guard</th><th>Action</th></tr><tr><td>TransportationMode</td><td>HomeScreen</td><td>selectorPressed</td><td>NONE</td><td>NONE</td></tr><tr><td>Off</td><td>HomeScreen</td><td>selectorPressed</td><td>NONE</td><td>Turn on Thermomix and show home screen</td></tr><tr><td>On</td><td>HomeScreen</td><td>selectorPressed</td><td>NONE</td><td>ShowHomeScreen</td></tr><tr><td>On</td><td>HomeScreen</td><td>cancelAutoShutdown</td><td>NONE</td><td>Show HomeScreen</td></tr><tr><td>On</td><td>HomeScreen</td><td>bowlRemoved</td><td>NONE</td><td>NONE</td></tr><tr><td>HomeScreen</td><td>HomeScreen</td><td>cancelAutoShutdown</td><td>NONE</td><td>NONE</td></tr><tr><td>RecipeSelection</td><td>AddIngredients</td><td>startRecipe</td><td>bowlCorrectlyPlaced()</td><td>displayInstructions()</td></tr><tr><td>RecipeSelection</td><td>HomeScreen</td><td>bowlRemoved</td><td>NONE</td><td>NONE</td></tr><tr><td>AddIngredients</td><td>Chopping</td><td>nextStep</td><td>correctAmountAdded()</td><td>NONE</td></tr><tr><td>Chopping</td><td>Cooking</td><td>nextStep</td><td>NONE</td><td>NONE</td></tr><tr><td>Cooking</td><td>MealReady</td><td>nextStep</td><td>NONE</td><td>NONE</td></tr><tr><td>Cooking</td><td>HomeScreen</td><td>bowlRemoved</td><td>NONE</td><td>NONE</td></tr><tr><td>MealReady</td><td>HomeScreen</td><td>nextStep</td><td>NONE</td><td>NONE</td></tr><tr><td>Error</td><td>HomeScreen</td><td>bowlRemoved</td><td>NONE</td><td>NONE</td></tr></table></transitions_table>
+        
+        hierarchical_table:
+
+Prompt for hierarchical_initial_state_search:
+
+        You are a requirements engineer specialized in designing UML state machines from a textual description of a system.
+        You are given the name of the system you are modeling a state machine for, the description of the state machine, a superstate identified, and its associated substates.
+        Your task is to determine the initial state of the superstate when the system enters the superstate.
+
+        Solution structure:
+        1. Begin the response with "Let's think step by step."
+        2. For the provided superstate and substates, determine which substate is the Initial State of its superstate. Your answer MUST be in the following format:
+        
+        <superstate_initial_state>InitialState</superstate_initial_state>
+
+        Here is an example:
+        Example 1:
+
+system_name:
+<system_name>Printer</system_name>
+
+system_description:
+<system_description>The printer has a master switch which turns the printer on or off. Once the printer is turned on, a user needs to log in before being able to print or scan a document. To login, a user taps her/his printer card on the printer's card reader. Each printer card has a unique ID. If the printer card is authorized, the user can either choose "scan" or "print". If the printer card is not authorized, a login error message is shown.
+For the "print" option, the user presses the start button to print the user's first document in the user's print queue. If there is no document in the print queue, an error message is shown instead of performing the printing task. For the "scan" option, the user presses the start button for the printer to scan an original document, which was placed by the user in the automatic page feeder. The scan is sent to the user's email inbox. If the printer does not detect an original document, an error message is shown instead of performing the scanning task. When the printer is done printing or scanning, the user can print or scan the next document. The user may also stop the printing/scanning task at any time by pressing the stop button. The user is allowed to logoff either before or after a printing/scanning task but not while the printer is in the middle of a printing/scanning task.
+If there is a paper jam, the printer will suspend the printing/scanning task to allow the user to clear the paper jam. The user may then either cancel the printing/scanning task or resume it. In case the printer runs out of paper during a printing task, the printer suspends the printing task to allow the user to resupply paper. The user may then either cancel the printing task or resume it.</system_description>
+
+superstate_inspected:
+<superstate_inspected>On</superstate_inspected>
+
+substates_inspected:
+<substates_inspected>['Idle', 'Ready', 'Busy', 'Suspended']</substates_inspected>
+
+superstate_initial_state:
+<superstate_initial_state>Idle</superstate_initial_state>
+
+        Here is your input:
+        system_name:
+        <system_name>Thermomix TM6</system_name>
+
+        system_description:
+        <system_description>The Thermomix TM6 is an all-in-one kitchen appliance that preps ingredients and cooks them to perfection.
+On delivery, the Thermomix TM6 is set to transportation mode. When the selector (button) is pressed to start up the Thermomix TM6 for the first time, the transportation mode is automatically deactivated, and the home screen is shown. To turn the Thermomix TM6 off, hold the selector down for at least five seconds until a message appears to confirm that the Thermomix TM6 is switching off. You can then release the selector. If the Thermomix TM6 has been turned off, pressing the selector turns it back on and the home screen is shown. To save energy, the Thermomix TM6 switches off automatically after 15 minutes when not in use. A message appears for the last 30 seconds, allowing automatic shutdown to be canceled and the home screen to be shown (by selecting cancel on the appliance's screen or by removing the cooking bowl).
+To cook a meal, select a recipe on the screen and then select start to follow the step-by-step instructions. First, add ingredients as instructed. The integrated scale weighs them and allows the next step only if the correct amount has been added. Continue to the next step by selecting next on the screen. The Thermomix TM6 chops the ingredients for as long as and at the speed required for the recipe. When the chopping step is done, select next for the Thermomix TM6 to start the cooking step. Again, the Thermomix TM6 cooks the meal at the temperature and time required for the recipe. At the end of any recipe step, the Thermomix TM6 may prompt you to add further ingredients, which are then again weighed, chopped, and cooked. After the last step, the Thermomix TM6 informs you that the meal is ready to be served. When the cooking bowl is removed, the Thermomix TM6 returns to the home screen. It is not possible to cook a meal if the cooking bowl is not correctly placed on the Thermomix TM6.
+The selector button raises the following events: selectorPressed (the selector is pressed and released immediately), selectorHeld (the selector is pressed and not released immediately), and selectorReleased (the selector is released after being held).</system_description>
+
+        superstate_inspected:
+        <superstate_inspected>On</superstate_inspected>
+        
+        substates_inspected:
+        <substates_inspected>HomeScreen, RecipeProcess, Error</substates_inspected>
+        
+        superstate_initial_state:
+
+Prompt for history_state_search_action:
+
+            You are a requirements engineer specialized in designing UML state machines from a textual description of a system.
+            You are given the name of the system you are modeling a state machine for, the description of the state machine, the table of transitions identified, the table of events identified, a superstate identified, and its associated substates.
+            Your task is to determine whether the superstate given requires a history state (to remember the last active substate after a transition), and the transitions to the history state in the state machine.
+
+            Definitions:
+            History State: A mechanism in state machines that allows a superstate to remember its last active substate when re-entered, instead of starting from its initial substate.
+
+            Criteria for Requiring a History State:
+            1.	Transitions Targeting the Parent State: A history state is needed if there are transitions to a parent state from outside its hierarchy.
+            2.	Resuming Previous Substate: The system's behavior requires resuming the last active substate rather than starting from the initial substate upon re-entry.
+
+            Solution structure:
+            1. Begin the response with "Let's think step by step."
+            2.	Analyze the system description, the modeled system, and the transition table provided below to determine if the given superstate needs a history state.
+            3.	If the superstate does not require a history state, output "NO_HISTORY_STATE", otherwise output a table listing all transitions to the history state triggered by one of the events in the events table in the following HTML format:
+            
+            <history_state_table>```html<table border="1"> 
+            <tr><th>FromState</th><th>Event</th><th>Guard</th><th>Action</th></tr>
+            <tr><td>State1</td><td>Event1</td><td>Condition1</td><td>Action1</td></tr>
+            <tr><td>State2</td><td>Event1</td><td>Condition1</td><td>NONE</td></tr>
+            <tr><td>State4</td><td>Event3</td><td>NONE</td><td>Action1</td></tr>
+            <tr><td>State2</td><td>Event1</td><td>NONE</td><td>NONE</td></tr>
+            </table>```</history_state_table>
+
+            Note that the events in the Event column MUST be part of the provided event table, otherwise your answer will be rejected.
+            
+            Here is an example:
+            Example 1:
+
+system_name:
+<system_name>Printer</system_name>
+
+system_description:
+<system_description>The printer has a master switch which turns the printer on or off. Once the printer is turned on, a user needs to log in before being able to print or scan a document. To login, a user taps her/his printer card on the printer's card reader. Each printer card has a unique ID. If the printer card is authorized, the user can either choose "scan" or "print". If the printer card is not authorized, a login error message is shown.
+For the "print" option, the user presses the start button to print the user's first document in the user's print queue. If there is no document in the print queue, an error message is shown instead of performing the printing task. For the "scan" option, the user presses the start button for the printer to scan an original document, which was placed by the user in the automatic page feeder. The scan is sent to the user's email inbox. If the printer does not detect an original document, an error message is shown instead of performing the scanning task. When the printer is done printing or scanning, the user can print or scan the next document. The user may also stop the printing/scanning task at any time by pressing the stop button. The user is allowed to logoff either before or after a printing/scanning task but not while the printer is in the middle of a printing/scanning task.
+If there is a paper jam, the printer will suspend the printing/scanning task to allow the user to clear the paper jam. The user may then either cancel the printing/scanning task or resume it. In case the printer runs out of paper during a printing task, the printer suspends the printing task to allow the user to resupply paper. The user may then either cancel the printing task or resume it.</system_description>
+
+transitions_table:
+<transitions_table>```html<table border="1">
+        <tr><th>FromState</th><th>ToState</th><th>Event</th><th>Guard</th><th>Action</th></tr>
+        <tr><td>Off</td><td>On</td><td>on</td><td>NONE</td><td>NONE</td></tr>
+        <tr><td>On</td><td>Off</td><td>off</td><td>NONE</td><td>NONE</td></tr>
+        <tr><td>Idle</td><td>Idle</td><td>login(cardID)</td><td>!idAuthorized(cardID)</td><td>NONE</td></tr>
+        <tr><td>Idle</td><td>Ready</td><td>login(cardID)</td><td>idAuthorized(cardID)</td><td>action="none";</td></tr>
+        <tr><td>Ready</td><td>Idle</td><td>logoff</td><td>NONE</td><td>NONE</td></tr>
+        <tr><td>Ready</td><td>Ready</td><td>start</td><td>action=="scan"&&!originalLoaded()</td><td>NONE</td></tr>
+        <tr><td>Ready</td><td>Ready</td><td>start</td><td>action=="print"&&!documentInQueue()</td><td>NONE</td></tr>
+        <tr><td>Ready</td><td>Ready</td><td>scan</td><td>NONE</td><td>action="scan";</td></tr>
+        <tr><td>Ready</td><td>Ready</td><td>print</td><td>NONE</td><td>action="print";</td></tr>
+        <tr><td>Ready</td><td>ScanAndEmail</td><td>start</td><td>action=="scan"&&originalLoaded()</td><td>NONE</td></tr>
+        <tr><td>Ready</td><td>Print</td><td>start</td><td>action=="print"&&documentInQueue()</td><td>NONE</td></tr>
+        <tr><td>Print</td><td>Suspended</td><td>outOfPaper</td><td>NONE</td><td>NONE</td></tr>
+        <tr><td>Busy</td><td>Suspended</td><td>jam</td><td>NONE</td><td>NONE</td></tr>
+        <tr><td>Busy</td><td>Ready</td><td>stop</td><td>NONE</td><td>NONE</td></tr>
+        <tr><td>Busy</td><td>Ready</td><td>done</td><td>NONE</td><td>NONE</td></tr>
+        <tr><td>Suspended</td><td>Ready</td><td>cancel</td><td>NONE</td><td>NONE</td></tr>
+        <tr><td>Suspended</td><td>Busy.H</td><td>resume</td><td>NONE</td><td>NONE</td></tr></table>```</transitions_table>
+
+events_table:
+<events_table>```html<table border="1">
+        <tr><th>on</th></tr>
+        <tr><td>off</td></tr>
+        <tr><td>login(cardID)</td></tr>
+        <tr><td>logoff</td></tr>
+        <tr><td>start</td></tr>
+        <tr><td>scan</td></tr>
+        <tr><td>cancel</td></tr>
+        <tr><td>jam</td></tr>
+        <tr><td>resume</td></tr>
+        <tr><td>outOfPaper</td></tr>
+        <tr><td>print</td></tr>
+        <tr><td>done</td></tr>
+        <tr><td>stop</td></tr>
+        </table>```</events_table>
+
+superstate_inspected_for_history_state:
+<superstate_inspected_for_history_state>Busy</superstate_inspected_for_history_state>
+
+substates_inspected_for_history_state:
+<substates_inspected_for_history_state>['Scan&Email', 'Print']</substates_inspected_for_history_state>
+
+history_state_table:
+<history_state_table>```html<table border="1"> 
+        <tr><th>FromState</th><th>Event</th><th>Guard</th><th>Action</th></tr>
+        <tr><td>Suspended</td><td>resume</td><td>NONE</td><td>NONE</td></tr>
+        </table>```</history_state_table>
+
+            Here is your input:
+            system_name:
+            <system_name>Thermomix TM6</system_name>
+
+            system_description:
+            <system_description>The Thermomix TM6 is an all-in-one kitchen appliance that preps ingredients and cooks them to perfection.
+On delivery, the Thermomix TM6 is set to transportation mode. When the selector (button) is pressed to start up the Thermomix TM6 for the first time, the transportation mode is automatically deactivated, and the home screen is shown. To turn the Thermomix TM6 off, hold the selector down for at least five seconds until a message appears to confirm that the Thermomix TM6 is switching off. You can then release the selector. If the Thermomix TM6 has been turned off, pressing the selector turns it back on and the home screen is shown. To save energy, the Thermomix TM6 switches off automatically after 15 minutes when not in use. A message appears for the last 30 seconds, allowing automatic shutdown to be canceled and the home screen to be shown (by selecting cancel on the appliance's screen or by removing the cooking bowl).
+To cook a meal, select a recipe on the screen and then select start to follow the step-by-step instructions. First, add ingredients as instructed. The integrated scale weighs them and allows the next step only if the correct amount has been added. Continue to the next step by selecting next on the screen. The Thermomix TM6 chops the ingredients for as long as and at the speed required for the recipe. When the chopping step is done, select next for the Thermomix TM6 to start the cooking step. Again, the Thermomix TM6 cooks the meal at the temperature and time required for the recipe. At the end of any recipe step, the Thermomix TM6 may prompt you to add further ingredients, which are then again weighed, chopped, and cooked. After the last step, the Thermomix TM6 informs you that the meal is ready to be served. When the cooking bowl is removed, the Thermomix TM6 returns to the home screen. It is not possible to cook a meal if the cooking bowl is not correctly placed on the Thermomix TM6.
+The selector button raises the following events: selectorPressed (the selector is pressed and released immediately), selectorHeld (the selector is pressed and not released immediately), and selectorReleased (the selector is released after being held).</system_description>
+
+            transitions_table:
+            <transitions_table><table border='1'>
+  <tr>
+    <th>FromState</th>
+    <th>ToState</th>
+    <th>Event</th>
+    <th>Guard</th>
+    <th>Action</th>
+  </tr>
+  <tr>
+    <td>TransportationMode</td>
+    <td>On.HomeScreen</td>
+    <td>selectorPressed</td>
+    <td>NONE</td>
+    <td>NONE</td>
+  </tr>
+  <tr>
+    <td>Off</td>
+    <td>On.HomeScreen</td>
+    <td>selectorPressed</td>
+    <td>NONE</td>
+    <td>Turn on Thermomix and show home screen</td>
+  </tr>
+  <tr>
+    <td>On</td>
+    <td>On.HomeScreen</td>
+    <td>selectorPressed</td>
+    <td>NONE</td>
+    <td>ShowHomeScreen</td>
+  </tr>
+  <tr>
+    <td>On</td>
+    <td>On.HomeScreen</td>
+    <td>cancelAutoShutdown</td>
+    <td>NONE</td>
+    <td>Show HomeScreen</td>
+  </tr>
+  <tr>
+    <td>On</td>
+    <td>On.HomeScreen</td>
+    <td>bowlRemoved</td>
+    <td>NONE</td>
+    <td>NONE</td>
+  </tr>
+  <tr>
+    <td>On.HomeScreen</td>
+    <td>On.HomeScreen</td>
+    <td>cancelAutoShutdown</td>
+    <td>NONE</td>
+    <td>NONE</td>
+  </tr>
+  <tr>
+    <td>RecipeProcess.RecipeSelection</td>
+    <td>RecipeProcess.AddIngredients</td>
+    <td>startRecipe</td>
+    <td>bowlCorrectlyPlaced()</td>
+    <td>displayInstructions()</td>
+  </tr>
+  <tr>
+    <td>RecipeProcess.RecipeSelection</td>
+    <td>On.HomeScreen</td>
+    <td>bowlRemoved</td>
+    <td>NONE</td>
+    <td>NONE</td>
+  </tr>
+  <tr>
+    <td>RecipeProcess.AddIngredients</td>
+    <td>RecipeProcess.Chopping</td>
+    <td>nextStep</td>
+    <td>correctAmountAdded()</td>
+    <td>NONE</td>
+  </tr>
+  <tr>
+    <td>RecipeProcess.Chopping</td>
+    <td>RecipeProcess.Cooking</td>
+    <td>nextStep</td>
+    <td>NONE</td>
+    <td>NONE</td>
+  </tr>
+  <tr>
+    <td>RecipeProcess.Cooking</td>
+    <td>RecipeProcess.MealReady</td>
+    <td>nextStep</td>
+    <td>NONE</td>
+    <td>NONE</td>
+  </tr>
+  <tr>
+    <td>RecipeProcess.Cooking</td>
+    <td>On.HomeScreen</td>
+    <td>bowlRemoved</td>
+    <td>NONE</td>
+    <td>NONE</td>
+  </tr>
+  <tr>
+    <td>RecipeProcess.MealReady</td>
+    <td>On.HomeScreen</td>
+    <td>nextStep</td>
+    <td>NONE</td>
+    <td>NONE</td>
+  </tr>
+  <tr>
+    <td>On.Error</td>
+    <td>On.HomeScreen</td>
+    <td>bowlRemoved</td>
+    <td>NONE</td>
+    <td>NONE</td>
+  </tr>
+</table></transitions_table>
+
+            events_table:
+            <events_table><table border="1">
+<tr><th>EventName</th></tr>
+<tr><td>selectorPressed</td></tr>
+<tr><td>selectorHeld</td></tr>
+<tr><td>selectorReleased</td></tr>
+<tr><td>autoShutdown</td></tr>
+<tr><td>cancelAutoShutdown</td></tr>
+<tr><td>startRecipe</td></tr>
+<tr><td>nextStep</td></tr>
+<tr><td>bowlRemoved</td></tr>
+</table></events_table>
+
+            superstate_inspected_for_history_state:
+            <superstate_inspected_for_history_state>RecipeProcess</superstate_inspected_for_history_state>
+
+            substates_inspected_for_history_state:
+            <substates_inspected_for_history_state>['RecipeSelection', 'AddIngredients', 'Chopping', 'Cooking', 'MealReady']</substates_inspected_for_history_state>
+
+            history_state_table:
+
+Example output:
+Hierarchical States Table:
+<table border="1">
+<tr><th>Superstate</th><th>Substate</th></tr>
+<tr><td>-</td><td>TransportationMode</td></tr>
+<tr><td>-</td><td>Off</td></tr>
+<tr><td>On</td><td>HomeScreen</td></tr>
+<tr><td>On</td><td>RecipeProcess</td></tr>
+<tr><td>On</td><td>Error</td></tr>
+<tr><td>RecipeProcess</td><td>RecipeSelection</td></tr>
+<tr><td>RecipeProcess</td><td>AddIngredients</td></tr>
+<tr><td>RecipeProcess</td><td>Chopping</td></tr>
+<tr><td>RecipeProcess</td><td>Cooking</td></tr>
+<tr><td>RecipeProcess</td><td>MealReady</td></tr>
+</table>
+Initial System State: TransportationMode
+Hierarchical Initial States:
+{'On': None, 'RecipeProcess': None}
+Transitions:
+<table border='1'>
+  <tr>
+    <th>FromState</th>
+    <th>ToState</th>
+    <th>Event</th>
+    <th>Guard</th>
+    <th>Action</th>
+  </tr>
+  <tr>
+    <td>TransportationMode</td>
+    <td>On.HomeScreen</td>
+    <td>selectorPressed</td>
+    <td>NONE</td>
+    <td>NONE</td>
+  </tr>
+  <tr>
+    <td>Off</td>
+    <td>On.HomeScreen</td>
+    <td>selectorPressed</td>
+    <td>NONE</td>
+    <td>Turn on Thermomix and show home screen</td>
+  </tr>
+  <tr>
+    <td>On</td>
+    <td>On.HomeScreen</td>
+    <td>selectorPressed</td>
+    <td>NONE</td>
+    <td>ShowHomeScreen</td>
+  </tr>
+  <tr>
+    <td>On</td>
+    <td>On.HomeScreen</td>
+    <td>cancelAutoShutdown</td>
+    <td>NONE</td>
+    <td>Show HomeScreen</td>
+  </tr>
+  <tr>
+    <td>On</td>
+    <td>On.HomeScreen</td>
+    <td>bowlRemoved</td>
+    <td>NONE</td>
+    <td>NONE</td>
+  </tr>
+  <tr>
+    <td>On.HomeScreen</td>
+    <td>On.HomeScreen</td>
+    <td>cancelAutoShutdown</td>
+    <td>NONE</td>
+    <td>NONE</td>
+  </tr>
+  <tr>
+    <td>RecipeProcess.RecipeSelection</td>
+    <td>RecipeProcess.AddIngredients</td>
+    <td>startRecipe</td>
+    <td>bowlCorrectlyPlaced()</td>
+    <td>displayInstructions()</td>
+  </tr>
+  <tr>
+    <td>RecipeProcess.RecipeSelection</td>
+    <td>On.HomeScreen</td>
+    <td>bowlRemoved</td>
+    <td>NONE</td>
+    <td>NONE</td>
+  </tr>
+  <tr>
+    <td>RecipeProcess.AddIngredients</td>
+    <td>RecipeProcess.Chopping</td>
+    <td>nextStep</td>
+    <td>correctAmountAdded()</td>
+    <td>NONE</td>
+  </tr>
+  <tr>
+    <td>RecipeProcess.Chopping</td>
+    <td>RecipeProcess.Cooking</td>
+    <td>nextStep</td>
+    <td>NONE</td>
+    <td>NONE</td>
+  </tr>
+  <tr>
+    <td>RecipeProcess.Cooking</td>
+    <td>RecipeProcess.MealReady</td>
+    <td>nextStep</td>
+    <td>NONE</td>
+    <td>NONE</td>
+  </tr>
+  <tr>
+    <td>RecipeProcess.Cooking</td>
+    <td>On.HomeScreen</td>
+    <td>bowlRemoved</td>
+    <td>NONE</td>
+    <td>NONE</td>
+  </tr>
+  <tr>
+    <td>RecipeProcess.MealReady</td>
+    <td>On.HomeScreen</td>
+    <td>nextStep</td>
+    <td>NONE</td>
+    <td>NONE</td>
+  </tr>
+  <tr>
+    <td>On.Error</td>
+    <td>On.HomeScreen</td>
+    <td>bowlRemoved</td>
+    <td>NONE</td>
+    <td>NONE</td>
+  </tr>
+</table>
+States: ['Error', {'name': 'RecipeProcess', 'children': ['RecipeSelection', 'AddIngredients', 'Chopping', 'Cooking', 'MealReady']}, 'Chopping', 'RecipeProcess.RecipeSelection', 'TransportationMode', 'On.HomeScreen', 'On.Error', 'AddIngredients', 'RecipeProcess.Cooking', 'Off', 'Cooking', 'MealReady', 'HomeScreen', 'RecipeProcess.Chopping', 'RecipeProcess.MealReady', {'name': 'On', 'children': ['HomeScreen', 'RecipeProcess', 'Error']}, 'RecipeSelection', 'RecipeProcess.AddIngredients']
+Transitions: [{'trigger': 'selectorPressed', 'source': 'TransportationMode', 'dest': 'On.HomeScreen'}, {'trigger': 'selectorPressed', 'source': 'Off', 'dest': 'On.HomeScreen', 'before': 'TurnonThermomixandshowhomescreen'}, {'trigger': 'selectorPressed', 'source': 'On', 'dest': 'On.HomeScreen', 'before': 'ShowHomeScreen'}, {'trigger': 'cancelAutoShutdown', 'source': 'On', 'dest': 'On.HomeScreen', 'before': 'ShowHomeScreen'}, {'trigger': 'bowlRemoved', 'source': 'On', 'dest': 'On.HomeScreen'}, {'trigger': 'cancelAutoShutdown', 'source': 'On.HomeScreen', 'dest': 'On.HomeScreen'}, {'trigger': 'startRecipe', 'source': 'RecipeProcess.RecipeSelection', 'dest': 'RecipeProcess.AddIngredients', 'before': 'displayInstructions()', 'conditions': 'bowlCorrectlyPlaced()'}, {'trigger': 'bowlRemoved', 'source': 'RecipeProcess.RecipeSelection', 'dest': 'On.HomeScreen'}, {'trigger': 'nextStep', 'source': 'RecipeProcess.AddIngredients', 'dest': 'RecipeProcess.Chopping', 'conditions': 'correctAmountAdded()'}, {'trigger': 'nextStep', 'source': 'RecipeProcess.Chopping', 'dest': 'RecipeProcess.Cooking'}, {'trigger': 'nextStep', 'source': 'RecipeProcess.Cooking', 'dest': 'RecipeProcess.MealReady'}, {'trigger': 'bowlRemoved', 'source': 'RecipeProcess.Cooking', 'dest': 'On.HomeScreen'}, {'trigger': 'nextStep', 'source': 'RecipeProcess.MealReady', 'dest': 'On.HomeScreen'}, {'trigger': 'bowlRemoved', 'source': 'On.Error', 'dest': 'On.HomeScreen'}]
+Parallel Regions: []
+---
+State Machine
+---
+stateDiagram-v2
+  direction LR
+  classDef s_default fill:white,color:black
+  classDef s_inactive fill:white,color:black
+  classDef s_parallel color:black,fill:white
+  classDef s_active color:red,fill:darksalmon
+  classDef s_previous color:blue,fill:azure
+  
+  state "Error" as Error
+  Class Error s_default
+  state "RecipeProcess" as RecipeProcess
+  Class RecipeProcess s_default
+  state RecipeProcess {
+    state "RecipeSelection" as RecipeProcess_RecipeSelection
+    state "AddIngredients" as RecipeProcess_AddIngredients
+    state "Chopping" as RecipeProcess_Chopping
+    state "Cooking" as RecipeProcess_Cooking
+    state "MealReady" as RecipeProcess_MealReady
+  }
+  state "Chopping" as Chopping
+  Class Chopping s_default
+  state "RecipeProcess.RecipeSelection" as RecipeProcess.RecipeSelection
+  Class RecipeProcess.RecipeSelection s_default
+  state "TransportationMode" as TransportationMode
+  Class TransportationMode s_active
+  state "On.HomeScreen" as On.HomeScreen
+  Class On.HomeScreen s_default
+  state "On.Error" as On.Error
+  Class On.Error s_default
+  state "AddIngredients" as AddIngredients
+  Class AddIngredients s_default
+  state "RecipeProcess.Cooking" as RecipeProcess.Cooking
+  Class RecipeProcess.Cooking s_default
+  state "Off" as Off
+  Class Off s_default
+  state "Cooking" as Cooking
+  Class Cooking s_default
+  state "MealReady" as MealReady
+  Class MealReady s_default
+  state "HomeScreen" as HomeScreen
+  Class HomeScreen s_default
+  state "RecipeProcess.Chopping" as RecipeProcess.Chopping
+  Class RecipeProcess.Chopping s_default
+  state "RecipeProcess.MealReady" as RecipeProcess.MealReady
+  Class RecipeProcess.MealReady s_default
+  state "On" as On
+  Class On s_default
+  state On {
+    state "HomeScreen" as On_HomeScreen
+    state "RecipeProcess" as On_RecipeProcess
+    state "Error" as On_Error
+  }
+  state "RecipeSelection" as RecipeSelection
+  Class RecipeSelection s_default
+  state "RecipeProcess.AddIngredients" as RecipeProcess.AddIngredients
+  Class RecipeProcess.AddIngredients s_default
+  
+  TransportationMode --> On.HomeScreen: selectorPressed
+  Off --> On.HomeScreen: selectorPressed
+  On --> On.HomeScreen: selectorPressed | cancelAutoShutdown | bowlRemoved
+  On.HomeScreen --> On.HomeScreen: cancelAutoShutdown
+  RecipeProcess.RecipeSelection --> On.HomeScreen: bowlRemoved
+  RecipeProcess.RecipeSelection --> RecipeProcess.AddIngredients: startRecipe
+  RecipeProcess.Cooking --> On.HomeScreen: bowlRemoved
+  RecipeProcess.Cooking --> RecipeProcess.MealReady: nextStep
+  On.Error --> On.HomeScreen: bowlRemoved
+  RecipeProcess.AddIngredients --> RecipeProcess.Chopping: nextStep
+  RecipeProcess.Chopping --> RecipeProcess.Cooking: nextStep
+  RecipeProcess.MealReady --> On.HomeScreen: nextStep
+  [*] --> TransportationMode

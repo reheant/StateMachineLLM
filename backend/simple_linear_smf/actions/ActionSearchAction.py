@@ -1,7 +1,7 @@
 from sherpa_ai.actions.base import BaseAction
 from resources.util import call_gpt4
 from resources.util import extract_transitions_guards_actions_table
-from resources.n_shot_examples import get_n_shot_examples
+from resources.n_shot_examples_simple_linear import get_n_shot_examples
 
 class ActionSearchAction(BaseAction):
     name: str = "action_search_action"

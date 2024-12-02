@@ -3,7 +3,7 @@ from sherpa_ai.memory.belief import Belief
 from resources.util import call_gpt4
 from resources.util import extract_states_events_table
 from resources.util import extract_parallel_states_table
-from resources.n_shot_examples import get_n_shot_examples
+from resources.n_shot_examples_simple_linear import get_n_shot_examples
 
 class ParallelStateSearchAction(BaseAction):
     name: str = "parallel_state_search_action"

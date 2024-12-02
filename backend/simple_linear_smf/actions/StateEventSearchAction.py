@@ -2,7 +2,7 @@ from sherpa_ai.actions.base import BaseAction
 from resources.util import call_gpt4
 from resources.util import extract_states_events_table
 import re
-from resources.n_shot_examples import get_n_shot_examples
+from resources.n_shot_examples_simple_linear import get_n_shot_examples
 
 class StateEventSearchAction(BaseAction):
     name: str = "state_event_search_action"
