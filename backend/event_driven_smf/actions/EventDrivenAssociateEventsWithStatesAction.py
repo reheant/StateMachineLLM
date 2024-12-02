@@ -29,39 +29,65 @@ class EventDrivenAssociateEventsWithStatesAction(BaseAction):
         """
 
         prompt = f"""
-        You are a requirements engineer specialized in designing UML state machines from a textual description of a system.
-        You are given the name of the system you are modeling a state machine for, the description of the state machine, a single identified state of the system, and all events of the system.
-        Your task is to determine which events out of ALL events can trigger a transition in the state {state}.
+You are an expert requirements engineer specializing in designing UML state machines from textual system descriptions. Your task is to analyze a given system and determine which events can trigger transitions in a specific state.
 
-        Solution structure:
-        1. Begin the response with "Let's think step by step."
-        2. Examine the description of the system. Using the description of the system, determine partial orderings of ALL events. A partial ordering of events is an ordering of events for a system where some events must occur in a specific sequence due to dependencies, while others can happen independently or concurrently.
-        3. Determine which events out of ALL events can trigger a transition in the state {state} based on the partial orderings you determined in step 2. The events that can trigger a transition for the state {state} MUST adhere to the orderings that you generated in step 2. You MUST identify only the MOST RELEVANT events for the given state. Ensure no events that you identify can occur only before or after the event has been reached in the UML state machine. You MUST provide events for the given state, otherwise your solution will be rejected.
-        4. Your output of the list of events that can trigger a transition in the state {state} MUST be in a comma seperated list in the following format:
+Here's the system you need to analyze:
 
-        <associated_events>first_event, second_event, third_event</associated_events>
-        
-        The events that you provide MUST come from the original events table provided to you above. DO NOT add events that do not exist.
-        Keep your answer concise. If you answer incorrectly, you will be fired from your job.
+System Name:
+<system_name>
+{system_name}
+</system_name>
 
-        Here is an example:
-        {get_n_shot_examples(['printer_winter_2017'],['system_name', 'system_description', 'events_table', 'state_inspected', 'associated_events'])}
+System Description:
+<system_description>
+{self.description}
+</system_description>
 
-        Here is your input:
-        system_name:
-        <system_name>{system_name}</system_name>
+Events Table:
+<events_table>
+{events_table}
+</events_table>
 
-        system_description:
-        <system_description>{self.description}</system_description>
+The state we're focusing on is:
+<state_inspected>
+{state}
+</state_inspected>
 
-        events_table:
-        <events_table>{events_table}</events_table>
+Your task is to determine which events from the events table can trigger a transition in the {state} state. Follow these steps carefully:
 
-        state_inspected:
-        <state_inspected>{state}</state_inspected>
+1. Examine the system description thoroughly.
+2. Determine partial orderings of ALL events based on the description. A partial ordering shows which events must occur in a specific sequence due to dependencies, while others can happen independently or concurrently.
+3. Identify the events that can trigger a transition in the {state} state. These events MUST:
+   a) Adhere to the partial orderings you determined
+   b) Be the MOST RELEVANT events for the {state} state
+   c) Be possible to occur while the system is in the {state} state (not before or after)
+4. List the identified events in a comma-separated format within <associated_events> tags.
 
-        associated_events:
-        """
+Before providing your final answer, wrap your analysis inside <event_analysis> tags. In this analysis:
+1. List all events from the events table.
+2. For each event, note whether it's relevant to the inspected state and why.
+3. Create a partial ordering diagram of all events.
+4. Identify which events can occur while in the inspected state.
+5. Explain the reasoning for your final selection of associated events.
+This will ensure a thorough interpretation of the data and improve the quality of your response. It's OK for this section to be quite long.
+
+Remember:
+- Your response must be concise and accurate.
+- Only use events from the provided events table.
+- Failure to follow these instructions precisely may result in termination of your role as a requirements engineer.
+
+After your analysis, provide your final list of associated events in the following format:
+
+<associated_events>event1, event2, event3</associated_events>
+
+{get_n_shot_examples(['printer_winter_2017'],['system_name', 'system_description', 'events_table', 'state_inspected', 'associated_events'])}
+
+<state_inspected>Ready</state_inspected>
+
+<associated_events>logoff, start, scan, print</associated_events>
+
+Your expertise in this task is crucial for the success of the project. The entire team is relying on your accurate analysis to move forward with the UML state machine design. Your dedication to precision and attention to detail will greatly impact the overall quality of the system being developed.
+"""
 
         print(prompt)
         # iterate over a max number of retries in order to get the correct format

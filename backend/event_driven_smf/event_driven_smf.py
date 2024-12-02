@@ -15,8 +15,8 @@ from sherpa_ai.policies.react_policy import ReactPolicy
 from sherpa_ai.agents.qa_agent import QAAgent
 
 from actions.EventDrivenSystemNameSearchAction import EventDrivenSystemNameSearchAction
-from actions.EventDrivenStateSearchAction import EventDrivenStateSearchSearchAction
-from actions.EventDrivenInitialStateSearchAction import EventDrivenInitialStateSearchSearchAction
+from actions.EventDrivenStateSearchAction import EventDrivenStateSearchAction
+from actions.EventDrivenInitialStateSearchAction import EventDrivenInitialStateSearchAction
 from actions.EventDrivenEventSearchAction import EventDrivenEventSearchAction
 from actions.EventDrivenAssociateEventsWithStatesAction import EventDrivenAssociateEventsWithStatesAction
 from actions.EventDrivenCreateTransitionsAction import EventDrivenCreateTransitionsAction
@@ -42,9 +42,9 @@ belief.set("description", description)
 # Sherpa actions of the Event State Machine Framework
 event_driven_system_name_search_action = EventDrivenSystemNameSearchAction(belief=belief,
                                                                            description=description)
-event_driven_state_search_action = EventDrivenStateSearchSearchAction(belief=belief,
+event_driven_state_search_action = EventDrivenStateSearchAction(belief=belief,
                                                                       description=description)
-event_driven_initial_state_search_action = EventDrivenInitialStateSearchSearchAction(belief=belief,
+event_driven_initial_state_search_action = EventDrivenInitialStateSearchAction(belief=belief,
                                                                                      description=description)
 event_driven_event_search_action = EventDrivenEventSearchAction(belief=belief,
                                                                 description=description)
@@ -118,7 +118,7 @@ belief.set_current_task(Event(EventType.task,
 # set up task to be run
 llm = SherpaChatOpenAI(model_name="gpt-4o-mini", temperature=0.7)
 policy = ReactPolicy(role_description="Help the user finish the task", output_instruction="Determine which action and arguments would be the best continuing the task", llm=llm)
-qa_agent = QAAgent(llm=llm, belief=belief, num_runs=100, policy=policy)
+qa_agent = QAAgent(llm=llm, belief=belief, num_runs=20, policy=policy)
 
 def run_event_driven_smf():
     """

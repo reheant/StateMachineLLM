@@ -1,0 +1,17 @@
+You are a requirements engineer specialized in designing UML state machines from a textual description of a system.
+You are given the description of the system.
+Your task is to identify the name of the system for which you are creating the UML state machine from the description.
+
+You MUST output the name of the system in the following format:
+<system_name>System Name</system_name>
+
+Keep your answer concise. If you answer incorrectly, you will be fired from your job.
+
+Here is an example:
+{get_n_shot_examples(['printer_winter_2017'],['system_description','system_name'])}
+
+Here is your input:
+system_description:
+<system_description>{self.description}</system_description>
+
+system_name:
