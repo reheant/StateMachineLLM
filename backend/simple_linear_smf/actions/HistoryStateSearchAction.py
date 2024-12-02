@@ -3,12 +3,25 @@ from resources.util import call_gpt4, extract_transitions_guards_table
 from resources.n_shot_examples_simple_linear import get_n_shot_examples
 
 class HistoryStateSearchAction(BaseAction):
+    """
+    The HistoryStateSearchAction creates the History States of the UML State Machine
+    by updating the transitions of the transitions table to add relevant transitions
+    to history states
+
+    Input(s): description of the system, name of the system, transitions table updated by HierarchicalStateSearchAction, and hierarchical states table created by HierarchicalStateSearchAction
+    Output(s): the updated transitions table to reflect any transitions to history states
+    """
+    
     name: str = "history_state_search_action"
     args: dict = {}
     usage: str = "Identify all history states for hierarchical states in the system"
     description: str = ""
 
     def execute(self):
+        """
+        The execute function prompts the LLM to identify transitions to history states and update
+        the transitions table
+        """
         print(f"Running {self.name}...")
         hierarchical_states_table, transition_table = self.belief.get('hierarchical_state_search_action')
         modeled_system, _ = self.belief.get('state_event_search_action')

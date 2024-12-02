@@ -24,6 +24,7 @@ from actions.EventDrivenCreateHierarchicalStatesAction import EventDrivenCreateH
 from actions.EventDrivenHierarchicalInitialStateSearchAction import EventDrivenHierarchicalInitialStateSearchAction
 from actions.EventDrivenRefactorTransitionNamesAction import EventDrivenRefactorTransitionNamesAction
 from actions.EventDrivenDisplayResultsAction import EventDrivenDisplayResultsAction
+from actions.EventDrivenFilterTransitionsAction import EventDrivenFilterTransitionsAction
 from actions.EventDrivenHistoryStateSearchAction import EventDrivenHistoryStateSearchAction
 from actions.EventDrivenFactorOutTransitionsForHierarchalStates import EventDrivenFactorOutTransitionsForHierarchalStates
 from event_driven_smf_transitions import transitions
@@ -37,6 +38,8 @@ description = thermomix_fall_2021
 
 belief = Belief()
 belief.set("description", description)
+
+# Sherpa actions of the Event State Machine Framework
 event_driven_system_name_search_action = EventDrivenSystemNameSearchAction(belief=belief,
                                                                            description=description)
 event_driven_state_search_action = EventDrivenStateSearchSearchAction(belief=belief,
@@ -48,6 +51,8 @@ event_driven_event_search_action = EventDrivenEventSearchAction(belief=belief,
 event_driven_associate_events_with_states = EventDrivenAssociateEventsWithStatesAction(belief=belief,
                                                                                        description=description)
 event_driven_create_transitions_action = EventDrivenCreateTransitionsAction(belief=belief,
+                                                                            description=description)
+event_driven_filter_transitions_action = EventDrivenFilterTransitionsAction(belief=belief,
                                                                             description=description)
 event_driven_create_hierarchical_states_action = EventDrivenCreateHierarchicalStatesAction(belief=belief,
                                                                                            description=description)
@@ -62,6 +67,7 @@ event_driven_history_state_search_action =  EventDrivenHistoryStateSearchAction(
 event_driven_display_results_action = EventDrivenDisplayResultsAction(belief=belief,
                                                                       description=description)
 
+# mapping between the names of Sherpa actions and their Action class
 event_driven_action_map = {
     event_driven_system_name_search_action.name: event_driven_system_name_search_action,
     event_driven_state_search_action.name: event_driven_state_search_action,
@@ -69,6 +75,7 @@ event_driven_action_map = {
     event_driven_event_search_action.name: event_driven_event_search_action,
     event_driven_associate_events_with_states.name: event_driven_associate_events_with_states,
     event_driven_create_transitions_action.name: event_driven_create_transitions_action,
+    event_driven_filter_transitions_action.name: event_driven_filter_transitions_action,
     event_driven_create_hierarchical_states_action.name: event_driven_create_hierarchical_states_action,
     event_driven_hierarchical_initial_state_search_action.name: event_driven_hierarchical_initial_state_search_action,
     event_driven_refactor_transition_names_action.name: event_driven_refactor_transition_names_action,
@@ -77,6 +84,7 @@ event_driven_action_map = {
     event_driven_display_results_action.name: event_driven_display_results_action
 }
 
+# states of the Event Driven State Machine Framework
 states = [
             "SystemNameSearch",
             "StateSearch",
@@ -84,6 +92,7 @@ states = [
             "EventSearch",
             "AssociateEventsWithStates",
             "CreateTransitions",
+            "FilterTransitions",
             "CreateHierarchicalStates",
             "HierarchicalInitialStateSearch",
             "RefactorTransitionNames",
@@ -93,7 +102,7 @@ states = [
             "Done"
          ]
 
-# create event driven state macine
+# create Sherpa state machine and set the task for creating a UML State Machine
 initial = "SystemNameSearch"
 event_driven_smf = SherpaStateMachine(states=states, 
                                       transitions=transitions, 
@@ -112,6 +121,9 @@ policy = ReactPolicy(role_description="Help the user finish the task", output_in
 qa_agent = QAAgent(llm=llm, belief=belief, num_runs=100, policy=policy)
 
 def run_event_driven_smf():
+    """
+    the run_event_driven_smf initiates the Sherpa Event Driven State Machine Framework
+    """
     with open(f'{os.path.dirname(__file__)}\\..\\resources\\event_driven_log\\output_event_driven{time.strftime("%m_%d_%H_%M_%S")}.txt', 'w') as f:
         sys.stdout = f
         qa_agent.run()

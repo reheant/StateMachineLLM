@@ -2,6 +2,13 @@ from sherpa_ai.actions.base import BaseAction
 from resources.util import call_gpt4, extract_hierarchical_state_table, extract_parallel_states_table, extract_transitions_guards_actions_table, gsm_tables_to_dict
 
 class FinalSanityCheckAction(BaseAction):
+    """
+    The FinalSanityCheckAction prompts the LLM to make revision to the hierarchical states table,
+    parallel states table, and transitions table
+    Input(s): description of system, hierarchical states table, parallel states table, transitions table
+    Output(s): updated hierarchical states, parallel states, and transitions tables
+    """
+    
     name: str = "sanity_check_action"
     args: dict = {}
     usage: str = "Confirm that sentences from the system description are captured in the generated state machine represented by HTML tables"
