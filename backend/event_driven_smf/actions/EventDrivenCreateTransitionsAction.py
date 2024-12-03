@@ -23,46 +23,63 @@ class EventDrivenCreateTransitionsAction(BaseAction):
         """
 
         prompt = f"""
-        You are a requirements engineer specialized in designing UML state machines from a textual description of a system.
-        You are given the name of the system you are modeling a state machine for, the description of the state machine, one of the identified states of the system, one of the identified events of the system, and a table of all identified states of the system.
-        Your task is to determine ALL transitions that the event {event} can trigger for the state {state}.
+You are an expert requirements engineer specializing in designing UML state machines from textual system descriptions. Your task is to analyze a system and determine all possible transitions for a specific state and event.
 
-        Solution structure:
-        1. Begin the response with "Let's think step by step."
-        2. Determine all the transitions that can be triggered by the event {event} when the system is in the state {state}
-        3. If any transitions were identified, identify any guard conditions for each of the identified transitions. Note that guard conditions are NOT required for transitions, so it is possible that a transition may not have a guard condition. If there are no guard conditions identified for one of the transitions, output "NONE" in the guard column of the table.
-        4. If any transitions were identified, identify any actions that could occur for each of the identified transitions. Note that actions are NOT required for transitions, so it is possible that a transition may not have an associated action. If there are no actions identified for one of the transitions, output "NONE" in the guard column of the table.
-        5. If no transitions can be triggered by the event {event} in the state {state}, reply with "NO TRANSITIONS". Otherwise, give a list of transitions in the following HTML table format:
-        
-        <create_transitions>```html<table border="1">
-        <tr><th>FromState</th><th>ToState</th><th>Event</th><th>Guard</th><th>Action</th></tr>
-        <tr><td rowspan="3">State1</td><td>State2</td><td>Event1</td><td>Condition1</td><td>Action1</td></tr>
-        <tr><td rowspan="3">State2</td><td>State3</td><td>Event1</td><td>Condition1</td><td>NONE</td></tr>
-        </table>```<create_transitions>
+Here is the information about the system you need to analyze:
 
-        Keep your answer concise. If you answer incorrectly, you will be fired from your job.
+<system_name>
+{system_name}
+</system_name>
 
-        Here is an example:
-        {get_n_shot_examples(['printer_winter_2017'],['system_name', 'system_description', 'state_inspected', 'event_inspected', 'states_table', 'create_transitions'])}
+<system_description>
+{self.description}
+</system_description>
 
-        Here is your input:
-        system_name:
-        <system_name>{system_name}</system_name>
+<state_inspected>
+{state}
+</state_inspected>
 
-        system_description:
-        <system_description>{self.description}</system_description>
+<event_inspected>
+{event}
+</event_inspected>
 
-        state_inspected:
-        <state_inspected>{state}</state_inspected>
+<states_table>
+{states_table}
+</states_table>
 
-        event_inspected:
-        <event_inspected>{event}</event_inspected>
+Your task is to determine ALL transitions that the event {event} can trigger for the state {{state_inspected}}. Follow these steps:
 
-        states_table:
-        <states_table>{states_table}</states_table>
-        
-        create_transitions:
-        """
+1. Carefully analyze the system description and the provided tables.
+2. Identify all possible transitions that can be triggered by the event {event} when the system is in the state {{state_inspected}}.
+3. For each identified transition:
+   a. Determine any guard conditions (if applicable).
+   b. Identify any actions that could occur (if applicable).
+4. Present your findings in an HTML table format as specified below.
+
+Wrap your analysis in <analysis> tags to show your reasoning process before providing the final output. In your analysis:
+- List all states and events from the provided tables.
+- Consider each possible transition from the given state.
+- Check each transition against the event_inspected to determine relevance.
+- Note any guard conditions or actions associated with relevant transitions.
+It's OK for this section to be quite long.
+
+Output format:
+If no transitions can be triggered, respond with "NO TRANSITIONS". Otherwise, present the transitions in an HTML table with the following structure:
+
+<table border="1">
+<tr><th>FromState</th><th>ToState</th><th>Event</th><th>Guard</th><th>Action</th></tr>
+<tr><td>[FromState]</td><td>[ToState]</td><td>[Event]</td><td>[Guard or "NONE"]</td><td>[Action or "NONE"]</td></tr>
+</table>
+
+Remember:
+- Be concise and accurate in your analysis and output.
+- Guard conditions and actions are not required for all transitions. Use "NONE" if not applicable.
+- Your expertise is crucial for the success of this project. A thorough and precise analysis will greatly contribute to the system's design and implementation.
+
+{get_n_shot_examples(['printer_winter_2017'],['system_name', 'system_description', 'state_inspected', 'event_inspected', 'states_table', 'create_transitions'])}
+
+You are the keystone of this project's success. Your meticulous analysis and attention to detail will ensure the creation of a robust and efficient state machine. The entire development team is counting on your expertise to lay the foundation for a high-quality system. Take pride in your work and deliver excellence!
+"""
 
         print(prompt)
         # iterate over a max number of retries in order to get the correct format

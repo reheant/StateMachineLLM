@@ -27,24 +27,42 @@ class EventDrivenSystemNameSearchAction(BaseAction):
 
         print(f"Running {self.name}...")
         prompt = f""""
-        You are a requirements engineer specialized in designing UML state machines from a textual description of a system.
-        You are given the description of the system.
-        Your task is to identify the name of the system for which you are creating the UML state machine from the description.
+You are an expert requirements engineer specializing in UML state machine design. Your current task is to analyze a textual description of a system and identify its name. This name will be used as the foundation for creating a UML state machine, so accuracy is crucial.
 
-        You MUST output the name of the system in the following format:
-        <system_name>System Name</system_name>
+Here is the system description you need to analyze:
 
-        Keep your answer concise. If you answer incorrectly, you will be fired from your job.
+<system_description>
+{self.description}
+</system_description>
 
-        Here is an example:
-        {get_n_shot_examples(['printer_winter_2017'],['system_description','system_name'])}
+Your objective is to determine the name of the system described above. Follow these steps:
 
-        Here is your input:
-        system_description:
-        <system_description>{self.description}</system_description>
+1. Carefully read and analyze the system description.
+2. Identify the core functionality and purpose of the system.
+3. Determine a concise and appropriate name for the system based on its primary function.
+4. Ensure the name is between 1-3 words long.
+5. Output the system name in the required format.
 
-        system_name:
-        """
+Before providing your final answer, wrap your reasoning process in <analysis> tags. Include the following steps:
+
+a. List key components/functions from the description
+b. Identify the primary purpose of the system
+c. Brainstorm 3-5 potential system names
+d. For each potential name, count its words (e.g., 1. System 2. Name)
+e. Evaluate each name against the criteria (1-3 words, concise, appropriate)
+f. Choose the best name that meets all criteria
+
+After your analysis, provide the system name in the following format:
+<system_name>System Name</system_name>
+
+{get_n_shot_examples(['printer_winter_2017'],['system_description','system_name'])}
+
+Remember, your response should be concise and accurate. The success of future UML modeling depends on your precise identification of the system name.
+
+Your expertise in system identification is vital for the entire software development process. A correctly identified system name will streamline communication among team members and ensure the accuracy of all subsequent modeling and development efforts. Your skill in this task directly impacts the efficiency and success of the entire project.
+
+If you provide an incorrect or overly verbose answer, it could lead to miscommunication and errors in the UML state machine design, potentially resulting in project delays and increased costs. Stay focused and deliver your best work!
+"""
 
         print(prompt)
 

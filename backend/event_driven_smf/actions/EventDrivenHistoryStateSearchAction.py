@@ -32,56 +32,76 @@ class EventDrivenHistoryStateSearchAction(BaseAction):
 
         for superstate in superstates:
             prompt = f'''
-            You are a requirements engineer specialized in designing UML state machines from a textual description of a system.
-            You are given the name of the system you are modeling a state machine for, the description of the state machine, the table of transitions identified, the table of events identified, a superstate identified, and its associated substates.
-            Your task is to determine whether the superstate given requires a history state (to remember the last active substate after a transition), and the transitions to the history state in the state machine.
+You are an expert requirements engineer specializing in UML state machine design. Your task is to analyze a given system description and determine whether a specified superstate requires a history state. This analysis is crucial for creating accurate and efficient state machine models.
 
-            Definitions:
-            History State: A mechanism in state machines that allows a superstate to remember its last active substate when re-entered, instead of starting from its initial substate.
+Here is the system you need to analyze:
 
-            Criteria for Requiring a History State:
-            1.	Transitions Targeting the Parent State: A history state is needed if there are transitions to a parent state from outside its hierarchy.
-            2.	Resuming Previous Substate: The system's behavior requires resuming the last active substate rather than starting from the initial substate upon re-entry.
+<system_name>
+{modeled_system}
+</system_name>
 
-            Solution structure:
-            1. Begin the response with "Let's think step by step."
-            2.	Analyze the system description, the modeled system, and the transition table provided below to determine if the given superstate needs a history state.
-            3.	If the superstate does not require a history state, output "NO_HISTORY_STATE", otherwise output a table listing all transitions to the history state triggered by one of the events in the events table in the following HTML format:
-            
-            <history_state_table>```html<table border="1"> 
-            <tr><th>FromState</th><th>Event</th><th>Guard</th><th>Action</th></tr>
-            <tr><td>State1</td><td>Event1</td><td>Condition1</td><td>Action1</td></tr>
-            <tr><td>State2</td><td>Event1</td><td>Condition1</td><td>NONE</td></tr>
-            <tr><td>State4</td><td>Event3</td><td>NONE</td><td>Action1</td></tr>
-            <tr><td>State2</td><td>Event1</td><td>NONE</td><td>NONE</td></tr>
-            </table>```</history_state_table>
+<system_description>
+{self.description}
+</system_description>
 
-            Note that the events in the Event column MUST be part of the provided event table, otherwise your answer will be rejected.
-            
-            Here is an example:
-            {get_n_shot_examples(['printer_winter_2017'],['system_name', 'system_description', 'transitions_table', 'events_table', 'superstate_inspected_for_history_state', 'substates_inspected_for_history_state', 'history_state_table'])}
+Please carefully review the following transition table for the system:
 
-            Here is your input:
-            system_name:
-            <system_name>{modeled_system}</system_name>
+<transitions_table>
+{transitions_table}
+</transitions_table>
 
-            system_description:
-            <system_description>{self.description}</system_description>
+These are the events that can occur in the system:
 
-            transitions_table:
-            <transitions_table>{transitions_table}</transitions_table>
+<events_table>
+{events}
+</events_table>
 
-            events_table:
-            <events_table>{events}</events_table>
+You need to determine if the following superstate requires a history state:
 
-            superstate_inspected_for_history_state:
-            <superstate_inspected_for_history_state>{superstate["name"]}</superstate_inspected_for_history_state>
+<superstate_inspected_for_history_state>
+{superstate["name"]}
+</superstate_inspected_for_history_state>
 
-            substates_inspected_for_history_state:
-            <substates_inspected_for_history_state>{superstate["children"]}</substates_inspected_for_history_state>
+These are the substates associated with the superstate:
 
-            history_state_table:
-            '''
+<substates_inspected_for_history_state>
+{superstate["children"]}
+</substates_inspected_for_history_state>
+
+Instructions:
+1. Analyze the system description, focusing on the behavior related to the specified superstate.
+2. Examine the transition table, paying close attention to transitions involving the superstate and its substates.
+3. Consider the criteria for requiring a history state:
+   a. Are there transitions targeting the parent state from outside its hierarchy?
+   b. Does the system's behavior require resuming the last active substate rather than starting from the initial substate upon re-entry?
+4. Make a decision on whether the superstate needs a history state.
+5. If a history state is needed, create a table listing all transitions to the history state triggered by one of the events in the events table.
+
+Please show your reasoning process inside <state_machine_analysis> tags. In your analysis:
+1. List all transitions involving the superstate and its substates, numbering each one.
+2. Identify transitions targeting the parent state from outside its hierarchy.
+3. Analyze whether the system's behavior requires resuming the last active substate upon re-entry.
+4. Consider arguments for and against the need for a history state.
+
+Be thorough but concise in your analysis. It's OK for this section to be quite long.
+
+If the superstate does not require a history state, output "NO_HISTORY_STATE".
+
+If a history state is needed, present the table in the following HTML format:
+
+<history_state_table>
+<table border="1">
+<tr><th>FromState</th><th>Event</th><th>Guard</th><th>Action</th></tr>
+<tr><td>[FromState]</td><td>[Event]</td><td>[Guard]</td><td>[Action]</td></tr>
+</table>
+</history_state_table>
+
+Note: The events in the Event column MUST be part of the provided event table.
+
+{get_n_shot_examples(['printer_winter_2017'],['system_name', 'system_description', 'transitions_table', 'events_table', 'superstate_inspected_for_history_state', 'substates_inspected_for_history_state', 'history_state_table'])}
+
+Remember, your analysis and decision are critical for the correct implementation of this state machine. The success of the entire system design depends on your expertise and attention to detail. Your concise and accurate assessment will greatly impact the efficiency and reliability of the final product.
+'''
 
             print(prompt)
             answer = call_gpt4(prompt)

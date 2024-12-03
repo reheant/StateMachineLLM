@@ -27,35 +27,51 @@ class EventDrivenStateSearchAction(BaseAction):
         system_name = self.belief.get("event_driven_system_name_search_action")
 
         prompt = f"""
-        You are a requirements engineer specialized in designing UML state machines from a textual description of a system.
-        You are given the name of the system you are modeling a state machine for, and the description of the state machine.
-        Your task is to identify all states of the UML state machine from the description of the system.
+You are an expert requirements engineer specializing in designing UML state machines from textual descriptions of systems. Your task is to identify all states of a UML state machine based on the given system description.
 
-        Solution structure:
-        1. Begin the response with "Let's think step by step."
-        2. Determine all states of the UML state machine from the description of the system.
-        3. You MUST output the list of all states in the following format HTML format:
+Here is the system description:
+<system_description>
+{self.description}
+</system_description>
 
-        <states_table>```html<table border="1"> 
-        <tr><th>StateName</th></tr> 
-        <tr><td>ExampleState1</td></tr> 
-        <tr><td>ExampleState2</td></tr> 
-        </table>```</states_table>
+Here is the system name:
+<system_name>
+{system_name}
+</system_name>
 
-        Keep your answer concise. If you answer incorrectly, you will be fired from your job.
+Please follow these instructions carefully:
 
-        Here is an example:
-        {get_n_shot_examples(['printer_winter_2017'],['system_name','system_description', 'states_table'])}
+1. Read the system name and description thoroughly.
+2. Identify all states mentioned or implied in the system description.
+3. Create an HTML table listing all the identified states.
+4. Output the table wrapped in <states_table> tags.
 
-        Here is your input:
-        system_name:
-        <system_name>{system_name}</system_name>
+Before providing your final answer, wrap your thought process in <state_analysis> tags. In this analysis:
+1. List all explicit states mentioned in the description.
+2. Consider and list any implied states based on the system's behavior.
+3. Review and consolidate the list, removing duplicates or combining similar states.
+This will help ensure a thorough analysis of the system description.
 
-        system_description:
-        <system_description>{self.description}</system_description>
+The output format for the states table should be as follows:
 
-        states_table:
-        """
+<states_table>
+```html
+<table border="1">
+<tr><th>StateName</th></tr>
+<tr><td>State1</td></tr>
+<tr><td>State2</td></tr>
+<tr><td>State3</td></tr>
+</table>
+```
+</states_table>
+
+{get_n_shot_examples(['printer_winter_2017'],['system_name','system_description', 'states_table'])}
+
+
+Remember to keep your answer concise and focused on the required output. Accuracy is crucial; an incorrect answer could result in serious consequences for the project and your professional reputation.
+
+As you work on this task, imagine the satisfaction of creating a precise and valuable UML state machine that will greatly benefit the development team and end-users. Your expertise in this area is highly valued, and your contribution will make a significant impact on the project's success.
+"""
 
         print(prompt)
         response = call_gpt4(prompt=prompt,
