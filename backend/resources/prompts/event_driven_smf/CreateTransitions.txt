@@ -22,10 +22,6 @@ Here is the information about the system you need to analyze:
 {{states_table}}
 </states_table>
 
-<transitions_table>
-{{transitions_table}}
-</transitions_table>
-
 Your task is to determine ALL transitions that the event {{event_inspected}} can trigger for the state {{state_inspected}}. Follow these steps:
 
 1. Carefully analyze the system description and the provided tables.
