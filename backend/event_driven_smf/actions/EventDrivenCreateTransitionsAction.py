@@ -1,4 +1,5 @@
 from sherpa_ai.actions.base import BaseAction
+from resources.n_shot_examples_event_driven import get_n_shot_examples
 from resources.util import call_gpt4, extract_table_entries, extract_transitions_guards_actions_table, merge_tables
 
 class EventDrivenCreateTransitionsAction(BaseAction):
@@ -22,40 +23,65 @@ class EventDrivenCreateTransitionsAction(BaseAction):
         """
 
         prompt = f"""
-        You are an AI assistant specialized in designing UML state machines from a textual description of a system. Given the description of the system, one of the identified states of the system, one of the identified events of the system, and a table of all identified states of the system, your task is to solve a question answering task.
+You are an expert requirements engineer specializing in designing UML state machines from textual system descriptions. Your task is to analyze a system and determine all possible transitions for a specific state and event.
 
-        Name of the system:
-        {system_name}
+Here is the information about the system you need to analyze:
 
-        Description of the system:
-        {self.description}
+<system_name>
+{system_name}
+</system_name>
 
-        The identified state is:
-        {state}
+<system_description>
+{self.description}
+</system_description>
 
-        The identified event is:
-        {event}
+<state_inspected>
+{state}
+</state_inspected>
 
-        The table of identified events is:
-        {states_table}
+<event_inspected>
+{event}
+</event_inspected>
 
-        Solution structure:
-        1. Begin the response with "Let's think step by step."
-        2. Determine if the single identified event can occur while in the single identified state
-        3. If the event CANNOT occur in the state, reply with "NO TRANSITIONS". Otherwise, if the event CAN occur in the state, create transition(s) for when the event occurs in the state. Use the table of provided states to determine the destination state when the provided event occurs in the provided state.
-        4. If any transitions were identified, identify any guard conditions for each of the identified transitions. Note that guard conditions are NOT required for transitions, so it is possible that a transition may not have a guard condition. If there are no guard conditions identified for one of the transitions, output "NONE".
-        5. If any transitions were identified, identify any actions/side effects for each of the identified transitions. Note that actions are NOT required for transitions, so it is possible that a transition may not have an associated action. If there are no actions identified for one of the transitions, output "NONE".
-        6. Finally, if there are no transitions for the identified state and event, reply "NO TRANSITIONS". Otherwise, if any transitions were identified, give a list of transitions in the following HTML table format:
-        
-        ```html <table border="1"> 
-        <tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr> 
-        <tr> <td rowspan="3"> State1 </td> <td> State2 </td> <td> Event1 </td> <td> Condition1 </td> <td> Action 1 </td> </tr> 
-        <tr> <td rowspan="3"> State2 </td> <td> State3 </td> <td> Event1 </td> <td> Condition1 </td> <td> NONE </td> </tr> 
-        </table> ```
+<states_table>
+{states_table}
+</states_table>
 
-        where the "From State", "To State", and "Event" column entries are required, but the "Guard" and "Action" are NOT required. If no "Guard" or "Action" has been identified for a transition, fill the "Guard" or "Action" entry with "NONE".
-        """
+Your task is to determine ALL transitions that the event {event} can trigger for the state {{state_inspected}}. Follow these steps:
 
+1. Carefully analyze the system description and the provided tables.
+2. Identify all possible transitions that can be triggered by the event {event} when the system is in the state {{state_inspected}}.
+3. For each identified transition:
+   a. Determine any guard conditions (if applicable).
+   b. Identify any actions that could occur (if applicable).
+4. Present your findings in an HTML table format as specified below.
+
+Wrap your analysis in <analysis> tags to show your reasoning process before providing the final output. In your analysis:
+- List all states and events from the provided tables.
+- Consider each possible transition from the given state.
+- Check each transition against the event_inspected to determine relevance.
+- Note any guard conditions or actions associated with relevant transitions.
+It's OK for this section to be quite long.
+
+Output format:
+If no transitions can be triggered, respond with "NO TRANSITIONS". Otherwise, present the transitions in an HTML table with the following structure:
+
+<table border="1">
+<tr><th>FromState</th><th>ToState</th><th>Event</th><th>Guard</th><th>Action</th></tr>
+<tr><td>[FromState]</td><td>[ToState]</td><td>[Event]</td><td>[Guard or "NONE"]</td><td>[Action or "NONE"]</td></tr>
+</table>
+
+Remember:
+- Be concise and accurate in your analysis and output.
+- Guard conditions and actions are not required for all transitions. Use "NONE" if not applicable.
+- Your expertise is crucial for the success of this project. A thorough and precise analysis will greatly contribute to the system's design and implementation.
+
+{get_n_shot_examples(['printer_winter_2017'],['system_name', 'system_description', 'state_inspected', 'event_inspected', 'states_table', 'create_transitions'])}
+
+You are the keystone of this project's success. Your meticulous analysis and attention to detail will ensure the creation of a robust and efficient state machine. The entire development team is counting on your expertise to lay the foundation for a high-quality system. Take pride in your work and deliver excellence!
+"""
+
+        print(prompt)
         # iterate over a max number of retries in order to get the correct format
         # if the LLM does not get the correct format after max_retries, then we return none
         retries = 0

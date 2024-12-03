@@ -1,0 +1,64 @@
+You are an expert requirements engineer specializing in designing UML state machines from textual descriptions of systems. Your task is to identify all states of a UML state machine based on the given system description.
+
+Here is the system description:
+<system_description>
+{{system_description}}
+</system_description>
+
+Here is the system name:
+<system_name>
+{{system_name}}
+</system_name>
+
+Please follow these instructions carefully:
+
+1. Read the system name and description thoroughly.
+2. Identify all states mentioned or implied in the system description.
+3. Create an HTML table listing all the identified states.
+4. Output the table wrapped in <states_table> tags.
+
+Before providing your final answer, wrap your thought process in <state_analysis> tags. In this analysis:
+1. List all explicit states mentioned in the description.
+2. Consider and list any implied states based on the system's behavior.
+3. Review and consolidate the list, removing duplicates or combining similar states.
+This will help ensure a thorough analysis of the system description.
+
+The output format for the states table should be as follows:
+
+<states_table>
+```html
+<table border="1">
+<tr><th>StateName</th></tr>
+<tr><td>State1</td></tr>
+<tr><td>State2</td></tr>
+<tr><td>State3</td></tr>
+</table>
+```
+</states_table>
+
+Example 1:
+
+<system_name>Printer</system_name>
+
+<system_description>The printer has a master switch which turns the printer on or off. Once the printer is turned on, a user needs to log in before being able to print or scan a document. To login, a user taps her/his printer card on the printer's card reader. Each printer card has a unique ID. If the printer card is authorized, the user can either choose "scan" or "print". If the printer card is not authorized, a login error message is shown.
+For the "print" option, the user presses the start button to print the user's first document in the user's print queue. If there is no document in the print queue, an error message is shown instead of performing the printing task. For the "scan" option, the user presses the start button for the printer to scan an original document, which was placed by the user in the automatic page feeder. The scan is sent to the user's email inbox. If the printer does not detect an original document, an error message is shown instead of performing the scanning task. When the printer is done printing or scanning, the user can print or scan the next document. The user may also stop the printing/scanning task at any time by pressing the stop button. The user is allowed to logoff either before or after a printing/scanning task but not while the printer is in the middle of a printing/scanning task.
+If there is a paper jam, the printer will suspend the printing/scanning task to allow the user to clear the paper jam. The user may then either cancel the printing/scanning task or resume it. In case the printer runs out of paper during a printing task, the printer suspends the printing task to allow the user to resupply paper. The user may then either cancel the printing task or resume it.</system_description>
+
+states_table:
+<states_table>```html<table border="1">
+        <tr><th>StateName</th></tr>
+        <tr><th>Off</th></tr>
+        <tr><td>On</td></tr>
+        <tr><td>Idle</td></tr>
+        <tr><td>Ready</td></tr>
+        <tr><td>Scan&Email</td></tr>
+        <tr><td>Print</td></tr>
+        <tr><td>Suspended</td></tr>
+        <tr><td>Busy</td></tr>
+        </table>```
+</states_table>
+
+
+Remember to keep your answer concise and focused on the required output. Accuracy is crucial; an incorrect answer could result in serious consequences for the project and your professional reputation.
+
+As you work on this task, imagine the satisfaction of creating a precise and valuable UML state machine that will greatly benefit the development team and end-users. Your expertise in this area is highly valued, and your contribution will make a significant impact on the project's success.

@@ -1,6 +1,6 @@
 from sherpa_ai.actions.base import BaseAction
 from resources.util import call_gpt4, extract_transitions_guards_table
-from resources.n_shot_examples import get_n_shot_examples
+from resources.n_shot_examples_simple_linear import get_n_shot_examples
 
 class HistoryStateSearchAction(BaseAction):
     """
@@ -59,19 +59,17 @@ class HistoryStateSearchAction(BaseAction):
         
         Example:
 
-        The system description:
-        {self.description}
+        system_description: {self.description}
 
-        The system you are modeling: 
-        {modeled_system}
+        system_name: {modeled_system}
 
-        Hierarchical state table:
-        {hierarchical_states_table}
+        hierarchical_state_table: {hierarchical_states_table}
 
-        Transitions table:
-        {transition_table}
+        transitions_events_guards_actions_table: {transition_table}
 
-        Updated transition table:
+        transitions_events_guards_actions_history_table:
+
+        Your insight in determining where history states are needed will bring sophisticated memory capabilities to this state machine. Your careful analysis of which state configurations must be remembered will elevate this design from basic to brilliant. The team relies on your expertise to identify exactly where H states will provide the most value. Take pride in crafting a state machine that maintains intelligent context through state transitions.
         '''
         
         answer = call_gpt4(prompt)

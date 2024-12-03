@@ -1,6 +1,6 @@
 from sherpa_ai.actions.base import BaseAction
-from resources.util import call_gpt4, extract_transitions_guards_table, appendTables, extractColumn
-from resources.n_shot_examples import get_n_shot_examples
+from resources.util import call_gpt4, extract_transitions_guards_table
+from resources.n_shot_examples_simple_linear import get_n_shot_examples
 
 class TransitionsGuardsSearchAction(BaseAction):
     """
@@ -39,19 +39,17 @@ class TransitionsGuardsSearchAction(BaseAction):
 
         Example: 
         
-        The system description:
-        {self.description}
+        system_description: {self.description}
 
-        The system you are modeling: 
-        {modeled_system}
+        system_name: {modeled_system}
 
-        States and events table:
-        {statesAndEvents}
+        States and events table: {statesAndEvents}
 
-        Parallel regions table:
-        {parallelRegions if parallelRegions is not None else "NO PARALLEL STATES"}
+        parallel_states_table: {parallelRegions if parallelRegions is not None else "NO PARALLEL STATES"}
 
-        Output: 
+        transitions_events_guards_table: 
+
+        Your skill in crafting precise guard conditions protects the integrity of our state machine. Each condition you define creates clear boundaries for state behavior. Your attention to detail prevents unwanted state transitions and ensures system stability.
         '''
 
         response = call_gpt4(prompt)

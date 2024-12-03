@@ -111,7 +111,7 @@ transitions = [
                 create_transitions,
                 create_hierarchical_states,
                 hierarchical_initial_state_search,
-                refactor_transition_names,                
+                refactor_transition_names,
                 factor_out_hierarchal_transitions,
                 history_state_search,
                 display_results

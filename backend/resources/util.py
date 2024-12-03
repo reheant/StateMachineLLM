@@ -98,7 +98,7 @@ def extract_history_state_table(llm_response : str, includeHeader: bool = False)
     Extracts the table containing history state transitions for History States for
     Linear SMF responses
     """
-    history_table_headers = ["From State", "Event", "Guard", "Action"]
+    history_table_headers = ["FromState", "Event", "Guard", "Action"]
     history_table = extract_table_using_headers(llm_response=llm_response,
                                                 headers=history_table_headers)
     if history_table and not includeHeader:
@@ -171,8 +171,7 @@ def extract_transitions_guards_actions_table(llm_response : str) -> Tag:
     Extracts transitions tables with headers "From State", "To State", "Event", "Guard", and
     "Action" for Linear SMF and Event Driven SMF responses
     """
-
-    transitions_guards_table_events_headers = ["From State", "To State", "Event", "Guard", "Action"]
+    transitions_guards_table_events_headers = ["FromState", "ToState", "Event", "Guard", "Action"]
     transitions_guards_actions_table = extract_table_using_headers(llm_response=llm_response,
                                                                    headers=transitions_guards_table_events_headers)
     return transitions_guards_actions_table
@@ -311,7 +310,7 @@ def extract_event_driven_states_table(llm_response : str) -> Tag:
     """
     Extracts the table containing all states of a UML State Machine for Event Driven SMF responses
     """
-    event_driven_states_table_headers = ["State Name"]
+    event_driven_states_table_headers = ["StateName"]
     event_driven_states_table = extract_table_using_headers(llm_response=llm_response,
                                                             headers=event_driven_states_table_headers)
     return event_driven_states_table
@@ -320,7 +319,7 @@ def extract_event_driven_events_table(llm_response : str) -> Tag:
     """
     Extracts the table containing all events of a UML State Machine for Event Driven SMF responses
     """
-    event_driven_events_table_headers = ["Event Name"]
+    event_driven_events_table_headers = ["EventName"]
     event_driven_events_table = extract_table_using_headers(llm_response=llm_response,
                                                             headers=event_driven_events_table_headers)
     return event_driven_events_table

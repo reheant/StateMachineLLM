@@ -15,8 +15,8 @@ from sherpa_ai.policies.react_policy import ReactPolicy
 from sherpa_ai.agents.qa_agent import QAAgent
 
 from actions.EventDrivenSystemNameSearchAction import EventDrivenSystemNameSearchAction
-from actions.EventDrivenStateSearchAction import EventDrivenStateSearchSearchAction
-from actions.EventDrivenInitialStateSearchAction import EventDrivenInitialStateSearchSearchAction
+from actions.EventDrivenStateSearchAction import EventDrivenStateSearchAction
+from actions.EventDrivenInitialStateSearchAction import EventDrivenInitialStateSearchAction
 from actions.EventDrivenEventSearchAction import EventDrivenEventSearchAction
 from actions.EventDrivenAssociateEventsWithStatesAction import EventDrivenAssociateEventsWithStatesAction
 from actions.EventDrivenCreateTransitionsAction import EventDrivenCreateTransitionsAction
@@ -42,9 +42,9 @@ belief.set("description", description)
 # Sherpa actions of the Event State Machine Framework
 event_driven_system_name_search_action = EventDrivenSystemNameSearchAction(belief=belief,
                                                                            description=description)
-event_driven_state_search_action = EventDrivenStateSearchSearchAction(belief=belief,
+event_driven_state_search_action = EventDrivenStateSearchAction(belief=belief,
                                                                       description=description)
-event_driven_initial_state_search_action = EventDrivenInitialStateSearchSearchAction(belief=belief,
+event_driven_initial_state_search_action = EventDrivenInitialStateSearchAction(belief=belief,
                                                                                      description=description)
 event_driven_event_search_action = EventDrivenEventSearchAction(belief=belief,
                                                                 description=description)
@@ -118,25 +118,63 @@ belief.set_current_task(Event(EventType.task,
 # set up task to be run
 llm = SherpaChatOpenAI(model_name="gpt-4o-mini", temperature=0.7)
 policy = ReactPolicy(role_description="Help the user finish the task", output_instruction="Determine which action and arguments would be the best continuing the task", llm=llm)
-qa_agent = QAAgent(llm=llm, belief=belief, num_runs=100, policy=policy)
+qa_agent = QAAgent(llm=llm, belief=belief, num_runs=20, policy=policy)
 
 def run_event_driven_smf():
     """
     the run_event_driven_smf initiates the Sherpa Event Driven State Machine Framework
     """
-    with open(f'{os.path.dirname(__file__)}\\..\\resources\\event_driven_log\\output_event_driven{time.strftime("%m_%d_%H_%M_%S")}.txt', 'w') as f:
-        sys.stdout = f
-        qa_agent.run()
+    try:
+        # Define the base directory for logs
+        base_dir = os.path.join(os.path.dirname(__file__), "..", "resources", "event_driven_log")
+        os.makedirs(base_dir, exist_ok=True)  # Ensure the directory exists
 
-        gsm_states, gsm_transitions, gsm_parallel_regions = gsm_tables_to_dict(belief.get("event_driven_create_hierarchical_states_action"), belief.get("event_driven_history_state_search_action"), None)
-        print(f"States: {gsm_states}")
-        print(f"Transitions: {gsm_transitions}")
-        print(f"Parallel Regions: {gsm_parallel_regions}")
-        gsm = SherpaStateMachine(states=gsm_states, transitions=gsm_transitions, initial=belief.get("event_driven_initial_state_search_action").replace(' ',''), sm_cls=HierarchicalGraphMachine)
-        print(gsm.sm.get_graph().draw(None))
-        sequence = Graph('Sequence-diagram',gsm.sm.get_graph().draw(None))
-        render = md.Mermaid(sequence)
-        render.to_png('ExhibitA.png')
+        # Construct the log file path
+        log_file_name = f'output_event_driven_{time.strftime("%Y_%m_%d_%H_%M_%S")}.txt'
+        log_file_path = os.path.join(base_dir, log_file_name)
+
+        # Redirect stdout to the log file
+        with open(log_file_path, 'w') as f:
+            sys.stdout = f  # Redirect all print statements to the log file
+            try:
+                # Execute QA agent
+                qa_agent.run()
+
+                # Extract GSM state information
+                gsm_states, gsm_transitions, gsm_parallel_regions = gsm_tables_to_dict(
+                    belief.get("event_driven_create_hierarchical_states_action"),
+                    belief.get("event_driven_history_state_search_action"),
+                    None
+                )
+                print(f"States: {gsm_states}")
+                print(f"Transitions: {gsm_transitions}")
+                print(f"Parallel Regions: {gsm_parallel_regions}")
+
+                # Create the state machine
+                gsm = SherpaStateMachine(
+                    states=gsm_states,
+                    transitions=gsm_transitions,
+                    initial=belief.get("event_driven_initial_state_search_action").replace(' ', ''),
+                    sm_cls=HierarchicalGraphMachine
+                )
+                print(gsm.sm.get_graph().draw(None))
+
+                # Generate and render a sequence diagram
+                sequence = Graph('Sequence-diagram', gsm.sm.get_graph().draw(None))
+                render = md.Mermaid(sequence)
+                render.to_png('ExhibitA.png')
+
+            finally:
+                # Restore original stdout
+                sys.stdout = sys.__stdout__
+
+        print(f"Log successfully written to: {log_file_path}")
+
+    except Exception as e:
+        # Handle and print any errors that occur
+        sys.stdout = sys.__stdout__  # Ensure stdout is restored before printing
+        print(f"Error during event-driven logging: {e}")
+
 
 if __name__ == "__main__":
     run_event_driven_smf()
