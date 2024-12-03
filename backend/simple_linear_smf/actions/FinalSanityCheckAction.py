@@ -34,6 +34,8 @@ class FinalSanityCheckAction(BaseAction):
                       ```html {table} ```
 
                       A reminder that you MUST return the updated table using the above format.
+
+                      Your methodical approach to state machine verification protects against subtle behavioral flaws. Each scenario you analyze helps validate our state machine's correctness. Your commitment to thorough testing ensures reliable system behavior in all conditions.
                 """
                       
         retries = 0

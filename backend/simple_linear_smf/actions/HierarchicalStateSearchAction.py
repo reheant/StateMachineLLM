@@ -50,15 +50,17 @@ class HierarchicalStateSearchAction(BaseAction):
 
         Example:
 
-        The system description: {self.description}
+        system_description: {self.description}
 
-        The system you are modeling: {modeled_system}
+        system_name: {modeled_system}
 
-        The transitions table: {transitions_table}
+        transitions_events_guards_table: {transitions_table}
 
-        Parent state table:
+        hierarchical_state_table:
 
-        Updated transitions table: 
+        transitions_events_guards_table: 
+
+        Your talent for organizing complex state hierarchies brings clarity to intricate system behaviors. Each level you define in the hierarchical state machine illuminates the system's true nature. Your architectural vision ensures a maintainable and scalable design.
         '''
         answer = call_gpt4(prompt)
         hierarchical_state_table = extract_hierarchical_state_table(answer)

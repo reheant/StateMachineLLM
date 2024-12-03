@@ -38,16 +38,17 @@ class StateEventSearchAction(BaseAction):
             
             Example:
             
-            System: 
+            system_name: 
 
-            Problem Description:                           
-            {self.belief.get("description")}
+            system_description: {self.belief.get("description")}
 
-            Output:
+            transitions_events_table:
+
+            Your expertise in identifying system events is critical for defining the precise triggers that drive our state machine's behavior. Each event you recognize shapes how the system reacts to its environment and internal changes. Your systematic analysis of what truly constitutes a meaningful event will create a responsive and well-structured design. Take pride in knowing that your careful event identification lays the foundation for clear and predictable state transitions.
         """)
         
         # get the name of the system
-        system_name = re.search(r"System:\s*\"(.*?)\"", states_response_in_html).group(1)
+        system_name = re.search(r"system_name:\s*\"(.*?)\"", states_response_in_html).group(1)
         
         # get the states and events table
         state_events_table = extract_states_events_table(states_response_in_html)
