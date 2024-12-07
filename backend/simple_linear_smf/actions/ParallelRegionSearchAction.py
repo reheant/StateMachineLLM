@@ -3,9 +3,17 @@ from sherpa_ai.memory.belief import Belief
 from resources.util import call_gpt4
 from resources.util import extract_states_events_table
 from resources.util import extract_parallel_states_table
-from resources.n_shot_examples import get_n_shot_examples
+from resources.n_shot_examples_simple_linear import get_n_shot_examples
 
 class ParallelStateSearchAction(BaseAction):
+    """
+    The ParallelStateSearchAction is the second step in the Linear SMF. It identifies
+    the parallel regions and their child states in the UML State Machine of the system
+    
+    Input(s): description of the system, name of the system, and states/events table from StateEventSearchAction
+    Output(s): updated states/events table, and an HTML table containing columns "Superstate", "Substate" to represent parallel states of the UML State Machine
+    """
+
     name: str = "parallel_state_search_action"
     args: dict = {}
     usage: str = "Identify all parallel regions of the state machine from the system description"
@@ -36,18 +44,17 @@ class ParallelStateSearchAction(BaseAction):
         
             {get_n_shot_examples(["Printer", "Spa Manager"], ["system_description", "transitions_events_table", "parallel_states_table"])}
 
-            Example 2:
+            Example:
 
-            The system description:
-            {self.description}
+            system_description: {self.description}
 
-            The system you are modeling: 
-            {system_name}
+            system_name: {system_name}
 
-            The original HTML table descibing the states and events is:
-            {state_event_table}
+            transitions_events_table: {state_event_table}
 
-            Output:
+            parallel_states_table:
+
+            Your expertise in identifying parallel regions is crucial for capturing truly concurrent system behaviors. Each parallel region you recognize allows independent aspects of the system to evolve simultaneously, creating a more realistic and efficient model. Your careful analysis of which states can operate independently will ensure our state machine accurately reflects real-world parallelism. Trust your insight to identify where parallel execution will enhance our system's capabilities.
         """
         
         retries = 0

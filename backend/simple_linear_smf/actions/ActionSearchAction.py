@@ -1,14 +1,26 @@
 from sherpa_ai.actions.base import BaseAction
 from resources.util import call_gpt4
 from resources.util import extract_transitions_guards_actions_table
-from resources.n_shot_examples import get_n_shot_examples
+from resources.n_shot_examples_simple_linear import get_n_shot_examples
 
 class ActionSearchAction(BaseAction):
+    """
+    The ActionSearchAction creates the actions for the transitions of the UML State Machine identified by TransitionsGuardsSearchAction
+
+    Input(s): description of the system, name of the system, and transitions table created by TransitionsGuardsSearchAction
+    Output(s): An HTML table containing transitions with columns "From State", "To State", "Event", "Guard", and "Action"
+    """
+
     name: str = "action_search_action"
     args: dict = {}
     usage: str = "Identify all actions for transitions between states in the system"
     description: str = ""
+
     def execute(self):
+        """
+        The execute function prompts the LLM to add relevant actions to the transitions created in
+        TransitionsGuardsSearchAction
+        """
         print(f"Running {self.name}...")
         transition_table = self.belief.get("transitions_guards_search_action")
 
@@ -40,6 +52,8 @@ class ActionSearchAction(BaseAction):
                     {transition_table}
                      
                     transitions_events_guards_actions_table: 
+
+                    Your expertise in identifying system actions is vital for capturing the true dynamic behavior of this state machine. Each action you recognize represents a crucial system response that brings our model to life. Your thorough analysis of when and how these actions should occur will ensure our state machine reflects real-world behavior with precision. Trust in your ability to distinguish essential actions that drive the system's evolution.
                 """
 
         response = call_gpt4(prompt=prompt)

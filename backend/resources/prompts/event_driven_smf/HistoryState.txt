@@ -1,0 +1,127 @@
+You are an expert requirements engineer specializing in UML state machine design. Your task is to analyze a given system description and determine whether a specified superstate requires a history state. This analysis is crucial for creating accurate and efficient state machine models.
+
+Here is the system you need to analyze:
+
+<system_name>
+{{system_name}}
+</system_name>
+
+<system_description>
+{{system_description}}
+</system_description>
+
+Please carefully review the following transition table for the system:
+
+<transitions_table>
+{{transitions_table}}
+</transitions_table>
+
+These are the events that can occur in the system:
+
+<events_table>
+{{events_table}}
+</events_table>
+
+You need to determine if the following superstate requires a history state:
+
+<superstate_inspected_for_history_state>
+{{superstate_inspected_for_history_state}}
+</superstate_inspected_for_history_state>
+
+These are the substates associated with the superstate:
+
+<substates_inspected_for_history_state>
+{{substates_inspected_for_history_state}}
+</substates_inspected_for_history_state>
+
+Instructions:
+1. Analyze the system description, focusing on the behavior related to the specified superstate.
+2. Examine the transition table, paying close attention to transitions involving the superstate and its substates.
+3. Consider the criteria for requiring a history state:
+   a. Are there transitions targeting the parent state from outside its hierarchy?
+   b. Does the system's behavior require resuming the last active substate rather than starting from the initial substate upon re-entry?
+4. Make a decision on whether the superstate needs a history state.
+5. If a history state is needed, create a table listing all transitions to the history state triggered by one of the events in the events table.
+
+Please show your reasoning process inside <state_machine_analysis> tags. In your analysis:
+1. List all transitions involving the superstate and its substates, numbering each one.
+2. Identify transitions targeting the parent state from outside its hierarchy.
+3. Analyze whether the system's behavior requires resuming the last active substate upon re-entry.
+4. Consider arguments for and against the need for a history state.
+
+Be thorough but concise in your analysis. It's OK for this section to be quite long.
+
+If the superstate does not require a history state, output "NO_HISTORY_STATE".
+
+If a history state is needed, present the table in the following HTML format:
+
+<history_state_table>
+<table border="1">
+<tr><th>FromState</th><th>Event</th><th>Guard</th><th>Action</th></tr>
+<tr><td>[FromState]</td><td>[Event]</td><td>[Guard]</td><td>[Action]</td></tr>
+</table>
+</history_state_table>
+
+Note: The events in the Event column MUST be part of the provided event table.
+
+Example: 
+
+<system_name>Printer</system_name>
+
+<system_description>The printer has a master switch which turns the printer on or off. Once the printer is turned on, a user needs to log in before being able to print or scan a document. To login, a user taps her/his printer card on the printer's card reader. Each printer card has a unique ID. If the printer card is authorized, the user can either choose "scan" or "print". If the printer card is not authorized, a login error message is shown.
+For the "print" option, the user presses the start button to print the user's first document in the user's print queue. If there is no document in the print queue, an error message is shown instead of performing the printing task. For the "scan" option, the user presses the start button for the printer to scan an original document, which was placed by the user in the automatic page feeder. The scan is sent to the user's email inbox. If the printer does not detect an original document, an error message is shown instead of performing the scanning task. When the printer is done printing or scanning, the user can print or scan the next document. The user may also stop the printing/scanning task at any time by pressing the stop button. The user is allowed to logoff either before or after a printing/scanning task but not while the printer is in the middle of a printing/scanning task.
+If there is a paper jam, the printer will suspend the printing/scanning task to allow the user to clear the paper jam. The user may then either cancel the printing/scanning task or resume it. In case the printer runs out of paper during a printing task, the printer suspends the printing task to allow the user to resupply paper. The user may then either cancel the printing task or resume it.</system_description>
+
+<transitions_table>
+```html<table border="1">
+        <tr><th>FromState</th><th>ToState</th><th>Event</th><th>Guard</th><th>Action</th></tr>
+        <tr><td>Off</td><td>On</td><td>on</td><td>NONE</td><td>NONE</td></tr>
+        <tr><td>On</td><td>Off</td><td>off</td><td>NONE</td><td>NONE</td></tr>
+        <tr><td>Idle</td><td>Idle</td><td>login(cardID)</td><td>!idAuthorized(cardID)</td><td>NONE</td></tr>
+        <tr><td>Idle</td><td>Ready</td><td>login(cardID)</td><td>idAuthorized(cardID)</td><td>action="none";</td></tr>
+        <tr><td>Ready</td><td>Idle</td><td>logoff</td><td>NONE</td><td>NONE</td></tr>
+        <tr><td>Ready</td><td>Ready</td><td>start</td><td>action=="scan"&&!originalLoaded()</td><td>NONE</td></tr>
+        <tr><td>Ready</td><td>Ready</td><td>start</td><td>action=="print"&&!documentInQueue()</td><td>NONE</td></tr>
+        <tr><td>Ready</td><td>Ready</td><td>scan</td><td>NONE</td><td>action="scan";</td></tr>
+        <tr><td>Ready</td><td>Ready</td><td>print</td><td>NONE</td><td>action="print";</td></tr>
+        <tr><td>Ready</td><td>ScanAndEmail</td><td>start</td><td>action=="scan"&&originalLoaded()</td><td>NONE</td></tr>
+        <tr><td>Ready</td><td>Print</td><td>start</td><td>action=="print"&&documentInQueue()</td><td>NONE</td></tr>
+        <tr><td>Print</td><td>Suspended</td><td>outOfPaper</td><td>NONE</td><td>NONE</td></tr>
+        <tr><td>Busy</td><td>Suspended</td><td>jam</td><td>NONE</td><td>NONE</td></tr>
+        <tr><td>Busy</td><td>Ready</td><td>stop</td><td>NONE</td><td>NONE</td></tr>
+        <tr><td>Busy</td><td>Ready</td><td>done</td><td>NONE</td><td>NONE</td></tr>
+        <tr><td>Suspended</td><td>Ready</td><td>cancel</td><td>NONE</td><td>NONE</td></tr>
+        <tr><td>Suspended</td><td>Busy.H</td><td>resume</td><td>NONE</td><td>NONE</td></tr></table>```
+</transitions_table>
+
+events_table:
+<events_table>
+```html<table border="1">
+        <tr><th>on</th></tr>
+        <tr><td>off</td></tr>
+        <tr><td>login(cardID)</td></tr>
+        <tr><td>logoff</td></tr>
+        <tr><td>start</td></tr>
+        <tr><td>scan</td></tr>
+        <tr><td>cancel</td></tr>
+        <tr><td>jam</td></tr>
+        <tr><td>resume</td></tr>
+        <tr><td>outOfPaper</td></tr>
+        <tr><td>print</td></tr>
+        <tr><td>done</td></tr>
+        <tr><td>stop</td></tr>
+        </table>```
+</events_table>
+
+<superstate_inspected_for_history_state>Busy</superstate_inspected_for_history_state>
+
+<substates_inspected_for_history_state>['Scan&Email', 'Print']</substates_inspected_for_history_state>
+
+<history_state_table>
+```html<table border="1"> 
+        <tr><th>FromState</th><th>Event</th><th>Guard</th><th>Action</th></tr>
+        <tr><td>Suspended</td><td>resume</td><td>NONE</td><td>NONE</td></tr>
+        </table>```
+</history_state_table>
+
+Remember, your analysis and decision are critical for the correct implementation of this state machine. The success of the entire system design depends on your expertise and attention to detail. Your concise and accurate assessment will greatly impact the efficiency and reliability of the final product.

@@ -1,0 +1,40 @@
+You are an expert requirements engineer specializing in designing UML state machines from textual descriptions of systems. Your task is to create a hierarchical state machine design based on the provided system information.
+
+Here's the information for the system you need to analyze:
+
+<system_description>
+{{system_description}}
+</system_description>
+
+<system_name>
+{{system_name}}
+</system_name>
+
+superstate_inspected:
+<superstate_inspected>{{parent_state}}</superstate_inspected>
+
+substates_inspected:
+<substates_inspected>{{child_states}}</substates_inspected>
+
+Your objective is to determine the initial state of the superstate inspected. Follow these steps:
+
+1. Carefully analyze the provided system description, name, superstate provided, and associated substates.
+2. For the provided superstate and substates, determine which substate is the Initial State of its superstate. Your answer MUST be in the following format:
+
+<superstate_initial_state>InitialState</superstate_initial_state>
+
+Example:
+
+<system_name>Printer</system_name>
+
+<system_description>The printer has a master switch which turns the printer on or off. Once the printer is turned on, a user needs to log in before being able to print or scan a document. To login, a user taps her/his printer card on the printer's card reader. Each printer card has a unique ID. If the printer card is authorized, the user can either choose "scan" or "print". If the printer card is not authorized, a login error message is shown.
+For the "print" option, the user presses the start button to print the user's first document in the user's print queue. If there is no document in the print queue, an error message is shown instead of performing the printing task. For the "scan" option, the user presses the start button for the printer to scan an original document, which was placed by the user in the automatic page feeder. The scan is sent to the user's email inbox. If the printer does not detect an original document, an error message is shown instead of performing the scanning task. When the printer is done printing or scanning, the user can print or scan the next document. The user may also stop the printing/scanning task at any time by pressing the stop button. The user is allowed to logoff either before or after a printing/scanning task but not while the printer is in the middle of a printing/scanning task.
+If there is a paper jam, the printer will suspend the printing/scanning task to allow the user to clear the paper jam. The user may then either cancel the printing/scanning task or resume it. In case the printer runs out of paper during a printing task, the printer suspends the printing task to allow the user to resupply paper. The user may then either cancel the printing task or resume it.</system_description>
+
+<superstate_inspected>On</superstate_inspected>
+
+<substates_inspected>['Idle', 'Ready', 'Busy', 'Suspended']</substates_inspected>
+
+<superstate_initial_state>Idle</superstate_initial_state>
+
+Remember, your expertise in UML state machines is crucial for creating an accurate and efficient hierarchical design. The quality of your work will directly impact the success of the system's implementation. Take pride in your role as a key contributor to this important project.

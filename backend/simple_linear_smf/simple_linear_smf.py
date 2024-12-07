@@ -32,14 +32,30 @@ description = thermomix_fall_2021
 
 belief = Belief()
 belief.set("description", description)
-state_event_state_action = StateEventSearchAction(usage="identifying events in problem description for state machine", belief=belief, description=description)
-parallel_state_action = ParallelStateSearchAction(usage="identifying parallel regions in problem description for state machine", belief=belief, description=description)
-transitions_guards_action = TransitionsGuardsSearchAction(usage="identifying transitions and guards in problem description for state machine", belief=belief, description=description)
-action_search_action = ActionSearchAction(usage="identifying actions in problem description for state machine", belief=belief, description=description)
-hierarchical_state_action = HierarchicalStateSearchAction(usage="identifying hierarchical states in problem description for state machine", belief=belief, description=description)
-history_state_action = HistoryStateSearchAction(usage="identifying history states in problem description for state machine", belief=belief, description=description)
-sanity_check_action = FinalSanityCheckAction(usage="compare generated state machine with problem description", belief=belief, description=description)
+# Sherpa actions of the Linear State Machine Framework
+state_event_state_action = StateEventSearchAction(usage="identifying events in problem description for state machine", 
+                                                  belief=belief, 
+                                                  description=description)
+parallel_state_action = ParallelStateSearchAction(usage="identifying parallel regions in problem description for state machine", 
+                                                  belief=belief, 
+                                                  description=description)
+transitions_guards_action = TransitionsGuardsSearchAction(usage="identifying transitions and guards in problem description for state machine", 
+                                                          belief=belief, 
+                                                          description=description)
+action_search_action = ActionSearchAction(usage="identifying actions in problem description for state machine", 
+                                          belief=belief, 
+                                          description=description)
+hierarchical_state_action = HierarchicalStateSearchAction(usage="identifying hierarchical states in problem description for state machine", 
+                                                          belief=belief, 
+                                                          description=description)
+history_state_action = HistoryStateSearchAction(usage="identifying history states in problem description for state machine", 
+                                                belief=belief, 
+                                                description=description)
+sanity_check_action = FinalSanityCheckAction(usage="compare generated state machine with problem description", 
+                                             belief=belief, 
+                                             description=description)
 
+# mapping between the names of Sherpa actions and their Action class
 action_map = {
     state_event_state_action.name: state_event_state_action,
     parallel_state_action.name: parallel_state_action,
@@ -49,13 +65,24 @@ action_map = {
     history_state_action.name: history_state_action,
     sanity_check_action.name: sanity_check_action
 }
- 
-states = ["SearchStatesEvents", "ParallelRegions", "TransitionsGuards", "FiguringActions", "HierarchicalStates", "HistoryStates", "SanityCheck", "Done"]
+
+# states of the Linear State Machine Framework
+states = [
+            "SearchStatesEvents", 
+            "ParallelRegions", 
+            "TransitionsGuards", 
+            "FiguringActions", 
+            "HierarchicalStates", 
+            "HistoryStates", 
+            "SanityCheck", 
+            "Done"
+         ]
 initial = "SearchStatesEvents"
 
+# create Sherpa state machine and set the task for creating a UML State Machine
 sm = SherpaStateMachine(states=states, transitions=transitions, initial=initial, action_map=action_map, sm_cls=HierarchicalGraphMachine)
 belief.state_machine = sm
-belief.set_current_task(Event(EventType.task, "user", "User wants to generate a state machine for a Thermomix"))
+belief.set_current_task(Event(EventType.task, "user", "User wants to generate a UML State Machine from the provided system description and display the results at the end"))
 
 llm = SherpaChatOpenAI(model_name="gpt-4o-mini", temperature=0.5)
 policy = ReactPolicy(role_description="Help the user finish the task", output_instruction="Determine which action and arguments would be the best continuing the task", llm=llm)
@@ -63,11 +90,15 @@ policy = ReactPolicy(role_description="Help the user finish the task", output_in
 qa_agent = QAAgent(llm=llm, belief=belief, num_runs=10, policy=policy)
 
 def run_sherpa_task():
+    """
+    the run_event_driven_smf initiates the Sherpa Event Driven State Machine Framework
+    """
     with open(f'{os.path.dirname(__file__)}\\..\\resources\\simple_linear_log\\output_simple_linear{time.strftime("%m_%d_%H_%M_%S")}.txt', 'w') as f:
         sys.stdout = f
         
         qa_agent.run()
-
+    
+    # run the sherpa task, and get the ouputs in order to generate the mermaid code and create visual diagram of state machine
         gsm_states, gsm_transitions, gsm_parallel_regions = gsm_tables_to_dict(*belief.get("sanity_check_action"))
         print(f"States: {gsm_states}")
         print(f"Transitions: {gsm_transitions}")
