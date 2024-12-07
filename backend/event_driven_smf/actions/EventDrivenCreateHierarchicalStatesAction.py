@@ -12,7 +12,7 @@ class EventDrivenCreateHierarchicalStatesAction(BaseAction):
         
         
         system_name = self.belief.get("event_driven_system_name_search_action")
-        event_driven_transitions_table = self.belief.get("event_driven_create_transitions_action")
+        event_driven_transitions_table = self.belief.get("event_driven_parallel_regions_search_action")
 
         prompt = f"""
         You are an AI assistant specialized in designing UML state machines from a textual description of a system. Given the description of the system, the states of the system, and the transitions of the system, your task is to solve a question answering task.

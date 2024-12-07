@@ -36,15 +36,22 @@ associate_events_with_states = {
 create_transitions = {
     "trigger": "start_event_driven_create_transitions",
     "source": "CreateTransitions",
-    "dest": "CreateHierarchicalStates",
+    "dest": "ParallelRegionsSearch",
     "before": "event_driven_create_transitions_action"
 }
 
 filter_transitions = {
     "trigger": "start_event_driven_filter_transitions",
     "source": "FilterTransitions",
-    "dest": "CreateHierarchicalStates",
+    "dest": "ParallelRegionsSearch",
     "before": "event_driven_filter_transitions_action"
+}
+
+parallel_regions_search = {
+    "trigger": "start_event_driven_parallel_regions_search_action",
+    "source": "ParallelRegionsSearch",
+    "dest": "CreateHierarchicalStates",
+    "before": "event_driven_parallel_regions_search_action"    
 }
 
 create_hierarchical_states = {
@@ -96,6 +103,7 @@ transitions = [
                 event_search,
                 associate_events_with_states,
                 create_transitions,
+                parallel_regions_search,
                 create_hierarchical_states,
                 hierarchical_initial_state_search,
                 refactor_transition_names,                

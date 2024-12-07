@@ -23,3 +23,7 @@ class EventDrivenDisplayResultsAction(BaseAction):
         event_driven_transitions = self.belief.get("event_driven_history_state_search_action")
 
         print(f"Transitions:\n{event_driven_transitions}")
+
+        transitionsParallelRegionsTuple = self.belief.get('event_driven_parallel_regions_search_action')
+        
+        print(f"Parallel Regions:\n{transitionsParallelRegionsTuple[1]}")

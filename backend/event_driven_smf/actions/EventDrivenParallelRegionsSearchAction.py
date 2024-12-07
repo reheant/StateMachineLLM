@@ -1,5 +1,5 @@
 from sherpa_ai.actions.base import BaseAction
-from resources.util import call_gpt4, extract_history_state_table, addColumn, appendTables, gsm_tables_to_dict
+from resources.util import call_gpt4, extract_states_events_table, extract_parallel_states_table, gsm_tables_to_dict
 
 class EventDrivenParallelRegionsSearchAction(BaseAction):
     name: str = "event_driven_parallel_regions_search_action"
@@ -10,14 +10,41 @@ class EventDrivenParallelRegionsSearchAction(BaseAction):
     def execute(self):
         print(f"Running {self.name}...")
 
-        transitions_table = self.belief.get('event_driven_factor_out_transitions_for_hierarchal_states_action')
+        transitions_table = self.belief.get('event_driven_create_transitions_action')
         modeled_system = self.belief.get('event_driven_system_name_search_action')
-        superstates = [state for state in gsm_tables_to_dict(self.belief.get('event_driven_create_hierarchical_states_action'), transitions_table, None)[0] if isinstance(state, dict)]
-        events = self.belief.get('event_driven_event_search_action')
 
-        print(transitions_table)
-        print(modeled_system)
-        print(superstates)
-        print(events)
+        prompt = f"""
+            You are an AI assistant specialized in identifying parallel regions in a state machine from a problem description and a table that lists all the states and events of the state machine. 
+             
+            In a state machine, parallel states (also called orthogonal states) are independent states that can be active simultaneously, allowing the system to be in multiple states at once. They typically represent different aspects or components of the system that can operate independently of each other.
+            Think of it like a media player that can both be "Playing" music AND in "Shuffle" mode at the same time - these are two parallel states that don't interfere with each other but together describe the complete state of the system.
 
-        return ""
+            You can identify parallel states by asking yourself: Is there an event in which the state machine can react in more than 1 state at the same time? Should the state machine remember be active in more than 1 state at a time? 
+
+            Note that parallel states are not common, should be used sparingly and ONLY if needed. 
+            If there is no need for parallel states, then output the string "NO PARALLEL STATES IDENTIFIED". 
+            If you have identified the need for a parallel state, you MUST add the Parallel States and its substates in an HTML table with the following format and headers:
+            ```html <table border="1"> <tr> <th>Parallel State</th> <th>Substate</th> </tr> </table>```
+
+            If there are parallel states, also update the states and events accordingly using the HTML table columns below. You MUST use the exact columns provided below and build off of the states and events table provided. 
+            If there are no parallel states, then return the original states and events table that you are provided in this prompt.
+            ```html <table border="1"> <tr> <th>Current State</th> <th>Event</th> <th>Next State(s)</th> </tr> </table>``` 
+
+            The system description: {self.description}
+
+            The system you are modeling: {modeled_system}
+
+            The original HTML table descibing the states and events is: {transitions_table}
+
+            Output:
+        """
+        
+        response = call_gpt4(prompt)
+
+        if ("NO PARALLEL STATES IDENTIFIED" in response):
+            return (transitions_table, None)
+        
+        updated_state_event_table = extract_states_events_table(llm_response=response)
+        updated_parallel_state_table = extract_parallel_states_table(llm_response=response)
+
+        return (updated_state_event_table, updated_parallel_state_table)

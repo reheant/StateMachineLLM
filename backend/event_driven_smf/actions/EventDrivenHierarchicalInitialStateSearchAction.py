@@ -34,15 +34,17 @@ class EventDrivenHierarchicalInitialStateSearchAction(BaseAction):
         Initial State: "Initial State"
         
         The Initial State you output MUST be in the above format, or else your solution will be rejected.
+        The formatting must follow the example precisely. The initial state must be between quotation marks "". 
+        Otherwise your family will starve to death.
         """
 
         response = call_gpt4(prompt=prompt,
                              temperature=0.7)
         
+        print(response)
         initial_state = re.search(r"Initial State:\s*\"(.*?)\"", response).group(1)
 
         return initial_state
-
 
     def execute(self):
         print(f"Running {self.name}...")
