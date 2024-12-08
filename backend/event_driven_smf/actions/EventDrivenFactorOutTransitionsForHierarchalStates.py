@@ -12,7 +12,7 @@ class EventDrivenFactorOutTransitionsForHierarchalStates(BaseAction):
     def execute(self):
         print(f"Running {self.name}...")
 
-        event_driven_transitions = str(self.belief.get("event_driven_refactor_transition_names_action"))
+        event_driven_transitions = str(self.belief.get("event_driven_create_transitions_action"))
         state_hierarchy = str(self.belief.get("event_driven_create_hierarchical_states_action"))
 
         transitions_list = parse_html_table(event_driven_transitions)
@@ -56,7 +56,7 @@ def factor_transitions(transitions, hierarchy):
                 modified_transitions = [
                     t for t in modified_transitions if not (
                         t['FromState'] in substates_set and
-                        t['To State'] == key[0] and
+                        t['ToState'] == key[0] and
                         t['Event'] == key[1] and
                         t['Guard'] == key[2] and
                         t['Action'] == key[3]
