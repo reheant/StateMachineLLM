@@ -29,7 +29,7 @@ class EventDrivenCreateHierarchicalStatesAction(BaseAction):
         
         system_name = self.belief.get("event_driven_system_name_search_action")
         states_table = self.belief.get("event_driven_state_search_action")
-        event_driven_transitions_table = self.belief.get("event_driven_create_transitions_action")
+        event_driven_transitions_table = self.belief.get("event_driven_parallel_regions_search_action")
 
         prompt = f"""
 You are an expert requirements engineer specializing in designing UML state machines from textual descriptions of systems. Your task is to create a hierarchical state machine design based on the provided system information.

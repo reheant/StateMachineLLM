@@ -27,14 +27,15 @@ from actions.EventDrivenDisplayResultsAction import EventDrivenDisplayResultsAct
 from actions.EventDrivenFilterTransitionsAction import EventDrivenFilterTransitionsAction
 from actions.EventDrivenHistoryStateSearchAction import EventDrivenHistoryStateSearchAction
 from actions.EventDrivenFactorOutTransitionsForHierarchalStates import EventDrivenFactorOutTransitionsForHierarchalStates
+from actions.EventDrivenParallelRegionsSearchAction import EventDrivenParallelRegionsSearchAction
 from event_driven_smf_transitions import transitions
-from resources.state_machine_descriptions import thermomix_fall_2021
+from resources.state_machine_descriptions import spa_manager_winter_2018
 import mermaid as md
 from mermaid.graph import Graph
 from resources.util import gsm_tables_to_dict
 import time
 
-description = thermomix_fall_2021
+description = spa_manager_winter_2018
 
 belief = Belief()
 belief.set("description", description)
@@ -54,6 +55,8 @@ event_driven_create_transitions_action = EventDrivenCreateTransitionsAction(beli
                                                                             description=description)
 event_driven_filter_transitions_action = EventDrivenFilterTransitionsAction(belief=belief,
                                                                             description=description)
+event_driven_filter_transitions_action = EventDrivenFilterTransitionsAction(belief=belief,description=description)
+event_driven_parallel_regions_search_action = EventDrivenParallelRegionsSearchAction(belief=belief, description=description)
 event_driven_create_hierarchical_states_action = EventDrivenCreateHierarchicalStatesAction(belief=belief,
                                                                                            description=description)
 event_driven_hierarchical_initial_state_search_action = EventDrivenHierarchicalInitialStateSearchAction(belief=belief,
@@ -75,6 +78,7 @@ event_driven_action_map = {
     event_driven_event_search_action.name: event_driven_event_search_action,
     event_driven_associate_events_with_states.name: event_driven_associate_events_with_states,
     event_driven_create_transitions_action.name: event_driven_create_transitions_action,
+    event_driven_parallel_regions_search_action.name: event_driven_parallel_regions_search_action,
     event_driven_filter_transitions_action.name: event_driven_filter_transitions_action,
     event_driven_create_hierarchical_states_action.name: event_driven_create_hierarchical_states_action,
     event_driven_hierarchical_initial_state_search_action.name: event_driven_hierarchical_initial_state_search_action,
@@ -91,7 +95,8 @@ states = [
             "InitialStateSearch",
             "EventSearch",
             "AssociateEventsWithStates",
-            "CreateTransitions",
+            "CreateTransitions",            
+            "ParallelRegionsSearch",
             "FilterTransitions",
             "CreateHierarchicalStates",
             "HierarchicalInitialStateSearch",
