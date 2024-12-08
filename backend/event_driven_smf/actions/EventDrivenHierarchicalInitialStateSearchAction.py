@@ -52,6 +52,8 @@ Your objective is to determine the initial state of the superstate inspected. Fo
 {get_n_shot_examples(['printer_winter_2017'],['system_name', 'system_description', 'superstate_inspected', 'substates_inspected', 'superstate_initial_state'])}
 
 Remember, your expertise in UML state machines is crucial for creating an accurate and efficient hierarchical design. The quality of your work will directly impact the success of the system's implementation. Take pride in your role as a key contributor to this important project.
+        The formatting must follow the example precisely. The initial state must be between quotation marks "". 
+        Otherwise your family will starve to death.
 """
 
         print(prompt)
@@ -65,7 +67,6 @@ Remember, your expertise in UML state machines is crucial for creating an accura
         else:
             superstate_initial_state = "NOT FOUND"
         print(superstate_initial_state)
-
 
     def execute(self):
         """
