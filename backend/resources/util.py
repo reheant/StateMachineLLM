@@ -2,6 +2,10 @@ import os
 import openai
 import re
 from bs4 import BeautifulSoup, Tag
+from transitions.extensions import HierarchicalGraphMachine
+import mermaid as md
+from mermaid.graph import Graph
+from sherpa_ai.memory.state_machine import SherpaStateMachine
 
 openai.api_key = os.environ.get("OPENAI_API_KEY")
 
@@ -183,6 +187,17 @@ def str_to_Tag(table : str):
     tables = BeautifulSoup(str(table), 'html.parser').find_all('table')
     return tables[0] if tables else None
 
+def format_state_name_for_pytransitions(state_name, hierarchical_states_table):
+    """
+    given a state name and the table of hierarchical states, format the state's name to be the expected
+    format for the transitions for pytransitions. The format is ParentState_ChildState
+    """
+    child_state_to_parent_state = map_child_state_to_parent_state(hierarchical_state_table=hierarchical_states_table)
+    if child_state_to_parent_state and child_state_to_parent_state.get(state_name, None) is not None:
+        return f"{child_state_to_parent_state.get(state_name)}_{state_name}"
+    else:
+        return state_name
+
 def gsm_tables_to_dict(hierarchical_states_table : Tag, transitions_table : Tag, parallel_state_table : Tag):
     """
     Extracts the states, transitions, and parallel regions of a Generated State Machine (GSM) and returns
@@ -202,8 +217,8 @@ def gsm_tables_to_dict(hierarchical_states_table : Tag, transitions_table : Tag,
         cols = row.find_all('td')
         transition = {
             "trigger": cols[2].get_text(),
-            "source": cols[0].get_text(),
-            "dest": cols[1].get_text(),
+            "source": format_state_name_for_pytransitions(state_name=cols[0].get_text(), hierarchical_states_table=hierarchical_states_table),
+            "dest": format_state_name_for_pytransitions(state_name=cols[1].get_text(), hierarchical_states_table=hierarchical_states_table),
         }
         if (cols[4].get_text() != "NONE"):
             transition["before"] = cols[4].get_text()
@@ -253,12 +268,40 @@ def gsm_tables_to_dict(hierarchical_states_table : Tag, transitions_table : Tag,
                 states.append(child)
         states.remove(non_composite_state[0])
 
+    # remove states which are already encompassed by a parent state
+    states = [state for state in states if not non_composite_state or state in non_composite_state[0]["children"] or isinstance(state, dict)]
+
     # Remove all spaces not to confuse mermaid
     states = list(map(state_remove_spaces, states))
     transitions = list(map(transitions_remove_spaces, transitions))
     parallel_regions = list(map(regions_remove_spaces, parallel_regions))
 
     return states, transitions, parallel_regions
+
+
+
+def create_event_based_gsm_diagram(hierarchical_states_table : Tag, transitions_table : Tag, parallel_state_table : Tag, initial_state : str):
+    gsm_states, gsm_transitions, gsm_parallel_regions = gsm_tables_to_dict(hierarchical_states_table=hierarchical_states_table,
+                                                                           transitions_table=transitions_table,
+                                                                           parallel_state_table=parallel_state_table)
+    print(f"States: {gsm_states}")
+    print(f"Transitions: {gsm_transitions}")
+    print(f"Parallel Regions: {gsm_parallel_regions}")
+
+    # Create the state machine
+    gsm = SherpaStateMachine(
+        states=gsm_states,
+        transitions=gsm_transitions,
+        initial=format_state_name_for_pytransitions(initial_state, hierarchical_states_table=hierarchical_states_table).replace(" ", ""),
+        sm_cls=HierarchicalGraphMachine
+    )
+    
+    print(gsm.sm.get_graph().draw(None))
+
+    # Generate and render a sequence diagram
+    sequence = Graph('Sequence-diagram', gsm.sm.get_graph().draw(None))
+    render = md.Mermaid(sequence)
+    render.to_png('ExhibitA.png')
 
 def table_remove_spaces(table):
     """
