@@ -66,19 +66,11 @@ create_hierarchical_states = {
 hierarchical_initial_state_search = {
     "trigger": "start_event_driven_hierarchical_initial_state_search",
     "source": "HierarchicalInitialStateSearch",
-    "dest": "RefactorTransitionNames",
+    "dest": "FactorOutHierarchalTransitions",
     "before": "event_driven_hierarchical_initial_state_search"
 }
 
-# step 10: rename the states in the transitions table using ParentState.ChildState notation using EventDrivenRefactorTransitionNamesAction
-refactor_transition_names = {
-    "trigger": "start_event_driven_refactor_transition_names",
-    "source": "RefactorTransitionNames",
-    "dest": "FactorOutHierarchalTransitions",
-    "before": "event_driven_refactor_transition_names_action"
-}
-
-# step 11: move common transitions amongst children states to parent state
+# step 10: move common transitions amongst children states to parent state
 factor_out_hierarchal_transitions = {
     "trigger": "start_event_driven_factor_out_transitions_for_hierarchal_states",
     "source": "FactorOutHierarchalTransitions",
@@ -86,7 +78,7 @@ factor_out_hierarchal_transitions = {
     "before": "event_driven_factor_out_transitions_for_hierarchal_states_action"
 }
 
-# step 12: identify necessary history states in the UML State Machine using EventDrivenHistoryStateSearchAction
+# step 11: identify necessary history states in the UML State Machine using EventDrivenHistoryStateSearchAction
 history_state_search = {
     "trigger": "start_event_driven_history_state_search_action",
     "source": "HistoryStateSearch",
@@ -94,7 +86,7 @@ history_state_search = {
     "before": "event_driven_history_state_search_action"
 }
 
-# step 13: print the final tables representing the UML State Machine
+# step 12: print the final tables representing the UML State Machine
 display_results = {
     "trigger": "start_event_driven_display_results_action",
     "source": "DisplayResults",
@@ -111,7 +103,6 @@ transitions = [
                 create_transitions,
                 create_hierarchical_states,
                 hierarchical_initial_state_search,
-                refactor_transition_names,
                 factor_out_hierarchal_transitions,
                 history_state_search,
                 display_results
