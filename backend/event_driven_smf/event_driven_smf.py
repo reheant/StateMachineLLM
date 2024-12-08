@@ -22,16 +22,13 @@ from actions.EventDrivenAssociateEventsWithStatesAction import EventDrivenAssoci
 from actions.EventDrivenCreateTransitionsAction import EventDrivenCreateTransitionsAction
 from actions.EventDrivenCreateHierarchicalStatesAction import EventDrivenCreateHierarchicalStatesAction
 from actions.EventDrivenHierarchicalInitialStateSearchAction import EventDrivenHierarchicalInitialStateSearchAction
-from actions.EventDrivenRefactorTransitionNamesAction import EventDrivenRefactorTransitionNamesAction
 from actions.EventDrivenDisplayResultsAction import EventDrivenDisplayResultsAction
 from actions.EventDrivenFilterTransitionsAction import EventDrivenFilterTransitionsAction
 from actions.EventDrivenHistoryStateSearchAction import EventDrivenHistoryStateSearchAction
 from actions.EventDrivenFactorOutTransitionsForHierarchalStates import EventDrivenFactorOutTransitionsForHierarchalStates
 from event_driven_smf_transitions import transitions
 from resources.state_machine_descriptions import thermomix_fall_2021
-import mermaid as md
-from mermaid.graph import Graph
-from resources.util import gsm_tables_to_dict
+from resources.util import create_event_based_gsm_diagram
 import time
 
 description = thermomix_fall_2021
@@ -58,8 +55,6 @@ event_driven_create_hierarchical_states_action = EventDrivenCreateHierarchicalSt
                                                                                            description=description)
 event_driven_hierarchical_initial_state_search_action = EventDrivenHierarchicalInitialStateSearchAction(belief=belief,
                                                                                                         description=description)
-event_driven_refactor_transition_names_action =  EventDrivenRefactorTransitionNamesAction(belief=belief,
-                                                                                          description=description)
 event_driven_factor_out_transitions_for_hierarchal_states = EventDrivenFactorOutTransitionsForHierarchalStates(belief=belief,
                                                                                           description=description)
 event_driven_history_state_search_action =  EventDrivenHistoryStateSearchAction(belief=belief,
@@ -78,7 +73,6 @@ event_driven_action_map = {
     event_driven_filter_transitions_action.name: event_driven_filter_transitions_action,
     event_driven_create_hierarchical_states_action.name: event_driven_create_hierarchical_states_action,
     event_driven_hierarchical_initial_state_search_action.name: event_driven_hierarchical_initial_state_search_action,
-    event_driven_refactor_transition_names_action.name: event_driven_refactor_transition_names_action,
     event_driven_factor_out_transitions_for_hierarchal_states.name: event_driven_factor_out_transitions_for_hierarchal_states,
     event_driven_history_state_search_action.name: event_driven_history_state_search_action,
     event_driven_display_results_action.name: event_driven_display_results_action
@@ -95,7 +89,6 @@ states = [
             "FilterTransitions",
             "CreateHierarchicalStates",
             "HierarchicalInitialStateSearch",
-            "RefactorTransitionNames",
             "FactorOutHierarchalTransitions",
             "HistoryStateSearch",
             "DisplayResults",
@@ -140,29 +133,17 @@ def run_event_driven_smf():
                 # Execute QA agent
                 qa_agent.run()
 
-                # Extract GSM state information
-                gsm_states, gsm_transitions, gsm_parallel_regions = gsm_tables_to_dict(
-                    belief.get("event_driven_create_hierarchical_states_action"),
-                    belief.get("event_driven_history_state_search_action"),
-                    None
-                )
-                print(f"States: {gsm_states}")
-                print(f"Transitions: {gsm_transitions}")
-                print(f"Parallel Regions: {gsm_parallel_regions}")
+                # Extract GSM state information and create the Mermaid diagram
+                hierarchical_states_table = belief.get("event_driven_create_hierarchical_states_action")
+                transitions_table = belief.get("event_driven_history_state_search_action")
+                parallel_state_table = None
+                initial_state = belief.get("event_driven_initial_state_search_action").replace(' ', '')
 
-                # Create the state machine
-                gsm = SherpaStateMachine(
-                    states=gsm_states,
-                    transitions=gsm_transitions,
-                    initial=belief.get("event_driven_initial_state_search_action").replace(' ', ''),
-                    sm_cls=HierarchicalGraphMachine
-                )
-                print(gsm.sm.get_graph().draw(None))
-
-                # Generate and render a sequence diagram
-                sequence = Graph('Sequence-diagram', gsm.sm.get_graph().draw(None))
-                render = md.Mermaid(sequence)
-                render.to_png('ExhibitA.png')
+                create_event_based_gsm_diagram(hierarchical_states_table=hierarchical_states_table,
+                                               transitions_table=transitions_table,
+                                               parallel_state_table=parallel_state_table,
+                                               initial_state=initial_state)
+                
 
             finally:
                 # Restore original stdout
