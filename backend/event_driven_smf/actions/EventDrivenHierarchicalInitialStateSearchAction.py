@@ -66,6 +66,8 @@ Remember, your expertise in UML state machines is crucial for creating an accura
             superstate_initial_state = "NOT FOUND"
         print(superstate_initial_state)
 
+        return superstate_initial_state
+
 
     def execute(self):
         """
