@@ -269,7 +269,7 @@ def gsm_tables_to_dict(hierarchical_states_table : Tag, transitions_table : Tag,
         states.remove(non_composite_state[0])
 
     # remove states which are already encompassed by a parent state
-    states = [state for state in states if not non_composite_state or state in non_composite_state[0]["children"] or isinstance(state, dict)]
+    states = [state for state in states if (non_composite_state and state in non_composite_state[0]["children"]) or isinstance(state, dict)]
 
     # Remove all spaces not to confuse mermaid
     states = list(map(state_remove_spaces, states))
