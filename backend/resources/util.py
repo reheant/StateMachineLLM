@@ -269,7 +269,7 @@ def gsm_tables_to_dict(hierarchical_states_table : Tag, transitions_table : Tag,
         states.remove(non_composite_state[0])
 
     # remove states which are already encompassed by a parent state
-    states = [state for state in states if not non_composite_state or state in non_composite_state[0]["children"] or isinstance(state, dict)]
+    states = [state for state in states if (non_composite_state and state in non_composite_state[0]["children"]) or isinstance(state, dict)]
 
     # Remove all spaces not to confuse mermaid
     states = list(map(state_remove_spaces, states))
@@ -280,7 +280,7 @@ def gsm_tables_to_dict(hierarchical_states_table : Tag, transitions_table : Tag,
 
 
 
-def create_event_based_gsm_diagram(hierarchical_states_table : Tag, transitions_table : Tag, parallel_state_table : Tag, initial_state : str):
+def create_event_based_gsm_diagram(hierarchical_states_table : Tag, transitions_table : Tag, parallel_state_table : Tag, initial_state : str, hierarchical_initial_states : dict):
     gsm_states, gsm_transitions, gsm_parallel_regions = gsm_tables_to_dict(hierarchical_states_table=hierarchical_states_table,
                                                                            transitions_table=transitions_table,
                                                                            parallel_state_table=parallel_state_table)
