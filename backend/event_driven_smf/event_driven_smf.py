@@ -142,12 +142,14 @@ def run_event_driven_smf():
                 hierarchical_states_table = belief.get("event_driven_create_hierarchical_states_action")
                 transitions_table = belief.get("event_driven_history_state_search_action")
                 parallel_state_table = None
-                initial_state = belief.get("event_driven_initial_state_search_action").replace(' ', '')
+                initial_state = belief.get("event_driven_initial_state_search_action")
+                hierarchical_initial_states = belief.get("event_driven_hierarchical_initial_state_search")
 
                 create_event_based_gsm_diagram(hierarchical_states_table=hierarchical_states_table,
                                                transitions_table=transitions_table,
                                                parallel_state_table=parallel_state_table,
-                                               initial_state=initial_state)
+                                               initial_state=initial_state,
+                                               hierarchical_initial_states=hierarchical_initial_states)
                 
 
             finally:

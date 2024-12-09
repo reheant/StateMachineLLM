@@ -278,12 +278,33 @@ def gsm_tables_to_dict(hierarchical_states_table : Tag, transitions_table : Tag,
 
     return states, transitions, parallel_regions
 
+def add_initial_hierarchical_states(gsm_states : list, hierarchical_initial_states : dict):
+    """
+    the add_initial_hierarchical_states sets the "initial" key of the hierarchical states in the gsm_states
+    list to map to the name of the hierarchical state's initial state, as required by pytransitions. note
+    that the initial state name does NOT need to be in the format "ParentState_ChildState"
+    """
 
+    # iterate over each hierarchical state and its initial state
+    for hierarchical_state_name, initial_state_name in hierarchical_initial_states.items():
+        if initial_state_name is not None:
+            # locate the hierarchical state in the list of initial states
+            for gsm_state in gsm_states:
+                # check to see if the current state is the hierarchical state and set the initial state if it is one of the child states
+                if isinstance(gsm_state, dict) and gsm_state.get("name") == hierarchical_state_name.replace(" ", "") and initial_state_name.replace(" ", "") in gsm_state.get("children"):
+                    gsm_state["initial"] = initial_state_name.replace(" ", "")
+                    break
 
-def create_event_based_gsm_diagram(hierarchical_states_table : Tag, transitions_table : Tag, parallel_state_table : Tag, initial_state : str):
+    return gsm_states
+
+def create_event_based_gsm_diagram(hierarchical_states_table : Tag, transitions_table : Tag, parallel_state_table : Tag, initial_state : str, hierarchical_initial_states : dict):
     gsm_states, gsm_transitions, gsm_parallel_regions = gsm_tables_to_dict(hierarchical_states_table=hierarchical_states_table,
                                                                            transitions_table=transitions_table,
                                                                            parallel_state_table=parallel_state_table)
+    
+    # update the states so each hierarchical state contains their initial state
+    gsm_states = add_initial_hierarchical_states(gsm_states=gsm_states,
+                                                 hierarchical_initial_states=hierarchical_initial_states)
     print(f"States: {gsm_states}")
     print(f"Transitions: {gsm_transitions}")
     print(f"Parallel Regions: {gsm_parallel_regions}")
