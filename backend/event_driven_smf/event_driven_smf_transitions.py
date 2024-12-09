@@ -74,19 +74,11 @@ create_hierarchical_states = {
 hierarchical_initial_state_search = {
     "trigger": "start_event_driven_hierarchical_initial_state_search",
     "source": "HierarchicalInitialStateSearch",
-    "dest": "RefactorTransitionNames",
+    "dest": "FactorOutHierarchalTransitions",
     "before": "event_driven_hierarchical_initial_state_search"
 }
 
-# step 11: rename the states in the transitions table using ParentState.ChildState notation using EventDrivenRefactorTransitionNamesAction
-refactor_transition_names = {
-    "trigger": "start_event_driven_refactor_transition_names",
-    "source": "RefactorTransitionNames",
-    "dest": "FactorOutHierarchalTransitions",
-    "before": "event_driven_refactor_transition_names_action"
-}
-
-# step 12: move common transitions amongst children states to parent state
+# step 10: move common transitions amongst children states to parent state
 factor_out_hierarchal_transitions = {
     "trigger": "start_event_driven_factor_out_transitions_for_hierarchal_states",
     "source": "FactorOutHierarchalTransitions",
@@ -120,7 +112,6 @@ transitions = [
                 parallel_regions_search,
                 create_hierarchical_states,
                 hierarchical_initial_state_search,
-                refactor_transition_names,
                 factor_out_hierarchal_transitions,
                 history_state_search,
                 display_results
