@@ -63,7 +63,7 @@ Remember, your expertise in UML state machines is crucial for creating an accura
         superstate_initial_state_search = re.search(r"<superstate_initial_state>(.*?)</superstate_initial_state>", response)
 
         if superstate_initial_state_search:
-            superstate_initial_state = superstate_initial_state_search.group(1)
+            superstate_initial_state = superstate_initial_state_search.group(1).strip('\'"')
         else:
             superstate_initial_state = "NOT FOUND"
         print(superstate_initial_state)
