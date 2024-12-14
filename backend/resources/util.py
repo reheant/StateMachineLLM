@@ -4,11 +4,13 @@ import anthropic
 import groq
 import re
 from bs4 import BeautifulSoup, Tag
+from transitions.extensions import HierarchicalGraphMachine
+import mermaid as md
+from mermaid.graph import Graph
+from sherpa_ai.memory.state_machine import SherpaStateMachine
 from getpass import getpass
 import aisuite as ai
-from dotenv import load_dotenv
 
-load_dotenv()
 
 openai.api_key = os.environ.get("OPENAI_API_KEY")
 groq.api_key = os.environ.get("GROQ_API_KEY")
@@ -63,6 +65,12 @@ if __name__ == "__main__":
 
 
 def extract_html_tables(llm_response : str) -> list[Tag]:
+    """
+    The extract HTML tables function takes in a string representing
+    the LLM's response, and extracts all HTML tables in the response.
+    A list of BeautifulSoup tags are returned so tables can be further
+    processed
+    """
     # extract the content within the ```html code blocks using regex
     code_blocks = re.findall(r'```html(.*?)```', llm_response, re.DOTALL)
     
@@ -83,7 +91,10 @@ def extract_html_tables(llm_response : str) -> list[Tag]:
     return tables
 
 def extract_table_using_headers(llm_response: str, headers : list[str]) -> Tag:
-    
+    """
+    The extract_table_using_headers function extracts all tables with the matching list
+    of headers from an LLM response, and returns a BeautifulSoup tag containing the table
+    """
     # find all tables in the response
     tables = extract_html_tables(llm_response=llm_response)
     
@@ -96,18 +107,28 @@ def extract_table_using_headers(llm_response: str, headers : list[str]) -> Tag:
     return None
 
 def extract_states_events_table(llm_response):
+    """
+    Extract the states-events table for Linear SMF responses
+    """
     states_events_table_headers = ["Current State", "Event", "Next State(s)"]
     states_events_table = extract_table_using_headers(llm_response=llm_response,
                                                       headers=states_events_table_headers)
     return states_events_table
 
 def extract_parallel_states_table(llm_response):
+    """
+    Extracts the parallel states table for Linear SMF responses
+    """
     parallel_states_table_headers = ["Parallel State", "Substate"]
     parallel_states_table = extract_table_using_headers(llm_response=llm_response,
                                                         headers=parallel_states_table_headers)
     return parallel_states_table
 
 def extract_transitions_guards_table(llm_response : str, includeHeader : bool) -> Tag:
+    """
+    Extracts the table of transitions with headers "From State", "To State", "Event",
+    and "Guard" for Linear SMF responses
+    """
     transitions_guards_table_headers = ["From State", "To State", "Event", "Guard"]
     transitions_guards_table = extract_table_using_headers(llm_response=llm_response,
                                                            headers=transitions_guards_table_headers)
@@ -118,9 +139,13 @@ def extract_transitions_guards_table(llm_response : str, includeHeader : bool) -
     return transitions_guards_table
 
 def extract_history_state_table(llm_response : str, includeHeader: bool = False) -> Tag:
-    history_table_headers = ["From State", "Event", "Guard", "Action"]
+    """
+    Extracts the table containing history state transitions for History States for
+    Linear SMF responses
+    """
+    history_table_headers = ["FromState", "Event", "Guard", "Action"]
     history_table = extract_table_using_headers(llm_response=llm_response,
-                                                           headers=history_table_headers)
+                                                headers=history_table_headers)
     if history_table and not includeHeader:
         first_row = history_table.find('tr')
         if first_row:
@@ -128,12 +153,20 @@ def extract_history_state_table(llm_response : str, includeHeader: bool = False)
     return history_table
 
 def extract_hierarchical_state_table(llm_response : str) -> Tag:
+    """
+    Extracts tables depicting Hierarchical State relationships in
+    responses for Event Driven SMF responses
+    """
     history_table_headers = ["Superstate", "Substate"]
     history_table = extract_table_using_headers(llm_response=llm_response,
                                                 headers=history_table_headers)
     return history_table
 
 def appendTables(table1 : Tag, table2 : Tag) -> Tag:
+    """
+    The appendTables function merges the rows of two tables together (assuming
+    the two tables have the same headers)
+    """
     table1 = BeautifulSoup(str(table1), 'html.parser').find_all('table')[0]
     table2 = BeautifulSoup(str(table2), 'html.parser').find_all('table')[0]
 
@@ -142,6 +175,10 @@ def appendTables(table1 : Tag, table2 : Tag) -> Tag:
     return table1
 
 def addColumn(table : Tag, headerName : str, columnIdx : int, placeholderValue : str):
+    """
+    The addColumn function adds a new column to a given table at the specified index,
+    with the header headerName, and a default value placeholderValue
+    """
     soup = BeautifulSoup(str(table), 'html.parser')
 
     # Add a new header for the new column
@@ -160,11 +197,11 @@ def addColumn(table : Tag, headerName : str, columnIdx : int, placeholderValue :
     return table
 
 def extractColumn(table : Tag, columnIdx : int):
+    """
+    The extractColumn gets all entries in the column at index
+    columnIdx
+    """
     column_list = []
-    # soup = BeautifulSoup(str(table), 'html.parser')
-
-    # # Find the table
-    # table = soup.find('table', {'id': 'myTable'})
 
     # Add new column data to each row
     if table:
@@ -175,16 +212,38 @@ def extractColumn(table : Tag, columnIdx : int):
     return column_list
 
 def extract_transitions_guards_actions_table(llm_response : str) -> Tag:
-    transitions_guards_table_events_headers = ["From State", "To State", "Event", "Guard", "Action"]
+    """
+    Extracts transitions tables with headers "From State", "To State", "Event", "Guard", and
+    "Action" for Linear SMF and Event Driven SMF responses
+    """
+    transitions_guards_table_events_headers = ["FromState", "ToState", "Event", "Guard", "Action"]
     transitions_guards_actions_table = extract_table_using_headers(llm_response=llm_response,
                                                                    headers=transitions_guards_table_events_headers)
     return transitions_guards_actions_table
     
 def str_to_Tag(table : str):
+    """
+    converts the string of an HTML table into a BeautifulSoup Tag
+    """
     tables = BeautifulSoup(str(table), 'html.parser').find_all('table')
     return tables[0] if tables else None
 
+def format_state_name_for_pytransitions(state_name, hierarchical_states_table):
+    """
+    given a state name and the table of hierarchical states, format the state's name to be the expected
+    format for the transitions for pytransitions. The format is ParentState_ChildState
+    """
+    child_state_to_parent_state = map_child_state_to_parent_state(hierarchical_state_table=hierarchical_states_table)
+    if child_state_to_parent_state and child_state_to_parent_state.get(state_name, None) is not None:
+        return f"{child_state_to_parent_state.get(state_name)}_{state_name}"
+    else:
+        return state_name
+
 def gsm_tables_to_dict(hierarchical_states_table : Tag, transitions_table : Tag, parallel_state_table : Tag):
+    """
+    Extracts the states, transitions, and parallel regions of a Generated State Machine (GSM) and returns
+    them in a list
+    """
     hierarchical_states_table = table_remove_spaces(str_to_Tag(hierarchical_states_table))
     transitions_table = table_remove_spaces(str_to_Tag(transitions_table))
     parallel_state_table = table_remove_spaces(str_to_Tag(parallel_state_table))
@@ -199,8 +258,8 @@ def gsm_tables_to_dict(hierarchical_states_table : Tag, transitions_table : Tag,
         cols = row.find_all('td')
         transition = {
             "trigger": cols[2].get_text(),
-            "source": cols[0].get_text(),
-            "dest": cols[1].get_text(),
+            "source": format_state_name_for_pytransitions(state_name=cols[0].get_text(), hierarchical_states_table=hierarchical_states_table),
+            "dest": format_state_name_for_pytransitions(state_name=cols[1].get_text(), hierarchical_states_table=hierarchical_states_table),
         }
         if (cols[4].get_text() != "NONE"):
             transition["before"] = cols[4].get_text()
@@ -250,6 +309,9 @@ def gsm_tables_to_dict(hierarchical_states_table : Tag, transitions_table : Tag,
                 states.append(child)
         states.remove(non_composite_state[0])
 
+    # remove states which are already encompassed by a parent state
+    states = [state for state in states if (non_composite_state and state in non_composite_state[0]["children"]) or isinstance(state, dict)]
+
     # Remove all spaces not to confuse mermaid
     states = list(map(state_remove_spaces, states))
     transitions = list(map(transitions_remove_spaces, transitions))
@@ -257,7 +319,56 @@ def gsm_tables_to_dict(hierarchical_states_table : Tag, transitions_table : Tag,
 
     return states, transitions, parallel_regions
 
+def add_initial_hierarchical_states(gsm_states : list, hierarchical_initial_states : dict):
+    """
+    the add_initial_hierarchical_states sets the "initial" key of the hierarchical states in the gsm_states
+    list to map to the name of the hierarchical state's initial state, as required by pytransitions. note
+    that the initial state name does NOT need to be in the format "ParentState_ChildState"
+    """
+
+    # iterate over each hierarchical state and its initial state
+    for hierarchical_state_name, initial_state_name in hierarchical_initial_states.items():
+        if initial_state_name is not None:
+            # locate the hierarchical state in the list of initial states
+            for gsm_state in gsm_states:
+                # check to see if the current state is the hierarchical state and set the initial state if it is one of the child states
+                if isinstance(gsm_state, dict) and gsm_state.get("name") == hierarchical_state_name.replace(" ", "") and initial_state_name.replace(" ", "") in gsm_state.get("children"):
+                    gsm_state["initial"] = initial_state_name.replace(" ", "")
+                    break
+
+    return gsm_states
+
+def create_event_based_gsm_diagram(hierarchical_states_table : Tag, transitions_table : Tag, parallel_state_table : Tag, initial_state : str, hierarchical_initial_states : dict):
+    gsm_states, gsm_transitions, gsm_parallel_regions = gsm_tables_to_dict(hierarchical_states_table=hierarchical_states_table,
+                                                                           transitions_table=transitions_table,
+                                                                           parallel_state_table=parallel_state_table)
+    
+    # update the states so each hierarchical state contains their initial state
+    gsm_states = add_initial_hierarchical_states(gsm_states=gsm_states,
+                                                 hierarchical_initial_states=hierarchical_initial_states)
+    print(f"States: {gsm_states}")
+    print(f"Transitions: {gsm_transitions}")
+    print(f"Parallel Regions: {gsm_parallel_regions}")
+
+    # Create the state machine
+    gsm = SherpaStateMachine(
+        states=gsm_states,
+        transitions=gsm_transitions,
+        initial=format_state_name_for_pytransitions(initial_state, hierarchical_states_table=hierarchical_states_table).replace(" ", ""),
+        sm_cls=HierarchicalGraphMachine
+    )
+    
+    print(gsm.sm.get_graph().draw(None))
+
+    # Generate and render a sequence diagram
+    sequence = Graph('Sequence-diagram', gsm.sm.get_graph().draw(None))
+    render = md.Mermaid(sequence)
+    render.to_png('ExhibitA.png')
+
 def table_remove_spaces(table):
+    """
+    Removes white space from table entries
+    """
     if not table:
         return None
     
@@ -271,42 +382,58 @@ def table_remove_spaces(table):
     return table
 
 def state_remove_spaces(state):
+    """
+    Removes white space from State Table entries
+    """
+
+    # the state is a hierarchical state
     if isinstance(state, dict):
         state['name'] = state['name'].replace(' ', '')
         state['children'] = [s.replace(' ', '') for s in state['children']]
     else:
+        # the state is not a hierarchical state
         state = state.replace(' ', '')
     return state
 
 def transitions_remove_spaces(transition):
+    """
+    Removes white space from state names in a transition dictionary
+    """
     transition['source'] = transition['source'].replace(' ', '')
     transition['dest'] = transition['dest'].replace(' ', '')
     return transition
 
 def regions_remove_spaces(region):
+    """
+    Removes the white space from parallel region and region child states in a region dictionary
+    """
     region['name'] = region['name'].replace(' ', '')
     region['regionChildren'] = [s.replace(' ', '') for s in region['regionChildren']]
     return region
 
 def extract_event_driven_states_table(llm_response : str) -> Tag:
-    event_driven_states_table_headers = ["State Name"]
+    """
+    Extracts the table containing all states of a UML State Machine for Event Driven SMF responses
+    """
+    event_driven_states_table_headers = ["StateName"]
     event_driven_states_table = extract_table_using_headers(llm_response=llm_response,
                                                             headers=event_driven_states_table_headers)
     return event_driven_states_table
 
 def extract_event_driven_events_table(llm_response : str) -> Tag:
-    event_driven_events_table_headers = ["Event Name"]
+    """
+    Extracts the table containing all events of a UML State Machine for Event Driven SMF responses
+    """
+    event_driven_events_table_headers = ["EventName"]
     event_driven_events_table = extract_table_using_headers(llm_response=llm_response,
                                                             headers=event_driven_events_table_headers)
     return event_driven_events_table
 
-def extract_event_driven_partial_order_table(llm_response: str) -> Tag:
-    event_driven_partial_order_headers = ["Partial Order Index", "Partial Order"]
-    event_drivent_partial_order_table = extract_table_using_headers(llm_response=llm_response,
-                                                                    headers=event_driven_partial_order_headers)
-    return event_drivent_partial_order_table
 
 def extract_table_entries(table: Tag):
+    """
+    Extracts all table entries in a given BeautifulSoup table
+    """
     table = str(table)
     soup = BeautifulSoup(table, "html.parser")
     table = soup.find("table")
@@ -314,6 +441,10 @@ def extract_table_entries(table: Tag):
     return entries
 
 def merge_tables(html_tables_list) -> Tag:
+    """
+    Appends a list of HTML tables together, assuming all tables in the list
+    have the exact same headers and columns
+    """
     # Assume the first table contains the header, so extract it
     header_cells = [th.get_text() for th in html_tables_list[0].find_all('th')]
 
@@ -344,6 +475,12 @@ def merge_tables(html_tables_list) -> Tag:
     return merged_table
 
 def create_exit_transitions_table(transitions_table, from_state):
+    """
+    Using the transitions table of the entire UML State Machine, given
+    the starting state from_state, return a table of all transitions exiting
+    the state, with each row having a unique ID
+    """
+
     # Parse the transitions table
     transitions_table = str(transitions_table)
     soup = BeautifulSoup(transitions_table, "html.parser")
@@ -376,6 +513,10 @@ def create_exit_transitions_table(transitions_table, from_state):
     return from_state_transitions_table
 
 def remove_transitions_from_exit_transition_table(transitions_table, ids_to_remove):
+    """
+    Given a list of transition IDs ids_to_remove, the remove_transitions_from_exit_transition_table
+    removes all transitions that have their ID in the list ids_to_remove
+    """
     transitions_table = str(transitions_table)
     soup = BeautifulSoup(transitions_table, "html.parser")
     transitions_table = soup.find("table")
@@ -404,6 +545,10 @@ def remove_transitions_from_exit_transition_table(transitions_table, ids_to_remo
 
 
 def group_parent_child_states(hierarchical_state_table):
+    """
+    Given the hierarchical state table with columns "Superstate" and "Substate",
+    create a dictionary mapping each Superstate to a list of its Substates
+    """
     if isinstance(hierarchical_state_table, str):
         soup = BeautifulSoup(hierarchical_state_table, "html.parser")
         hierarchical_state_table = soup.find("table")
@@ -429,6 +574,10 @@ def group_parent_child_states(hierarchical_state_table):
     return hierarchical_state_dict
 
 def map_child_state_to_parent_state(hierarchical_state_table):
+    """
+    Given the hierarchical state table with columns "Superstate" and "Substate",
+    create a dictionary mapping each Substate to its Superstate, if it has one
+    """
     hierarchical_state_table = str(hierarchical_state_table)
     soup = BeautifulSoup(hierarchical_state_table, "html.parser")
     hierarchical_state_table = soup.find("table")
@@ -450,6 +599,10 @@ def map_child_state_to_parent_state(hierarchical_state_table):
     return child_to_parent_dict
 
 def refactor_transition_table_with_parent_states(transitions_table, hierarchical_state_table):
+    """
+    Replaces the "From State" and "To State" columns with states named in the format ParentState.ChildState
+    """
+
     # map each child state to its parent, if it has one
     child_to_parent_dict = map_child_state_to_parent_state(hierarchical_state_table=hierarchical_state_table)
 
@@ -487,6 +640,9 @@ def refactor_transition_table_with_parent_states(transitions_table, hierarchical
     return transitions_table
 
 def find_events_for_transitions_table(transitions_table):
+    """
+    Extracts all the events that occur in a given HTML transitions table
+    """
     # convert to beautiful soup if input is a string
     transitions_table = str(transitions_table)
     soup = BeautifulSoup(transitions_table, "html.parser")

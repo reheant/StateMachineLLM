@@ -1,3 +1,4 @@
+# step 1: search for system name from description using EventDrivenSystemNameSearchAction
 system_name_search = {
     "trigger": "start_event_driven_system_name_search",
     "source": "SystemNameSearch",
@@ -5,6 +6,7 @@ system_name_search = {
     "before": "event_driven_system_name_search_action",
 }
 
+# step 2: search for states of the UML State Machine from description using EventDrivenStateSearchAction
 state_search = {
     "trigger": "start_event_driven_state_search",
     "source": "StateSearch",
@@ -12,6 +14,7 @@ state_search = {
     "before": "event_driven_state_search_action",
 }
 
+# step 3: search for the initial state of the UML State Machine using EventDrivenInitialStateSearchAction
 initial_state_search = {
     "trigger": "start_event_driven_initial_state_search",
     "source": "InitialStateSearch",
@@ -19,6 +22,7 @@ initial_state_search = {
     "before": "event_driven_initial_state_search_action",
 }
 
+# step 4: search for events of the UML State Machine using EventDrivenEventSearchAction
 event_search = {
     "trigger": "start_event_driven_event_search",
     "source": "EventSearch",
@@ -26,6 +30,7 @@ event_search = {
     "before": "event_driven_event_search_action"
 }
 
+# step 5: identify the events that can occur in each state using EventDrivenAssociateEventsWithStatesAction
 associate_events_with_states = {
     "trigger": "start_event_driven_associate_events_with_states_action",
     "source": "AssociateEventsWithStates",
@@ -33,20 +38,31 @@ associate_events_with_states = {
     "before": "event_driven_associate_events_with_states_action"
 }
 
+# step 6: create transitions based on groups of states and events using EventDrivenCreateTransitionsAction
 create_transitions = {
     "trigger": "start_event_driven_create_transitions",
     "source": "CreateTransitions",
-    "dest": "CreateHierarchicalStates",
+    "dest": "ParallelRegionsSearch",
     "before": "event_driven_create_transitions_action"
 }
 
+# step 7: filter the transitions created in step 6 to reduce number of false positives using EventDrivenFilterTransitionsAction
 filter_transitions = {
     "trigger": "start_event_driven_filter_transitions",
     "source": "FilterTransitions",
-    "dest": "CreateHierarchicalStates",
+    "dest": "ParallelRegionsSearch",
     "before": "event_driven_filter_transitions_action"
 }
 
+# step 8: identify parallel regions based on events
+parallel_regions_search = {
+    "trigger": "start_event_driven_parallel_regions_search_action",
+    "source": "ParallelRegionsSearch",
+    "dest": "CreateHierarchicalStates",
+    "before": "event_driven_parallel_regions_search_action"    
+}
+
+# step 9: using the identified transitions, create hierarchical states in the UML State Machine using EventDrivenCreateHierarchicalStatesAction
 create_hierarchical_states = {
     "trigger": "start_event_driven_create_hierarchical_states",
     "source": "CreateHierarchicalStates",
@@ -54,20 +70,15 @@ create_hierarchical_states = {
     "before": "event_driven_create_hierarchical_states_action"
 }
 
+# step 10: identify the initial state of each hierarchical state using EventDrivenHierarchicalInitialStateSearchAction
 hierarchical_initial_state_search = {
     "trigger": "start_event_driven_hierarchical_initial_state_search",
     "source": "HierarchicalInitialStateSearch",
-    "dest": "RefactorTransitionNames",
+    "dest": "FactorOutHierarchalTransitions",
     "before": "event_driven_hierarchical_initial_state_search"
 }
 
-refactor_transition_names = {
-    "trigger": "start_event_driven_refactor_transition_names",
-    "source": "RefactorTransitionNames",
-    "dest": "FactorOutHierarchalTransitions",
-    "before": "event_driven_refactor_transition_names_action"
-}
-
+# step 10: move common transitions amongst children states to parent state
 factor_out_hierarchal_transitions = {
     "trigger": "start_event_driven_factor_out_transitions_for_hierarchal_states",
     "source": "FactorOutHierarchalTransitions",
@@ -75,6 +86,7 @@ factor_out_hierarchal_transitions = {
     "before": "event_driven_factor_out_transitions_for_hierarchal_states_action"
 }
 
+# step 13: identify necessary history states in the UML State Machine using EventDrivenHistoryStateSearchAction
 history_state_search = {
     "trigger": "start_event_driven_history_state_search_action",
     "source": "HistoryStateSearch",
@@ -82,6 +94,7 @@ history_state_search = {
     "before": "event_driven_history_state_search_action"
 }
 
+# step 14: print the final tables representing the UML State Machine
 display_results = {
     "trigger": "start_event_driven_display_results_action",
     "source": "DisplayResults",
@@ -96,9 +109,9 @@ transitions = [
                 event_search,
                 associate_events_with_states,
                 create_transitions,
+                parallel_regions_search,
                 create_hierarchical_states,
                 hierarchical_initial_state_search,
-                refactor_transition_names,                
                 factor_out_hierarchal_transitions,
                 history_state_search,
                 display_results

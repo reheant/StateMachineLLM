@@ -3,12 +3,24 @@ from resources.util import call_llm, extract_hierarchical_state_table, extract_t
 from resources.n_shot_examples import get_n_shot_examples
 
 class HierarchicalStateSearchAction(BaseAction):
+    """
+    The HierarchicalStateSearchAction creates the Hierarchical State of the UML State Machine from the system description,
+    and updates the transitions table to reflect the new parent states
+
+    Input(s): description of the system, name of the system, and transitions table created by ActionSearchAction
+    Output(s): An HTML table containing the Hierarchical states and its child states, and the updated transitions table to reflect the new Hierarchical States
+    """
+
     name: str = "hierarchical_state_search_action"
     args: dict = {}
     usage: str = "Identify all hierarchical states in the system"
     description: str = ""
 
     def execute(self):
+        """
+        The execute function prompts the LLM to create hierarchical states and update transitions using a 2-shot prompting approach
+        """
+        
         print(f"Running {self.name}...")
 
         modeled_system, _ = self.belief.get('state_event_search_action')
@@ -38,15 +50,17 @@ class HierarchicalStateSearchAction(BaseAction):
 
         Example:
 
-        The system description: {self.description}
+        system_description: {self.description}
 
-        The system you are modeling: {modeled_system}
+        system_name: {modeled_system}
 
-        The transitions table: {transitions_table}
+        transitions_events_guards_table: {transitions_table}
 
-        Parent state table:
+        hierarchical_state_table:
 
-        Updated transitions table: 
+        transitions_events_guards_table: 
+
+        Your talent for organizing complex state hierarchies brings clarity to intricate system behaviors. Each level you define in the hierarchical state machine illuminates the system's true nature. Your architectural vision ensures a maintainable and scalable design.
         '''
         answer = call_llm(prompt)
         hierarchical_state_table = extract_hierarchical_state_table(answer)

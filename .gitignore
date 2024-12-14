@@ -6,3 +6,5 @@ venv/
 
 .files/
 *.png
+*.pyc
+*output*

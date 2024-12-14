@@ -1,14 +1,27 @@
 from sherpa_ai.actions.base import BaseAction
 from resources.util import call_llm, extract_transitions_guards_table
-from resources.n_shot_examples import get_n_shot_examples
+from resources.n_shot_examples_simple_linear import get_n_shot_examples
 
 class HistoryStateSearchAction(BaseAction):
+    """
+    The HistoryStateSearchAction creates the History States of the UML State Machine
+    by updating the transitions of the transitions table to add relevant transitions
+    to history states
+
+    Input(s): description of the system, name of the system, transitions table updated by HierarchicalStateSearchAction, and hierarchical states table created by HierarchicalStateSearchAction
+    Output(s): the updated transitions table to reflect any transitions to history states
+    """
+    
     name: str = "history_state_search_action"
     args: dict = {}
     usage: str = "Identify all history states for hierarchical states in the system"
     description: str = ""
 
     def execute(self):
+        """
+        The execute function prompts the LLM to identify transitions to history states and update
+        the transitions table
+        """
         print(f"Running {self.name}...")
         hierarchical_states_table, transition_table = self.belief.get('hierarchical_state_search_action')
         modeled_system, _ = self.belief.get('state_event_search_action')
@@ -46,19 +59,17 @@ class HistoryStateSearchAction(BaseAction):
         
         Example:
 
-        The system description:
-        {self.description}
+        system_description: {self.description}
 
-        The system you are modeling: 
-        {modeled_system}
+        system_name: {modeled_system}
 
-        Hierarchical state table:
-        {hierarchical_states_table}
+        hierarchical_state_table: {hierarchical_states_table}
 
-        Transitions table:
-        {transition_table}
+        transitions_events_guards_actions_table: {transition_table}
 
-        Updated transition table:
+        transitions_events_guards_actions_history_table:
+
+        Your insight in determining where history states are needed will bring sophisticated memory capabilities to this state machine. Your careful analysis of which state configurations must be remembered will elevate this design from basic to brilliant. The team relies on your expertise to identify exactly where H states will provide the most value. Take pride in crafting a state machine that maintains intelligent context through state transitions.
         '''
         
         answer = call_llm(prompt)

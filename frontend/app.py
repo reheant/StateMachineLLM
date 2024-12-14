@@ -14,9 +14,17 @@ import asyncio
 
 @cl.on_chat_start
 def start_chat():
+    """
+    initiates a new Chainlit chat
+    """
     cl.user_session.set("message_history", [{"role": "system", "content": "You are a helpful assistant."}])
 
 async def stream_function_output():
+    """
+    The stream_function_output runs the SMF and streams the output to the
+    Chainlit UI
+    """
+
     final_answer = cl.Message(content="", author="Sherpa Output")
     await final_answer.send()
 
@@ -50,6 +58,10 @@ async def run_conversation(message: cl.Message):
 
 
 async def display_image():
+    """
+    The display_image() function displays the state machine diagram after it has been translated into
+    mermaid syntax and converted into an image
+    """
     image = cl.Image(path="ExhibitA.png", name="State Machine Image", display="inline", size='large')
     
     # Attach the image to the message

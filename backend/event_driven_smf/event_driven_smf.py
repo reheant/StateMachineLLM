@@ -15,33 +15,34 @@ from sherpa_ai.policies.react_policy import ReactPolicy
 from sherpa_ai.agents.qa_agent import QAAgent
 
 from actions.EventDrivenSystemNameSearchAction import EventDrivenSystemNameSearchAction
-from actions.EventDrivenStateSearchAction import EventDrivenStateSearchSearchAction
-from actions.EventDrivenInitialStateSearchAction import EventDrivenInitialStateSearchSearchAction
+from actions.EventDrivenStateSearchAction import EventDrivenStateSearchAction
+from actions.EventDrivenInitialStateSearchAction import EventDrivenInitialStateSearchAction
 from actions.EventDrivenEventSearchAction import EventDrivenEventSearchAction
 from actions.EventDrivenAssociateEventsWithStatesAction import EventDrivenAssociateEventsWithStatesAction
 from actions.EventDrivenCreateTransitionsAction import EventDrivenCreateTransitionsAction
 from actions.EventDrivenCreateHierarchicalStatesAction import EventDrivenCreateHierarchicalStatesAction
 from actions.EventDrivenHierarchicalInitialStateSearchAction import EventDrivenHierarchicalInitialStateSearchAction
-from actions.EventDrivenRefactorTransitionNamesAction import EventDrivenRefactorTransitionNamesAction
 from actions.EventDrivenDisplayResultsAction import EventDrivenDisplayResultsAction
+from actions.EventDrivenFilterTransitionsAction import EventDrivenFilterTransitionsAction
 from actions.EventDrivenHistoryStateSearchAction import EventDrivenHistoryStateSearchAction
 from actions.EventDrivenFactorOutTransitionsForHierarchalStates import EventDrivenFactorOutTransitionsForHierarchalStates
+from actions.EventDrivenParallelRegionsSearchAction import EventDrivenParallelRegionsSearchAction
 from event_driven_smf_transitions import transitions
 from resources.state_machine_descriptions import thermomix_fall_2021
-import mermaid as md
-from mermaid.graph import Graph
-from resources.util import gsm_tables_to_dict, choose_model
+from resources.util import create_event_based_gsm_diagram, choose_model
 import time
 
 description = thermomix_fall_2021
 
 belief = Belief()
 belief.set("description", description)
+
+# Sherpa actions of the Event State Machine Framework
 event_driven_system_name_search_action = EventDrivenSystemNameSearchAction(belief=belief,
                                                                            description=description)
-event_driven_state_search_action = EventDrivenStateSearchSearchAction(belief=belief,
+event_driven_state_search_action = EventDrivenStateSearchAction(belief=belief,
                                                                       description=description)
-event_driven_initial_state_search_action = EventDrivenInitialStateSearchSearchAction(belief=belief,
+event_driven_initial_state_search_action = EventDrivenInitialStateSearchAction(belief=belief,
                                                                                      description=description)
 event_driven_event_search_action = EventDrivenEventSearchAction(belief=belief,
                                                                 description=description)
@@ -49,12 +50,14 @@ event_driven_associate_events_with_states = EventDrivenAssociateEventsWithStates
                                                                                        description=description)
 event_driven_create_transitions_action = EventDrivenCreateTransitionsAction(belief=belief,
                                                                             description=description)
+event_driven_filter_transitions_action = EventDrivenFilterTransitionsAction(belief=belief,
+                                                                            description=description)
+event_driven_filter_transitions_action = EventDrivenFilterTransitionsAction(belief=belief,description=description)
+event_driven_parallel_regions_search_action = EventDrivenParallelRegionsSearchAction(belief=belief, description=description)
 event_driven_create_hierarchical_states_action = EventDrivenCreateHierarchicalStatesAction(belief=belief,
                                                                                            description=description)
 event_driven_hierarchical_initial_state_search_action = EventDrivenHierarchicalInitialStateSearchAction(belief=belief,
                                                                                                         description=description)
-event_driven_refactor_transition_names_action =  EventDrivenRefactorTransitionNamesAction(belief=belief,
-                                                                                          description=description)
 event_driven_factor_out_transitions_for_hierarchal_states = EventDrivenFactorOutTransitionsForHierarchalStates(belief=belief,
                                                                                           description=description)
 event_driven_history_state_search_action =  EventDrivenHistoryStateSearchAction(belief=belief,
@@ -62,6 +65,7 @@ event_driven_history_state_search_action =  EventDrivenHistoryStateSearchAction(
 event_driven_display_results_action = EventDrivenDisplayResultsAction(belief=belief,
                                                                       description=description)
 
+# mapping between the names of Sherpa actions and their Action class
 event_driven_action_map = {
     event_driven_system_name_search_action.name: event_driven_system_name_search_action,
     event_driven_state_search_action.name: event_driven_state_search_action,
@@ -69,31 +73,34 @@ event_driven_action_map = {
     event_driven_event_search_action.name: event_driven_event_search_action,
     event_driven_associate_events_with_states.name: event_driven_associate_events_with_states,
     event_driven_create_transitions_action.name: event_driven_create_transitions_action,
+    event_driven_parallel_regions_search_action.name: event_driven_parallel_regions_search_action,
+    event_driven_filter_transitions_action.name: event_driven_filter_transitions_action,
     event_driven_create_hierarchical_states_action.name: event_driven_create_hierarchical_states_action,
     event_driven_hierarchical_initial_state_search_action.name: event_driven_hierarchical_initial_state_search_action,
-    event_driven_refactor_transition_names_action.name: event_driven_refactor_transition_names_action,
     event_driven_factor_out_transitions_for_hierarchal_states.name: event_driven_factor_out_transitions_for_hierarchal_states,
     event_driven_history_state_search_action.name: event_driven_history_state_search_action,
     event_driven_display_results_action.name: event_driven_display_results_action
 }
 
+# states of the Event Driven State Machine Framework
 states = [
             "SystemNameSearch",
             "StateSearch",
             "InitialStateSearch",
             "EventSearch",
             "AssociateEventsWithStates",
-            "CreateTransitions",
+            "CreateTransitions",            
+            "ParallelRegionsSearch",
+            "FilterTransitions",
             "CreateHierarchicalStates",
             "HierarchicalInitialStateSearch",
-            "RefactorTransitionNames",
             "FactorOutHierarchalTransitions",
             "HistoryStateSearch",
             "DisplayResults",
             "Done"
          ]
 
-# create event driven state macine
+# create Sherpa state machine and set the task for creating a UML State Machine
 initial = "SystemNameSearch"
 event_driven_smf = SherpaStateMachine(states=states, 
                                       transitions=transitions, 
@@ -109,22 +116,53 @@ belief.set_current_task(Event(EventType.task,
 # set up task to be run
 llm = SherpaChatOpenAI(model_name="gpt-4o-mini", temperature=0.7)
 policy = ReactPolicy(role_description="Help the user finish the task", output_instruction="Determine which action and arguments would be the best continuing the task", llm=llm)
-qa_agent = QAAgent(llm=llm, belief=belief, num_runs=100, policy=policy)
+qa_agent = QAAgent(llm=llm, belief=belief, num_runs=20, policy=policy)
 
 def run_event_driven_smf():
-    with open(f'{os.path.dirname(__file__)}\\..\\resources\\event_driven_log\\output_event_driven{time.strftime("%m_%d_%H_%M_%S")}.txt', 'w') as f:
-        sys.stdout = f
-        qa_agent.run()
+    """
+    the run_event_driven_smf initiates the Sherpa Event Driven State Machine Framework
+    """
+    try:
+        # Define the base directory for logs
+        base_dir = os.path.join(os.path.dirname(__file__), "..", "resources", "event_driven_log")
+        os.makedirs(base_dir, exist_ok=True)  # Ensure the directory exists
 
-        gsm_states, gsm_transitions, gsm_parallel_regions = gsm_tables_to_dict(belief.get("event_driven_create_hierarchical_states_action"), belief.get("event_driven_history_state_search_action"), None)
-        print(f"States: {gsm_states}")
-        print(f"Transitions: {gsm_transitions}")
-        print(f"Parallel Regions: {gsm_parallel_regions}")
-        gsm = SherpaStateMachine(states=gsm_states, transitions=gsm_transitions, initial=belief.get("event_driven_initial_state_search_action").replace(' ',''), sm_cls=HierarchicalGraphMachine)
-        print(gsm.sm.get_graph().draw(None))
-        sequence = Graph('Sequence-diagram',gsm.sm.get_graph().draw(None))
-        render = md.Mermaid(sequence)
-        render.to_png('ExhibitA.png')
+        # Construct the log file path
+        log_file_name = f'output_event_driven_{time.strftime("%Y_%m_%d_%H_%M_%S")}.txt'
+        log_file_path = os.path.join(base_dir, log_file_name)
+
+        # Redirect stdout to the log file
+        with open(log_file_path, 'w') as f:
+            sys.stdout = f  # Redirect all print statements to the log file
+            try:
+                # Execute QA agent
+                qa_agent.run()
+
+                # Extract GSM state information and create the Mermaid diagram
+                hierarchical_states_table = belief.get("event_driven_create_hierarchical_states_action")
+                transitions_table = belief.get("event_driven_history_state_search_action")
+                parallel_state_table = None
+                initial_state = belief.get("event_driven_initial_state_search_action")
+                hierarchical_initial_states = belief.get("event_driven_hierarchical_initial_state_search")
+
+                create_event_based_gsm_diagram(hierarchical_states_table=hierarchical_states_table,
+                                               transitions_table=transitions_table,
+                                               parallel_state_table=parallel_state_table,
+                                               initial_state=initial_state,
+                                               hierarchical_initial_states=hierarchical_initial_states)
+                
+
+            finally:
+                # Restore original stdout
+                sys.stdout = sys.__stdout__
+
+        print(f"Log successfully written to: {log_file_path}")
+
+    except Exception as e:
+        # Handle and print any errors that occur
+        sys.stdout = sys.__stdout__  # Ensure stdout is restored before printing
+        print(f"Error during event-driven logging: {e}")
+
 
 if __name__ == "__main__":
     run_event_driven_smf()

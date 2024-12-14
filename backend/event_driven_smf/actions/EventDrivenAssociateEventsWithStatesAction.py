@@ -1,5 +1,6 @@
 import re
 from sherpa_ai.actions.base import BaseAction
+from resources.n_shot_examples_event_driven import get_n_shot_examples
 from resources.util import call_llm, extract_table_entries
 
 class EventDrivenAssociateEventsWithStatesAction(BaseAction):
@@ -8,6 +9,9 @@ class EventDrivenAssociateEventsWithStatesAction(BaseAction):
     of states and events to find the events that can occur in each of the identified states. The
     output of this action is a dictionary which maps the names of states to the names of events that
     can occur in that state
+
+    Input(s): description of the system, name of the system, table of events from EventDrivenEventSearchAction, and table of states from EventDrivenStateSearchAction
+    Output(s): a dictionary mapping the name of a state to the name(s) events that can occur in the state in the UML State Machine
     """
 
     name: str = "event_driven_associate_events_with_states_action"
@@ -25,32 +29,67 @@ class EventDrivenAssociateEventsWithStatesAction(BaseAction):
         """
 
         prompt = f"""
-        You are an AI assistant specialized in designing UML state machines from a textual description of a system. Given the description of the system, a single identified state of the system, and all events of the system, you task is to solve a question answering task.
+You are an expert requirements engineer specializing in designing UML state machines from textual system descriptions. Your task is to analyze a given system and determine which events can trigger transitions in a specific state.
 
-        Name of the system:
-        {system_name}
+Here's the system you need to analyze:
 
-        Description of the system:
-        {self.description}
+System Name:
+<system_name>
+{system_name}
+</system_name>
 
-        The single identified state of the system is:
-        {state}
+System Description:
+<system_description>
+{self.description}
+</system_description>
 
-        The table of identified events of the system is:
-        {events_table}
+Events Table:
+<events_table>
+{events_table}
+</events_table>
 
-        Solution structure:
-        1. Begin the response with "Let's think step by step."
-        2. Examine the description of the system. Using the description of the system, determine partial orderings of ALL events. A partial ordering of events refers to a system where some events must occur in a specific sequence due to dependencies, while others can happen independently or concurrently.
-        3. Determine which events out of ALL events apply to the state {state} based on the partial orderings you determined in step 2. The events that occur in this state MUST adhere to the orderings that you generated in step 2. You MUST identify only the MOST RELEVANT events for the given state. Ensure no events that you identify can occur only before or after the event has been reached in the UML state machine. You MUST provide events for the given state, otherwise your solution will be rejected.
-        4. Finally, give a list of the events that apply to the state {state} in a comma seperated list in the following format:
+The state we're focusing on is:
+<state_inspected>
+{state}
+</state_inspected>
 
-        Relevant Events: <first_event>, <second_event>, <third_event>, ...
-        
-        The events that you provide MUST come from the original events table provided to you above. DO NOT add events that do not exist.
-        Your solution MUST be in the above format, otherwise it will be rejected.
-        """
+Your task is to determine which events from the events table can trigger a transition in the {state} state. Follow these steps carefully:
 
+1. Examine the system description thoroughly.
+2. Determine partial orderings of ALL events based on the description. A partial ordering shows which events must occur in a specific sequence due to dependencies, while others can happen independently or concurrently.
+3. Identify the events that can trigger a transition in the {state} state. These events MUST:
+   a) Adhere to the partial orderings you determined
+   b) Be the MOST RELEVANT events for the {state} state
+   c) Be possible to occur while the system is in the {state} state (not before or after)
+4. List the identified events in a comma-separated format within <associated_events> tags.
+
+Before providing your final answer, wrap your analysis inside <event_analysis> tags. In this analysis:
+1. List all events from the events table.
+2. For each event, note whether it's relevant to the inspected state and why.
+3. Create a partial ordering diagram of all events.
+4. Identify which events can occur while in the inspected state.
+5. Explain the reasoning for your final selection of associated events.
+This will ensure a thorough interpretation of the data and improve the quality of your response. It's OK for this section to be quite long.
+
+Remember:
+- Your response must be concise and accurate.
+- Only use events from the provided events table.
+- Failure to follow these instructions precisely may result in termination of your role as a requirements engineer.
+
+After your analysis, provide your final list of associated events in the following format:
+
+<associated_events>event1, event2, event3</associated_events>
+
+{get_n_shot_examples(['printer_winter_2017'],['system_name', 'system_description', 'events_table', 'state_inspected', 'associated_events'])}
+
+<state_inspected>Ready</state_inspected>
+
+<associated_events>logoff, start, scan, print</associated_events>
+
+Your expertise in this task is crucial for the success of the project. The entire team is relying on your accurate analysis to move forward with the UML state machine design. Your dedication to precision and attention to detail will greatly impact the overall quality of the system being developed.
+"""
+
+        print(prompt)
         # iterate over a max number of retries in order to get the correct format
         # if the LLM does not get the correct format after max_retries, then we return none
         retries = 0
@@ -58,15 +97,17 @@ class EventDrivenAssociateEventsWithStatesAction(BaseAction):
             response = call_llm(prompt=prompt, 
                                  temperature=0.7)
             
-            match = re.search(r"Relevant Events:\s*([\w\s,]+)", response)
-            if not match:
+            associated_events_search = re.search(r"<associated_events>(.*?)</associated_events>", response)
+
+            if not associated_events_search:
                 retries += 1
+                associated_events = "NOT FOUND"
             else:
-                events = match.group(1)
-                events = events.strip()
-                if events:
-                    events_list = [event.strip() for event in events.split(",") if event.strip()]
-                    print(events_list)
+                associated_events = associated_events_search.group(1)
+                associated_events = associated_events.strip()
+                if associated_events:
+                    events_list = [event.strip() for event in associated_events.split(",") if event.strip()]
+                    print(associated_events)
                     return events_list
 
             retries += 1

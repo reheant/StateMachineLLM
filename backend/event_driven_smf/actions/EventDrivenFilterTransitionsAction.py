@@ -3,6 +3,15 @@ from sherpa_ai.actions.base import BaseAction
 from resources.util import call_llm, remove_transitions_from_exit_transition_table, extract_table_entries, create_exit_transitions_table, find_events_for_transitions_table, merge_tables
 
 class EventDrivenFilterTransitionsAction(BaseAction):
+    """
+    The EventDrivenFilterTransitionsAction takes examines the transitions table created
+    by EventDrivenCreateTransitionsAction and prompts the LLM to reduce the number of
+    false positive transitions created.
+
+    Input(s): description of the system, name of the system, states of the system from EventDrivenStateSearchAction, and the transitions of the system from EventDrivenCreateTransitionsAction
+    Output(s): an HTML table with columns "From State", "To State", "Event", "Guard", and "Action" containing all transitions of the UML State Machine after removing unnecessary transitions
+    """
+
     name: str = "event_driven_filter_transitions_action"
     args: dict = {}
     usage: str = "Given a description of a system and the identified transitions of the system, reduce the number of inaccurate or unneccesary transitions in the UML State Machine"
@@ -10,6 +19,13 @@ class EventDrivenFilterTransitionsAction(BaseAction):
 
     
     def send_filter_transitions_prompt(self, system_name, transitions_table, events, state):
+        """
+        The send_filter_transitions_prompt() function takes a single state name,
+        the table containing all transitions leaving a state, and all events occuring the state.
+        The LLM is prompted to create partial orderings of the provided events, and then remove
+        any transitions which violate the partial orderings
+        """
+
         events_formatted = ", ".join(events)
         prompt = f"""
         You are an AI assistant specialized in designing UML state machines from a textual description of a system. Given the description of the system, a state, and a table containing the transitions exiting the provided state, your task is to answer a question answering task.
@@ -68,6 +84,15 @@ class EventDrivenFilterTransitionsAction(BaseAction):
         
 
     def execute(self):
+        """
+        The execute function takes the transitions table created by the EventDrivenCreateTransitionsAction
+        and the states identified by the EventDrivenStateSearchAction as input. For each identified state, 
+        the transitions exiting that state are extracted from the transitions table and the events of those transitions. 
+        Then, the execute function calls the send_filter_transitions_prompt() function to prompt the LLM to remove
+        unneccessary transitions. These filtered transitions tables are then merged to create the filtered
+        transitions table of the UML state machine
+        """
+
         print(f"Running {self.name}...")
         system_name = self.belief.get("event_driven_system_name_search_action", "Thermomix TM6")
 
@@ -77,7 +102,7 @@ class EventDrivenFilterTransitionsAction(BaseAction):
 
         filtered_transitions_tables = []
 
-        # create partial orders based on the transitions that exit each state 
+        # for each state, prompt the LLM to remove unnecessary transitions exiting the state, and store the new table in a list
         for state in states:
             exit_transitions = create_exit_transitions_table(transitions_table=event_driven_transitions_table,
                                                                    from_state=state)
@@ -91,6 +116,7 @@ class EventDrivenFilterTransitionsAction(BaseAction):
             
             filtered_transitions_tables.append(filtered_transitions_table)
         
+        # merge all the filtered transitions tables into a single HTML table
         filtered_transitions_table = merge_tables(html_tables_list=filtered_transitions_tables)
 
         print(filtered_transitions_table)

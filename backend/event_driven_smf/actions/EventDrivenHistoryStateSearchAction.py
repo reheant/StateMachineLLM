@@ -3,66 +3,48 @@ from resources.util import call_llm, extract_history_state_table, addColumn, app
 from resources.n_shot_examples import get_n_shot_examples
 
 class EventDrivenHistoryStateSearchAction(BaseAction):
+    """
+    The EventDrivenHistoryStateSearchAction examines the transitions, events, and hierarchical states
+    of the UML State Machine and prompts the LLM to identify which hierarchical states and transitions
+    can be simplified by adding a history state to hierarchical states.
+
+    Input(s): description of the system, name of the system, table of events in the UML State Machine, table of transitions in the UML State Machine, and table of hierarchical states and states in the UML State Machine of the system
+    Output(s): table of transitions in the UML State Machine with necessary transitions to history states
+    """
+
     name: str = "event_driven_history_state_search_action"
     args: dict = {}
     usage: str = "Identify all history states for hierarchical states in the system"
     description: str = ""
 
     def execute(self):
+        """
+        The execute function prompts the LLM to create transitions to history states based on the tables of
+        hierarchical states, transitions, and events identified.
+        """
+        
         print(f"Running {self.name}...")
         
         transitions_table = self.belief.get('event_driven_factor_out_transitions_for_hierarchal_states_action')
         modeled_system = self.belief.get('event_driven_system_name_search_action')
         superstates = [state for state in gsm_tables_to_dict(self.belief.get('event_driven_create_hierarchical_states_action'), transitions_table, None)[0] if isinstance(state, dict)]
         events = self.belief.get('event_driven_event_search_action')
-        
-        # transitions_table = event_driven_filter_transitions
-        # modeled_system = event_driven_system_name_search
-        # superstates = [state for state in gsm_tables_to_dict(event_driven_create_hierarchical_states, transitions_table, None)[0] if isinstance(state, dict)]
-        # events = event_driven_event_search
 
         for superstate in superstates:
             prompt = f'''
-            You are an AI assistant specialized in creating state machines.
+You are an expert requirements engineer specializing in UML state machine design. Your task is to analyze a given system description and determine whether a specified superstate requires a history state. This analysis is crucial for creating accurate and efficient state machine models.
 
-            Objective:
-            Given the system description, system being modeled and a super state (a state that contains substates), determine whether the super state requires a history state (to remember the last active substate after a transition), and the transitions to the history state in the state machine.
+Here is the system you need to analyze:
 
-            Definitions:
+<system_name>
+{modeled_system}
+</system_name>
 
-                •	History State: A mechanism in state machines that allows a composite state to remember its last active substate when re-entered, instead of starting from its initial substate.
+<system_description>
+{self.description}
+</system_description>
 
-            Criteria for Requiring a History State:
-
-                1.	Transitions Targeting the Parent State: A history state is needed if there are transitions to a parent state from outside its hierarchy.
-                2.	Resuming Previous Substate: The system's behavior requires resuming the last active substate rather than starting from the initial substate upon re-entry.
-
-            Instructions:
-
-                1.	Analyze the System:
-                    Review the system description, the modeled system, and the transition table provided below.
-                2.	Determine the Need for History States:
-                    For the given super state, decide if a history state is required based on the criteria.
-                3.	Identify Transitions to the History state:
-                    Find all transitions to the history states triggered by one of the following events:
-                    {events}
-                4.	Output Format:
-                    If no history state is required for the super state, output: NO_HISTORY_STATE.
-                    Otherwise output the following table representing the transitions to the history state of the given super state:
-                    ```html <table border="1"> 
-                    <tr> <th>From State</th> <th>Event</th> <th>Guard</th> <th>Action</th> </tr> 
-                    <tr> <td rowspan="3"> State1 </td> <td> Event1 </td> <td> Condition1 </td> <td> Action 1 </td> </tr> 
-                    <tr> <td rowspan="3"> State2 </td> <td> Event1 </td> <td> Condition1 </td> <td> NONE </td> </tr> 
-                    <tr> <td rowspan="3"> State4 </td> <td> Event3 </td> <td> NONE </td> <td> Action 1 </td> </tr> 
-                    <tr> <td rowspan="3"> State2 </td> <td> Event1 </td> <td> NONE </td> <td> NONE </td> </tr> 
-                    </table> ```
-
-            Input:
-                The system description:
-                {self.description}
-
-                The system you are modeling: 
-                {modeled_system}
+Please carefully review the following transition table for the system:
 
                 Transition table:
                 {transitions_table}
@@ -83,7 +65,7 @@ class EventDrivenHistoryStateSearchAction(BaseAction):
                 continue
             else:
                 print('Found history state')
-                history_transitions = addColumn(history_transitions, None, 2, f'{superstate["name"]}.H')
+                history_transitions = addColumn(history_transitions, None, 1, f'{superstate["name"]}.H')
                 transitions_table = appendTables(transitions_table, history_transitions)
         print(transitions_table)
         return transitions_table
