@@ -47,10 +47,10 @@ Here is the information about the system you need to analyze:
 {states_table}
 </states_table>
 
-Your task is to determine ALL transitions that the event {event} can trigger for the state {{state_inspected}}. Follow these steps:
+Your task is to determine ALL transitions that the event {event} can trigger for the state {state}. Follow these steps:
 
 1. Carefully analyze the system description and the provided tables.
-2. Identify all possible transitions that can be triggered by the event {event} when the system is in the state {{state_inspected}}.
+2. Identify all possible transitions that can be triggered by the event {event} when the system is in the state {state}.
 3. For each identified transition:
    a. Determine any guard conditions (if applicable).
    b. Identify any actions that could occur (if applicable).

@@ -1,6 +1,7 @@
 import os
 import anthropic
 import groq
+import openai
 from openai import OpenAI
 import re
 from bs4 import BeautifulSoup, Tag
@@ -54,7 +55,7 @@ model = choose_model()
 
 def call_llm(prompt, max_tokens=1200, temperature=0.7):
     """
-    The call_gpt4 function calls the specified OpenAI LLM with a specified prompt,
+    The call_llm function calls the specified LLM with a specified prompt,
     max_tokens, and temperature, and returns the string response of the LLM
     """
     global energy_consumed, carbon_emissions, abiotic_resource_depletion
@@ -66,6 +67,10 @@ def call_llm(prompt, max_tokens=1200, temperature=0.7):
         temperature=temperature,
         max_tokens=max_tokens
     )
+
+    if model == "openai:gpt-4o":
+        tracker.update_impacts(response)
+
     return str (response.choices[0].message.content)
 
 
@@ -75,8 +80,6 @@ if __name__ == "__main__":
     llm_response = call_llm(prompt)
     print(llm_response)
 
-    
-    tracker.update_impacts(response)
     
 def extract_html_tables(llm_response : str) -> list[Tag]:
     """

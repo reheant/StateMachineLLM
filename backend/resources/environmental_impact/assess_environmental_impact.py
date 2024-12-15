@@ -1,4 +1,5 @@
 import pandas as pd
+import os
 from ecologits.impacts.llm import compute_llm_impacts
 from collections import defaultdict
 
