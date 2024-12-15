@@ -8,3 +8,5 @@ anthropic
 llama-stack
 groq
 vertexai
+ecologits
+iPython

@@ -1,7 +1,7 @@
 import os
-import openai
 import anthropic
 import groq
+from openai import OpenAI
 import re
 from bs4 import BeautifulSoup, Tag
 from transitions.extensions import HierarchicalGraphMachine
@@ -10,6 +10,8 @@ from mermaid.graph import Graph
 from sherpa_ai.memory.state_machine import SherpaStateMachine
 from getpass import getpass
 import aisuite as ai
+from ecologits import EcoLogits
+from resources.environmental_impact.impact_tracker import tracker
 
 
 openai.api_key = os.environ.get("OPENAI_API_KEY")
@@ -47,6 +49,20 @@ def choose_model():
 model = choose_model()
 
 def call_llm(prompt, max_tokens=1200, temperature=0.7):
+=======
+from ecologits import EcoLogits
+from resources.environmental_impact.impact_tracker import tracker
+
+EcoLogits.init(providers="openai")
+client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+
+def call_gpt4(prompt, model="gpt-4o", max_tokens=2000, temperature=0.7):
+    """
+    The call_gpt4 function calls the specified OpenAI LLM with a specified prompt,
+    max_tokens, and temperature, and returns the string response of the LLM
+    """
+    global energy_consumed, carbon_emissions, abiotic_resource_depletion
+
     response = client.chat.completions.create(
         model=model,
         messages=[{"role": "system", "content": "You are a programming assistant specialized in generating HTML content. Your task is to create a state machine representation using HTML tables."},
@@ -63,6 +79,10 @@ if __name__ == "__main__":
     llm_response = call_llm(prompt)
     print(llm_response)
 
+    
+    tracker.update_impacts(response)
+    
+    return response.choices[0].message.content
 
 def extract_html_tables(llm_response : str) -> list[Tag]:
     """
