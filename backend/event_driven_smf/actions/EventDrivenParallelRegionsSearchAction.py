@@ -1,6 +1,7 @@
 from sherpa_ai.actions.base import BaseAction
 from resources.util import call_llm, extract_states_events_table, extract_parallel_states_table
 
+
 class EventDrivenParallelRegionsSearchAction(BaseAction):
     name: str = "event_driven_parallel_regions_search_action"
     args: dict = {}

@@ -146,8 +146,3 @@ Your expertise in this task is crucial for the success of the project. The entir
 
         return states_events_dict
         
-
-
-
-
-

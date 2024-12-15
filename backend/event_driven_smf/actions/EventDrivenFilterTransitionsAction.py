@@ -1,3 +1,4 @@
+
 import re
 from sherpa_ai.actions.base import BaseAction
 from resources.util import call_llm, remove_transitions_from_exit_transition_table, extract_table_entries, create_exit_transitions_table, find_events_for_transitions_table, merge_tables
@@ -122,4 +123,3 @@ class EventDrivenFilterTransitionsAction(BaseAction):
         print(filtered_transitions_table)
         return filtered_transitions_table
                 
-
