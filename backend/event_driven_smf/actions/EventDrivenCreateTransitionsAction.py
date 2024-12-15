@@ -1,5 +1,6 @@
 from sherpa_ai.actions.base import BaseAction
-from resources.util import call_llm, extract_table_entries, extract_transitions_guards_actions_table, merge_tables
+from resources.util import call_llm, extract_transitions_guards_actions_table, merge_tables
+from resources.n_shot_examples_event_driven import get_n_shot_examples
 
 class EventDrivenCreateTransitionsAction(BaseAction):
     """

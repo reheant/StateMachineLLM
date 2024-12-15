@@ -1,6 +1,5 @@
 from sherpa_ai.actions.base import BaseAction
 from resources.util import call_llm, extract_history_state_table, addColumn, appendTables, gsm_tables_to_dict
-from resources.n_shot_examples import get_n_shot_examples
 
 class EventDrivenHistoryStateSearchAction(BaseAction):
     """

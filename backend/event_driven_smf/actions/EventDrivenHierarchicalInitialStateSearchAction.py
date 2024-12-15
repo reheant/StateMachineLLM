@@ -1,5 +1,6 @@
 from sherpa_ai.actions.base import BaseAction
 from resources.util import call_llm, group_parent_child_states
+from resources.n_shot_examples_event_driven import get_n_shot_examples
 import re
 
 class EventDrivenHierarchicalInitialStateSearchAction(BaseAction):

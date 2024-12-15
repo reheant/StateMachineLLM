@@ -1,5 +1,5 @@
 from sherpa_ai.actions.base import BaseAction
-from resources.util import call_llm, extract_hierarchical_state_table, extract_parallel_states_table, extract_transitions_guards_actions_table, gsm_tables_to_dict
+from resources.util import call_llm, extract_hierarchical_state_table, extract_parallel_states_table, extract_transitions_guards_actions_table
 
 class FinalSanityCheckAction(BaseAction):
     """
