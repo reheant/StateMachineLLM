@@ -10,7 +10,7 @@ Solution structure:
 5. If no transitions can be triggered by the event {event} in the state {state}, reply with "NO TRANSITIONS". Otherwise, give a list of transitions in the following HTML table format:
         
 <create_transitions>```html<table border="1">
-<tr><th>FromState</th><th>ToState</th><th>Event</th><th>Guard</th><th>Action</th></tr>
+<tr><th>From State</th><th>To State</th><th>Event</th><th>Guard</th><th>Action</th></tr>
 <tr><td rowspan="3">State1</td><td>State2</td><td>Event1</td><td>Condition1</td><td>Action1</td></tr>
 <tr><td rowspan="3">State2</td><td>State3</td><td>Event1</td><td>Condition1</td><td>NONE</td></tr>
 </table>```<create_transitions>

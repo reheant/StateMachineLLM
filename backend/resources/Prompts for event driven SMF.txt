@@ -20,8 +20,8 @@ Hierarchical Initial States:
 Transitions:
 <table border='1'>
   <tr>
-    <th>FromState</th>
-    <th>ToState</th>
+    <th>From State</th>
+    <th>To State</th>
     <th>Event</th>
     <th>Guard</th>
     <th>Action</th>

@@ -91,8 +91,8 @@ If a history state is needed, present the table in the following HTML format:
 
 <history_state_table>
 <table border="1">
-<tr><th>FromState</th><th>Event</th><th>Guard</th><th>Action</th></tr>
-<tr><td>[FromState]</td><td>[Event]</td><td>[Guard]</td><td>[Action]</td></tr>
+<tr><th>From State</th><th>Event</th><th>Guard</th><th>Action</th></tr>
+<tr><td>[From State]</td><td>[Event]</td><td>[Guard]</td><td>[Action]</td></tr>
 </table>
 </history_state_table>
 

@@ -42,11 +42,19 @@ hierarchical_states = {
 history_states = {
     "trigger": "start_history_states",
     "source": "HistoryStates",
-    "dest": "SanityCheck",
+    "dest": "InitialStateSearch",
     "before": "history_state_search_action",
 }
 
-# step 7: ask LLM to revise its created tables using FinalSanityCheckAction
+# step 7: identify state machine initial state
+initial_state_search = {
+    "trigger": "start_initial_state_search",
+    "source": "InitialStateSearch",
+    "dest": "SanityCheck",
+    "before": "initial_state_search_action",
+}
+
+# step 8: ask LLM to revise its created tables using FinalSanityCheckAction
 sanity_check = {
     "trigger": "start_sanity_check",
     "source": "SanityCheck",
@@ -61,5 +69,6 @@ transitions = [
                 actions, 
                 hierarchical_states,
                 history_states,
+                initial_state_search,
                 sanity_check
                ]

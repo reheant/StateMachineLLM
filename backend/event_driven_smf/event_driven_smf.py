@@ -31,6 +31,7 @@ from event_driven_smf_transitions import transitions
 from resources.state_machine_descriptions import spa_manager_winter_2018
 from resources.util import create_event_based_gsm_diagram
 import time
+from resources.environmental_impact.impact_tracker import tracker
 
 description = spa_manager_winter_2018
 
@@ -151,7 +152,7 @@ def run_event_driven_smf():
                                                initial_state=initial_state,
                                                hierarchical_initial_states=hierarchical_initial_states)
                 
-
+                tracker.print_metrics()     
             finally:
                 # Restore original stdout
                 sys.stdout = sys.__stdout__
