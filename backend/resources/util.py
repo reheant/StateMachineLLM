@@ -14,10 +14,14 @@ from ecologits import EcoLogits
 from resources.environmental_impact.impact_tracker import tracker
 
 
+
 openai.api_key = os.environ.get("OPENAI_API_KEY")
 groq.api_key = os.environ.get("GROQ_API_KEY")
 anthropic.api_key = os.environ.get("ANTHROPIC_API_KEY")
 
+
+EcoLogits.init(providers="openai")
+client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 
 client = ai.Client()
 
@@ -49,14 +53,6 @@ def choose_model():
 model = choose_model()
 
 def call_llm(prompt, max_tokens=1200, temperature=0.7):
-=======
-from ecologits import EcoLogits
-from resources.environmental_impact.impact_tracker import tracker
-
-EcoLogits.init(providers="openai")
-client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
-
-def call_gpt4(prompt, model="gpt-4o", max_tokens=2000, temperature=0.7):
     """
     The call_gpt4 function calls the specified OpenAI LLM with a specified prompt,
     max_tokens, and temperature, and returns the string response of the LLM
@@ -82,8 +78,6 @@ if __name__ == "__main__":
     
     tracker.update_impacts(response)
     
-    return response.choices[0].message.content
-
 def extract_html_tables(llm_response : str) -> list[Tag]:
     """
     The extract HTML tables function takes in a string representing
