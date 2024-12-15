@@ -1,26 +1,33 @@
 import os
-import openai
+from openai import OpenAI
 import re
 from bs4 import BeautifulSoup, Tag
 from transitions.extensions import HierarchicalGraphMachine
 import mermaid as md
 from mermaid.graph import Graph
 from sherpa_ai.memory.state_machine import SherpaStateMachine
+from ecologits import EcoLogits
+from resources.environmental_impact.impact_tracker import tracker
 
-openai.api_key = os.environ.get("OPENAI_API_KEY")
+EcoLogits.init(providers="openai")
+client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 
 def call_gpt4(prompt, model="gpt-4o", max_tokens=2000, temperature=0.7):
     """
     The call_gpt4 function calls the specified OpenAI LLM with a specified prompt,
     max_tokens, and temperature, and returns the string response of the LLM
     """
-    response = openai.chat.completions.create(
+    global energy_consumed, carbon_emissions, abiotic_resource_depletion
+
+    response = client.chat.completions.create(
         model=model,
         messages=[{"role": "user", "content": prompt}],
         temperature=temperature,
         max_tokens=max_tokens
     )
-
+    
+    tracker.update_impacts(response)
+    
     return response.choices[0].message.content
 
 def extract_html_tables(llm_response : str) -> list[Tag]:

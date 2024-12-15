@@ -4,3 +4,4 @@ sherpa-ai==0.4.0
 beautifulsoup4
 mermaid-py
 ecologits
+iPython
