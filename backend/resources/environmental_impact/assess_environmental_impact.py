@@ -66,7 +66,9 @@ def parse_token_usage(file_path):
         return None, None
 
 def main():
-    path = """C:\\Users\\alect\\dev\\llm\\backend\\resources\\environmental_impact\\activity-2024-10-01-2025-01-01.csv"""
+    script_dir = os.path.dirname(__file__)
+    csv_path = "./activity-2024-10-01-2025-01-01.csv"
+    path = os.path.join(script_dir, csv_path)
     model_stats, total_stats = parse_token_usage(path)
     
     if model_stats and total_stats:
