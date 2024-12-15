@@ -43,7 +43,7 @@ class FinalSanityCheckAction(BaseAction):
         
         # call GPT 4 while we should retry and we haven't reached max retries
         while retries < max_retries and retry:
-            response = call_gpt4(prompt)
+            response = call_llm(prompt)
             
             # extract table based on table name
             if table_name == "Hierarchical States":

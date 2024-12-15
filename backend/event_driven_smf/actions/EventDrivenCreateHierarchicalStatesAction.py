@@ -86,7 +86,7 @@ Remember, your expertise in UML state machines is crucial for creating an accura
 """
 
         print(prompt)
-        response = call_gpt4(prompt=prompt,
+        response = call_llm(prompt=prompt,
                              temperature=0.7)
         
         hierarchical_state_table = None

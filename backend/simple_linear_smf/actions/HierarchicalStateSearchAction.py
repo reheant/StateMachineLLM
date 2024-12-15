@@ -63,7 +63,7 @@ class HierarchicalStateSearchAction(BaseAction):
 
         Your talent for organizing complex state hierarchies brings clarity to intricate system behaviors. Each level you define in the hierarchical state machine illuminates the system's true nature. Your architectural vision ensures a maintainable and scalable design.
         '''
-        answer = call_gpt4(prompt)
+        answer = call_llm(prompt)
         hierarchical_state_table = extract_hierarchical_state_table(answer)
         updated_transitions_table = extract_transitions_guards_actions_table(answer)
 
