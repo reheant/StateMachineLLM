@@ -1,6 +1,6 @@
 from sherpa_ai.actions.base import BaseAction
 from resources.n_shot_examples_event_driven import get_n_shot_examples
-from resources.util import call_gpt4, extract_event_driven_events_table
+from resources.util import call_llm, extract_event_driven_events_table
 
 class EventDrivenEventSearchAction(BaseAction):
     """
@@ -82,7 +82,7 @@ Now, proceed with your analysis and creation of the events table.
 """
 
         print(prompt)
-        response = call_gpt4(prompt=prompt,
+        response = call_llm(prompt=prompt,
                              temperature=0.7)
 
         event_driven_events_table = extract_event_driven_events_table(llm_response=response)

@@ -1,6 +1,7 @@
+
 from sherpa_ai.actions.base import BaseAction
 from resources.n_shot_examples_event_driven import get_n_shot_examples
-from resources.util import call_gpt4, extract_event_driven_states_table
+from resources.util import call_llm, extract_event_driven_states_table
 
 class EventDrivenStateSearchAction(BaseAction):
     """
@@ -74,7 +75,7 @@ As you work on this task, imagine the satisfaction of creating a precise and val
 """
 
         print(prompt)
-        response = call_gpt4(prompt=prompt,
+        response = call_llm(prompt=prompt,
                              temperature=0.7)
 
         event_driven_states_table = extract_event_driven_states_table(llm_response=response)

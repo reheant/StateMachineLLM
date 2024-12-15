@@ -1,4 +1,7 @@
 import os
+import anthropic
+import groq
+import openai
 from openai import OpenAI
 import re
 from bs4 import BeautifulSoup, Tag
@@ -6,30 +9,78 @@ from transitions.extensions import HierarchicalGraphMachine
 import mermaid as md
 from mermaid.graph import Graph
 from sherpa_ai.memory.state_machine import SherpaStateMachine
+from getpass import getpass
+import aisuite as ai
 from ecologits import EcoLogits
 from resources.environmental_impact.impact_tracker import tracker
+
+
+
+openai.api_key = os.environ.get("OPENAI_API_KEY")
+groq.api_key = os.environ.get("GROQ_API_KEY")
+anthropic.api_key = os.environ.get("ANTHROPIC_API_KEY")
+
 
 EcoLogits.init(providers="openai")
 client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 
-def call_gpt4(prompt, model="gpt-4o", max_tokens=2000, temperature=0.7):
+client = ai.Client()
+
+
+def choose_model():
+    print("Please pick the model you want to use to power your assistant:")
+    print("1. GPT-4o")
+    print("2. Claude 3.5 Sonnet")
+    print("3. Llama 3.2 3b Preview")
+    print("4. Gemini 1.5 Pro 001")
+
+
+    while True:
+        try:
+            choice = int(input("Enter the number corresponding to your model (1, 2, 3, 4): "))
+            if choice == 1:
+                return "openai:gpt-4o"
+            elif choice == 2:
+                return  "anthropic:claude-3-5-sonnet-20241022"
+            elif choice == 3:
+                return "groq:llama-3.2-3b-preview"
+            elif choice == 4:
+                return "google:gemini-1.5-pro-001"
+            else:
+                print("Invalid choice. Please enter 1, 2, 3 or 4.")
+        except ValueError:
+            print("Invalid input. Please enter a number (1, 2, 3, or 4).")
+
+model = choose_model()
+
+def call_llm(prompt, max_tokens=1200, temperature=0.7):
     """
-    The call_gpt4 function calls the specified OpenAI LLM with a specified prompt,
+    The call_llm function calls the specified LLM with a specified prompt,
     max_tokens, and temperature, and returns the string response of the LLM
     """
     global energy_consumed, carbon_emissions, abiotic_resource_depletion
 
     response = client.chat.completions.create(
         model=model,
-        messages=[{"role": "user", "content": prompt}],
+        messages=[{"role": "system", "content": "You are a programming assistant specialized in generating HTML content. Your task is to create a state machine representation using HTML tables."},
+                  {"role": "user", "content": prompt}],
         temperature=temperature,
         max_tokens=max_tokens
     )
-    
-    tracker.update_impacts(response)
-    
-    return response.choices[0].message.content
 
+    if model == "openai:gpt-4o":
+        tracker.update_impacts(response)
+
+    return str (response.choices[0].message.content)
+
+
+if __name__ == "__main__":
+    prompt = "Hi, I need help answering a question about states machines. What are events?"
+    model="google:gemini-1.5-pro-001"
+    llm_response = call_llm(prompt)
+    print(llm_response)
+
+    
 def extract_html_tables(llm_response : str) -> list[Tag]:
     """
     The extract HTML tables function takes in a string representing

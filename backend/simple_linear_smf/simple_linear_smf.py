@@ -22,7 +22,7 @@ from actions.HierarchicalStateSearchAction import HierarchicalStateSearchAction
 from actions.HistoryStateSearchAction import HistoryStateSearchAction
 from actions.FinalSanityCheckAction import FinalSanityCheckAction
 from simple_linear_smf_transitions import transitions
-from resources.util import gsm_tables_to_dict
+from resources.util import gsm_tables_to_dict, choose_model
 import mermaid as md
 from mermaid.graph import Graph
 from resources.state_machine_descriptions import *

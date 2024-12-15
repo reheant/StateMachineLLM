@@ -1,6 +1,6 @@
 from sherpa_ai.actions.base import BaseAction
 from resources.n_shot_examples_event_driven import get_n_shot_examples
-from resources.util import call_gpt4, extract_hierarchical_state_table
+from resources.util import call_llm, extract_hierarchical_state_table
 
 class EventDrivenCreateHierarchicalStatesAction(BaseAction):
     """
@@ -86,7 +86,7 @@ Remember, your expertise in UML state machines is crucial for creating an accura
 """
 
         print(prompt)
-        response = call_gpt4(prompt=prompt,
+        response = call_llm(prompt=prompt,
                              temperature=0.7)
         
         hierarchical_state_table = None

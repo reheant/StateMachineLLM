@@ -38,7 +38,6 @@ class EventDrivenDisplayResultsAction(BaseAction):
 
         transitionsParallelRegionsTuple = self.belief.get('event_driven_parallel_regions_search_action')
         print(f"Parallel Regions:\n{transitionsParallelRegionsTuple[1]}")
-
         print("\nEnvironmental Assessment:")
         print(f"Total Completion Tokens: {tracker.total_completion_tokens}")
         print(f"Total Carbon Emissions: {tracker.carbon_emissions} kgCO2eq")

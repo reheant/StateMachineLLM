@@ -1,7 +1,7 @@
 import re
 from sherpa_ai.actions.base import BaseAction
 from resources.n_shot_examples_event_driven import get_n_shot_examples
-from resources.util import call_gpt4, extract_table_entries
+from resources.util import call_llm, extract_table_entries
 
 class EventDrivenAssociateEventsWithStatesAction(BaseAction):
     """
@@ -94,7 +94,7 @@ Your expertise in this task is crucial for the success of the project. The entir
         # if the LLM does not get the correct format after max_retries, then we return none
         retries = 0
         while retries < max_retries:
-            response = call_gpt4(prompt=prompt, 
+            response = call_llm(prompt=prompt, 
                                  temperature=0.7)
             
             associated_events_search = re.search(r"<associated_events>(.*?)</associated_events>", response)
@@ -146,8 +146,3 @@ Your expertise in this task is crucial for the success of the project. The entir
 
         return states_events_dict
         
-
-
-
-
-

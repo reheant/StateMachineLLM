@@ -1,6 +1,6 @@
 from sherpa_ai.actions.base import BaseAction
+from resources.util import call_llm, extract_transitions_guards_actions_table, merge_tables
 from resources.n_shot_examples_event_driven import get_n_shot_examples
-from resources.util import call_gpt4, extract_table_entries, extract_transitions_guards_actions_table, merge_tables
 
 class EventDrivenCreateTransitionsAction(BaseAction):
     """
@@ -47,10 +47,10 @@ Here is the information about the system you need to analyze:
 {states_table}
 </states_table>
 
-Your task is to determine ALL transitions that the event {event} can trigger for the state {{state_inspected}}. Follow these steps:
+Your task is to determine ALL transitions that the event {event} can trigger for the state {state}. Follow these steps:
 
 1. Carefully analyze the system description and the provided tables.
-2. Identify all possible transitions that can be triggered by the event {event} when the system is in the state {{state_inspected}}.
+2. Identify all possible transitions that can be triggered by the event {event} when the system is in the state {state}.
 3. For each identified transition:
    a. Determine any guard conditions (if applicable).
    b. Identify any actions that could occur (if applicable).
@@ -86,7 +86,7 @@ You are the keystone of this project's success. Your meticulous analysis and att
         # if the LLM does not get the correct format after max_retries, then we return none
         retries = 0
         while retries < max_retries:
-            response = call_gpt4(prompt=prompt, 
+            response = call_llm(prompt=prompt, 
                                  temperature=0.7)
             
             # no transitions, so skip retries
