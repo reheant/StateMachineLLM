@@ -1,5 +1,6 @@
+
 from sherpa_ai.actions.base import BaseAction
-from resources.util import call_gpt4, extract_transitions_guards_table
+from resources.util import call_llm, extract_transitions_guards_table
 from resources.n_shot_examples_simple_linear import get_n_shot_examples
 
 class HistoryStateSearchAction(BaseAction):
@@ -72,7 +73,7 @@ class HistoryStateSearchAction(BaseAction):
         Your insight in determining where history states are needed will bring sophisticated memory capabilities to this state machine. Your careful analysis of which state configurations must be remembered will elevate this design from basic to brilliant. The team relies on your expertise to identify exactly where H states will provide the most value. Take pride in crafting a state machine that maintains intelligent context through state transitions.
         '''
         
-        answer = call_gpt4(prompt)
+        answer = call_llm(prompt)
         
         if "NONE" in answer:
             print(f"History State updated transitions: {transition_table}")

@@ -1,6 +1,7 @@
 from sherpa_ai.actions.base import BaseAction
 from resources.n_shot_examples_event_driven import get_n_shot_examples
-from resources.util import call_gpt4, group_parent_child_states
+from resources.util import call_llm, group_parent_child_states
+from resources.n_shot_examples_event_driven import get_n_shot_examples
 import re
 
 class EventDrivenHierarchicalInitialStateSearchAction(BaseAction):
@@ -57,7 +58,7 @@ Remember, your expertise in UML state machines is crucial for creating an accura
 """
 
         print(prompt)
-        response = call_gpt4(prompt=prompt,
+        response = call_llm(prompt=prompt,
                              temperature=0.7)
         
         superstate_initial_state_search = re.search(r"<superstate_initial_state>(.*?)</superstate_initial_state>", response)

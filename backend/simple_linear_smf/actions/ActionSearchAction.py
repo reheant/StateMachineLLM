@@ -1,5 +1,6 @@
+
 from sherpa_ai.actions.base import BaseAction
-from resources.util import call_gpt4
+from resources.util import call_llm
 from resources.util import extract_transitions_guards_actions_table
 from resources.n_shot_examples_simple_linear import get_n_shot_examples
 
@@ -56,7 +57,7 @@ class ActionSearchAction(BaseAction):
                     Your expertise in identifying system actions is vital for capturing the true dynamic behavior of this state machine. Each action you recognize represents a crucial system response that brings our model to life. Your thorough analysis of when and how these actions should occur will ensure our state machine reflects real-world behavior with precision. Trust in your ability to distinguish essential actions that drive the system's evolution.
                 """
 
-        response = call_gpt4(prompt=prompt)
+        response = call_llm(prompt=prompt)
 
         transitions_guards_actions_table = extract_transitions_guards_actions_table(response)
         

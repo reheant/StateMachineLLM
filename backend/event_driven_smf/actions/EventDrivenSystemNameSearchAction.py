@@ -1,6 +1,7 @@
+
 import re
 from sherpa_ai.actions.base import BaseAction
-from resources.util import call_gpt4
+from resources.util import call_llm
 from resources.n_shot_examples_event_driven import get_n_shot_examples
 
 class EventDrivenSystemNameSearchAction(BaseAction):
@@ -66,7 +67,7 @@ If you provide an incorrect or overly verbose answer, it could lead to miscommun
 
         print(prompt)
 
-        response = call_gpt4(prompt=prompt,
+        response = call_llm(prompt=prompt,
                              temperature=0.7)
         
         system_name_search = re.search(r"<system_name>(.*?)</system_name>", response)

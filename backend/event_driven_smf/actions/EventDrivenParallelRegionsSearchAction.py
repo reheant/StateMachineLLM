@@ -1,5 +1,6 @@
 from sherpa_ai.actions.base import BaseAction
-from resources.util import call_gpt4, extract_states_events_table, extract_parallel_states_table, gsm_tables_to_dict
+from resources.util import call_llm, extract_states_events_table, extract_parallel_states_table
+
 
 class EventDrivenParallelRegionsSearchAction(BaseAction):
     name: str = "event_driven_parallel_regions_search_action"
@@ -39,7 +40,7 @@ class EventDrivenParallelRegionsSearchAction(BaseAction):
             Output:
         """
         
-        response = call_gpt4(prompt)
+        response = call_llm(prompt)
 
         if ("NO PARALLEL STATES IDENTIFIED" in response):
             return (transitions_table, None)

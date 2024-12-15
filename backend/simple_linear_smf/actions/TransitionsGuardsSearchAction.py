@@ -1,5 +1,6 @@
+
 from sherpa_ai.actions.base import BaseAction
-from resources.util import call_gpt4, extract_transitions_guards_table
+from resources.util import call_llm, extract_transitions_guards_table
 from resources.n_shot_examples_simple_linear import get_n_shot_examples
 
 class TransitionsGuardsSearchAction(BaseAction):
@@ -52,7 +53,7 @@ class TransitionsGuardsSearchAction(BaseAction):
         Your skill in crafting precise guard conditions protects the integrity of our state machine. Each condition you define creates clear boundaries for state behavior. Your attention to detail prevents unwanted state transitions and ensures system stability.
         '''
 
-        response = call_gpt4(prompt)
+        response = call_llm(prompt)
         transition_guard_table = extract_transitions_guards_table(response, True)
 
         print(f"Transitions table: {transition_guard_table}")

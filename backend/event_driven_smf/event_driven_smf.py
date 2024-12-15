@@ -28,12 +28,12 @@ from actions.EventDrivenHistoryStateSearchAction import EventDrivenHistoryStateS
 from actions.EventDrivenFactorOutTransitionsForHierarchalStates import EventDrivenFactorOutTransitionsForHierarchalStates
 from actions.EventDrivenParallelRegionsSearchAction import EventDrivenParallelRegionsSearchAction
 from event_driven_smf_transitions import transitions
-from resources.state_machine_descriptions import spa_manager_winter_2018
+from resources.state_machine_descriptions import thermomix_fall_2021
 from resources.util import create_event_based_gsm_diagram
 import time
 from resources.environmental_impact.impact_tracker import tracker
 
-description = spa_manager_winter_2018
+description = thermomix_fall_2021
 
 belief = Belief()
 belief.set("description", description)

@@ -30,5 +30,3 @@ class EventDrivenRefactorTransitionNamesAction(BaseAction):
         
         print(refactored_event_driven_transitions_table)
         return refactored_event_driven_transitions_table
-
-

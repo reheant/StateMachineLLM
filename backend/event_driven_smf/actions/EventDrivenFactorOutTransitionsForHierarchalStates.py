@@ -1,3 +1,4 @@
+
 from sherpa_ai.actions.base import BaseAction
 from resources.util import parse_html_table, getStateHierarchyDictFromList, dict_to_html_table
 from collections import defaultdict
@@ -66,4 +67,3 @@ def factor_transitions(transitions, hierarchy):
         modified_transitions.extend(common_transitions)
 
     return modified_transitions
-

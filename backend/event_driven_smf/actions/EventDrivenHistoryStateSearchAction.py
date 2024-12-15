@@ -1,6 +1,6 @@
 from sherpa_ai.actions.base import BaseAction
 from resources.n_shot_examples_event_driven import get_n_shot_examples
-from resources.util import call_gpt4, extract_history_state_table, addColumn, appendTables, gsm_tables_to_dict
+from resources.util import call_llm, extract_history_state_table, addColumn, appendTables, gsm_tables_to_dict
 
 class EventDrivenHistoryStateSearchAction(BaseAction):
     """
@@ -104,7 +104,7 @@ Remember, your analysis and decision are critical for the correct implementation
 '''
 
             print(prompt)
-            answer = call_gpt4(prompt)
+            answer = call_llm(prompt)
             history_transitions = extract_history_state_table(answer)
 
             if not history_transitions:
