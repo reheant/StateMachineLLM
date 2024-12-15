@@ -38,7 +38,6 @@ Here's the information you'll be working with:
 <system_name>
 {system_name}
 </system_name>
-
 3. States Table:
 <states_table>
 {event_driven_states_table}
