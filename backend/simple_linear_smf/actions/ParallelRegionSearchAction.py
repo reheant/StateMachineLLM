@@ -1,3 +1,4 @@
+
 from sherpa_ai.actions.base import BaseAction
 from sherpa_ai.memory.belief import Belief
 from resources.util import call_llm
@@ -106,4 +107,3 @@ class ParallelStateSearchAction(BaseAction):
         print(f"Parallel State event table: {state_event_table}")
         print(f"Parallel State table: {parallel_state_table}")
         return state_event_table, parallel_state_table
-

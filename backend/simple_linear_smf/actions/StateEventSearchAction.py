@@ -46,8 +46,6 @@ class StateEventSearchAction(BaseAction):
 
             Your expertise in identifying system events is critical for defining the precise triggers that drive our state machine's behavior. Each event you recognize shapes how the system reacts to its environment and internal changes. Your systematic analysis of what truly constitutes a meaningful event will create a responsive and well-structured design. Take pride in knowing that your careful event identification lays the foundation for clear and predictable state transitions.
         """)
-
-        print(states_response_in_html)
         
         # get the name of the system
         system_name = re.search(r"system_name:\s*\"(.*?)\"", states_response_in_html).group(1)
@@ -57,4 +55,4 @@ class StateEventSearchAction(BaseAction):
 
         print(f"System name: {system_name}")
         print(f"State event table: {state_events_table}")
-        return state_events_table
+        return (system_name, state_events_table)

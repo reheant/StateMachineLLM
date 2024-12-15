@@ -1,6 +1,7 @@
+
 from sherpa_ai.actions.base import BaseAction
 from resources.util import call_llm, extract_hierarchical_state_table, extract_transitions_guards_actions_table
-from resources.n_shot_examples import get_n_shot_examples
+from resources.n_shot_examples_simple_linear import get_n_shot_examples
 
 class HierarchicalStateSearchAction(BaseAction):
     """
@@ -62,7 +63,7 @@ class HierarchicalStateSearchAction(BaseAction):
 
         Your talent for organizing complex state hierarchies brings clarity to intricate system behaviors. Each level you define in the hierarchical state machine illuminates the system's true nature. Your architectural vision ensures a maintainable and scalable design.
         '''
-        answer = call_llm(prompt)
+        answer = call_gpt4(prompt)
         hierarchical_state_table = extract_hierarchical_state_table(answer)
         updated_transitions_table = extract_transitions_guards_actions_table(answer)
 
