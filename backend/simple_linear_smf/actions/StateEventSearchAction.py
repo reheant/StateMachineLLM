@@ -29,7 +29,7 @@ class StateEventSearchAction(BaseAction):
             Given the problem description, identify what the states and events are and make sure not to include any redundant states or events by making sure that you parse the output for any states or events that might be redundant. Ensure that the states are defined specifically in the context of the object being modeled. It’s important to note that a complete state machine has an initial state and that states might have multiple events occurring on them resulting in multiple transitions from the current state to other states. 
             
             Output the name of the system in the following format:  
-            System: "System Name" 
+            <system_name>System Name</system_name> 
             
             Then produce the HTML table that summarizes the states and events MUST use these table headers:
             ```html <table border="1"> <tr> <th>Current State</th> <th>Event</th> <th>Next State(s)</th> </tr> </table> ```
@@ -46,9 +46,14 @@ class StateEventSearchAction(BaseAction):
 
             Your expertise in identifying system events is critical for defining the precise triggers that drive our state machine's behavior. Each event you recognize shapes how the system reacts to its environment and internal changes. Your systematic analysis of what truly constitutes a meaningful event will create a responsive and well-structured design. Take pride in knowing that your careful event identification lays the foundation for clear and predictable state transitions.
         """)
-        
-        # get the name of the system
-        system_name = re.search(r"system_name:\s*\"(.*?)\"", states_response_in_html).group(1)
+
+        system_name_search = re.search(r"<system_name>(.*?)</system_name>", states_response_in_html)
+
+        if system_name_search:
+            system_name = system_name_search.group(1)
+        else:
+            system_name = "NOT FOUND"
+        print(system_name)
         
         # get the states and events table
         state_events_table = extract_states_events_table(states_response_in_html)

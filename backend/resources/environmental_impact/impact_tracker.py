@@ -11,12 +11,12 @@ class ImpactTracker:
         self.abiotic_resource_depletion += response.impacts.adpe.value
         self.total_completion_tokens += response.usage.completion_tokens
     
-    def get_metrics(self):
-        return {
-            "energy_consumed": self.energy_consumed,
-            "carbon_emissions": self.carbon_emissions,
-            "abiotic_resource_depletion": self.abiotic_resource_depletion,
-            "completion_tokens": self.total_completion_tokens,
-        }
+    def print_metrics(self):
+        print("\nEnvironmental Assessment:")
+        print(f"Total Completion Tokens: {self.total_completion_tokens}")
+        print(f"Total Carbon Emissions: {self.carbon_emissions} kgCO2eq")
+        print(f"Total Energy Use: {self.energy_consumed} kWh")
+        print(f"Total Abiotic Resource Use: {self.abiotic_resource_depletion} gSbeq")
+        print("\n")
 
 tracker = ImpactTracker()

@@ -21,12 +21,13 @@ from actions.ActionSearchAction import ActionSearchAction
 from actions.HierarchicalStateSearchAction import HierarchicalStateSearchAction
 from actions.HistoryStateSearchAction import HistoryStateSearchAction
 from actions.FinalSanityCheckAction import FinalSanityCheckAction
+from actions.InitialStateSearchAction import InitialStateSearchAction
 from simple_linear_smf_transitions import transitions
 from resources.util import gsm_tables_to_dict, choose_model
 import mermaid as md
 from mermaid.graph import Graph
 from resources.state_machine_descriptions import *
-
+from resources.environmental_impact.impact_tracker import tracker
 
 description = thermomix_fall_2021
 
@@ -51,6 +52,9 @@ hierarchical_state_action = HierarchicalStateSearchAction(usage="identifying hie
 history_state_action = HistoryStateSearchAction(usage="identifying history states in problem description for state machine", 
                                                 belief=belief, 
                                                 description=description)
+initial_state_search_action = InitialStateSearchAction(usage="identifying initial state in state machine", 
+                                                belief=belief, 
+                                                description=description)
 sanity_check_action = FinalSanityCheckAction(usage="compare generated state machine with problem description", 
                                              belief=belief, 
                                              description=description)
@@ -63,6 +67,7 @@ action_map = {
     action_search_action.name: action_search_action,
     hierarchical_state_action.name: hierarchical_state_action,
     history_state_action.name: history_state_action,
+    initial_state_search_action.name: initial_state_search_action,
     sanity_check_action.name: sanity_check_action
 }
 
@@ -74,6 +79,7 @@ states = [
             "FiguringActions", 
             "HierarchicalStates", 
             "HistoryStates", 
+            "InitialStateSearch",
             "SanityCheck", 
             "Done"
          ]
@@ -98,16 +104,19 @@ def run_sherpa_task():
         
         qa_agent.run()
     
-    # run the sherpa task, and get the ouputs in order to generate the mermaid code and create visual diagram of state machine
+        # run the sherpa task, and get the ouputs in order to generate the mermaid code and create visual diagram of state machine
         gsm_states, gsm_transitions, gsm_parallel_regions = gsm_tables_to_dict(*belief.get("sanity_check_action"))
+        initial_state = belief.get("initial_state_search_action")
         print(f"States: {gsm_states}")
         print(f"Transitions: {gsm_transitions}")
         print(f"Parallel Regions: {gsm_parallel_regions}")
-        gsm = SherpaStateMachine(states=gsm_states, transitions=gsm_transitions, initial=[sms for sms in gsm_states if not isinstance(sms, dict)][0], sm_cls=HierarchicalGraphMachine)
+        gsm = SherpaStateMachine(states=gsm_states, transitions=gsm_transitions, initial=initial_state, sm_cls=HierarchicalGraphMachine)
         print(gsm.sm.get_graph().draw(None))
         sequence = Graph('Sequence-diagram',gsm.sm.get_graph().draw(None))
         render = md.Mermaid(sequence)
         render.to_png(f'{os.path.dirname(__file__)}\\ExhibitA.png')
+
+        tracker.print_metrics()
 
 if __name__ == "__main__":
     run_sherpa_task()

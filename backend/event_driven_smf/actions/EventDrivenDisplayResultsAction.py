@@ -1,8 +1,4 @@
 from sherpa_ai.actions.base import BaseAction
-from resources.environmental_impact.impact_tracker import tracker
-
-def get_current_impacts():
-    return tracker.get_metrics()
 
 class EventDrivenDisplayResultsAction(BaseAction):
     """

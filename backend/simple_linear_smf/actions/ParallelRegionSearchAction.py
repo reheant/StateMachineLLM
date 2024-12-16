@@ -51,9 +51,11 @@ class ParallelStateSearchAction(BaseAction):
 
             system_name: {system_name}
 
-            transitions_events_table: {state_event_table}
+            original_transitions_events_table: {state_event_table}
 
             parallel_states_table:
+
+            updated_transitions_events_table:
 
             Your expertise in identifying parallel regions is crucial for capturing truly concurrent system behaviors. Each parallel region you recognize allows independent aspects of the system to evolve simultaneously, creating a more realistic and efficient model. Your careful analysis of which states can operate independently will ensure our state machine accurately reflects real-world parallelism. Trust your insight to identify where parallel execution will enhance our system's capabilities.
         """
@@ -93,7 +95,6 @@ class ParallelStateSearchAction(BaseAction):
         # the parallel state search response returns an updated state/event table (required), and a parallel_state table (optional)
         updated_state_event_table, parallel_state_table = self.send_parallel_state_search(system, state_event_table)
         
-
         # the state event table must be updated, so if the LLM does not return it throw an error so the state machine will try again
         if updated_state_event_table is None:
             raise Exception(f"Max retries reached for ParallelRegionSearchAction")

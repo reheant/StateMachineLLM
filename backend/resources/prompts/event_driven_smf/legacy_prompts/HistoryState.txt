@@ -15,7 +15,7 @@ Solution structure:
 3.	If the superstate does not require a history state, output "NO_HISTORY_STATE", otherwise output a table listing all transitions to the history state triggered by one of the events in the events table in the following HTML format:
 
 <history_state_table>```html<table border="1"> 
-<tr><th>FromState</th><th>Event</th><th>Guard</th><th>Action</th></tr>
+<tr><th>From State</th><th>Event</th><th>Guard</th><th>Action</th></tr>
 <tr><td>State1</td><td>Event1</td><td>Condition1</td><td>Action1</td></tr>
 <tr><td>State2</td><td>Event1</td><td>Condition1</td><td>NONE</td></tr>
 <tr><td>State4</td><td>Event3</td><td>NONE</td><td>Action1</td></tr>

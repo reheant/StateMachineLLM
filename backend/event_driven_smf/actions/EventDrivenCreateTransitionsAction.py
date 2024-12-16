@@ -67,8 +67,8 @@ Output format:
 If no transitions can be triggered, respond with "NO TRANSITIONS". Otherwise, present the transitions in an HTML table with the following structure:
 
 <table border="1">
-<tr><th>FromState</th><th>ToState</th><th>Event</th><th>Guard</th><th>Action</th></tr>
-<tr><td>[FromState]</td><td>[ToState]</td><td>[Event]</td><td>[Guard or "NONE"]</td><td>[Action or "NONE"]</td></tr>
+<tr><th>From State</th><th>To State</th><th>Event</th><th>Guard</th><th>Action</th></tr>
+<tr><td>[From State]</td><td>[To State]</td><td>[Event]</td><td>[Guard or "NONE"]</td><td>[Action or "NONE"]</td></tr>
 </table>
 
 Remember:

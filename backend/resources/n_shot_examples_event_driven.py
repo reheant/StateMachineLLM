@@ -43,7 +43,7 @@ n_shot_examples = {
         "event_inspected": "start",
 
         "create_transitions": """```html<table border="1">
-        <tr><th>FromState</th><th>ToState</th><th>Event</th><th>Guard</th><th>Action</th></tr>
+        <tr><th>From State</th><th>To State</th><th>Event</th><th>Guard</th><th>Action</th></tr>
         <tr><td rowspan="3">Ready</td><td>Ready</td><td>start</td><td>action=="scan"&&!originalLoaded()</td><td>NONE</td></tr>
         <tr><td rowspan="3">Ready</td><td>Ready</td><td>start</td><td>action=="print"&&!documentInQueue()</td><td>NONE</td></tr>
         <tr><td rowspan="3">Ready</td><td>Scan&Email</td><td>start</td><td>action=="scan"&&originalLoaded()</td><td>NONE</td></tr>
@@ -62,7 +62,7 @@ n_shot_examples = {
         <tr><td>Busy</td><td>Print</td></tr></table>```""",
 
         "transitions_table": """```html<table border="1">
-        <tr><th>FromState</th><th>ToState</th><th>Event</th><th>Guard</th><th>Action</th></tr>
+        <tr><th>From State</th><th>To State</th><th>Event</th><th>Guard</th><th>Action</th></tr>
         <tr><td>Off</td><td>On</td><td>on</td><td>NONE</td><td>NONE</td></tr>
         <tr><td>On</td><td>Off</td><td>off</td><td>NONE</td><td>NONE</td></tr>
         <tr><td>Idle</td><td>Idle</td><td>login(cardID)</td><td>!idAuthorized(cardID)</td><td>NONE</td></tr>
@@ -92,7 +92,7 @@ n_shot_examples = {
         "substates_inspected_for_history_state": "['Scan&Email', 'Print']",
 
         "history_state_table": """```html<table border="1"> 
-        <tr><th>FromState</th><th>Event</th><th>Guard</th><th>Action</th></tr>
+        <tr><th>From State</th><th>Event</th><th>Guard</th><th>Action</th></tr>
         <tr><td>Suspended</td><td>resume</td><td>NONE</td><td>NONE</td></tr>
         </table>```""",
     },
