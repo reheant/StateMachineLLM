@@ -1,7 +1,7 @@
 import re
 from sherpa_ai.actions.base import BaseAction
 from resources.n_shot_examples_event_driven import get_n_shot_examples
-from resources.util import call_gpt4
+from resources.util import call_llm
 
 class InitialStateSearchAction(BaseAction):
     """
@@ -70,7 +70,7 @@ class InitialStateSearchAction(BaseAction):
         """
 
         print(prompt)
-        response = call_gpt4(prompt=prompt,
+        response = call_llm(prompt=prompt,
                              temperature=0.7)
         
         initial_state_search = re.search(r"<initial_state>(.*?)</initial_state>", response)
