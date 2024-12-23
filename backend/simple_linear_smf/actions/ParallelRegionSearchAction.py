@@ -1,12 +1,11 @@
 
-from sherpa_ai.actions.base import BaseAction
-from sherpa_ai.memory.belief import Belief
+from resources.SMFAction import SMFAction
 from resources.util import call_llm
 from resources.util import extract_states_events_table
 from resources.util import extract_parallel_states_table
 from resources.n_shot_examples_simple_linear import get_n_shot_examples
 
-class ParallelStateSearchAction(BaseAction):
+class ParallelStateSearchAction(SMFAction):
     """
     The ParallelStateSearchAction is the second step in the Linear SMF. It identifies
     the parallel regions and their child states in the UML State Machine of the system
@@ -19,6 +18,7 @@ class ParallelStateSearchAction(BaseAction):
     args: dict = {}
     usage: str = "Identify all parallel regions of the state machine from the system description"
     description: str = ""
+    log_file_path: str = ""
     
     def send_parallel_state_search(self, system_name :str, state_event_table: str):
         """
@@ -89,7 +89,7 @@ class ParallelStateSearchAction(BaseAction):
         the execute function for the parallel state prompt. calls the send_parallel_state_search function and applies the updates to event and states 
         table while also generating the output table for the parallel states
         """
-        print(f"Running {self.name}...")
+        self.log(f"Running {self.name}...")
         system, state_event_table = self.belief.get('state_event_search_action')
         
         # the parallel state search response returns an updated state/event table (required), and a parallel_state table (optional)
@@ -101,10 +101,10 @@ class ParallelStateSearchAction(BaseAction):
         
         # if no parallel state table is returned, log a message warning that no parallel states were found
         if parallel_state_table is None:
-            print(f"No parallel states found")
+            self.log(f"No parallel states found")
         
         # state_event_table will never be None, parallel_state_table may be None if there are no parallel states
         
-        print(f"Parallel State event table: {state_event_table}")
-        print(f"Parallel State table: {parallel_state_table}")
+        self.log(f"Parallel State event table: {state_event_table}")
+        self.log(f"Parallel State table: {parallel_state_table}")
         return state_event_table, parallel_state_table
