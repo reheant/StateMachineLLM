@@ -1,10 +1,10 @@
-from sherpa_ai.actions.base import BaseAction
+from resources.SMFAction import SMFAction
 from resources.util import call_llm
 from resources.util import extract_states_events_table
 import re
 from resources.n_shot_examples_simple_linear import get_n_shot_examples
 
-class StateEventSearchAction(BaseAction):
+class StateEventSearchAction(SMFAction):
     """
     The StateEventSearchAction is the first step in the Linear SMF. It identifies
     states based on the events that occur in the system
@@ -17,6 +17,7 @@ class StateEventSearchAction(BaseAction):
     args: dict = {} # provided from the LLM
     usage: str = "Identify all states and their associated events that trigger transitions in the system"
     description: str = ""
+    log_file_path: str = ""
 
     def execute(self):
         """
@@ -24,7 +25,7 @@ class StateEventSearchAction(BaseAction):
         using a 2-shot prompting approach
         """
 
-        print(f"Running {self.name}...")
+        self.log(f"Running {self.name}...")
         states_response_in_html = call_llm(f"""
             Given the problem description, identify what the states and events are and make sure not to include any redundant states or events by making sure that you parse the output for any states or events that might be redundant. Ensure that the states are defined specifically in the context of the object being modeled. It’s important to note that a complete state machine has an initial state and that states might have multiple events occurring on them resulting in multiple transitions from the current state to other states. 
             
@@ -53,11 +54,11 @@ class StateEventSearchAction(BaseAction):
             system_name = system_name_search.group(1)
         else:
             system_name = "NOT FOUND"
-        print(system_name)
+        self.log(system_name)
         
         # get the states and events table
         state_events_table = extract_states_events_table(states_response_in_html)
 
-        print(f"System name: {system_name}")
-        print(f"State event table: {state_events_table}")
+        self.log(f"System name: {system_name}")
+        self.log(f"State event table: {state_events_table}")
         return (system_name, state_events_table)
