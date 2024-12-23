@@ -8,5 +8,5 @@ class SMFAction(BaseAction):
 
     # then write the output to the file, if it has been specified
     if self.log_file_path is not None:
-      with open(self.log_file_path, "w") as file:
+      with open(self.log_file_path, "a") as file:
         file.write(f"{output}\n")
