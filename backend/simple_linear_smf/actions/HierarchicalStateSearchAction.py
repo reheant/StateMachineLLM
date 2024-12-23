@@ -1,9 +1,8 @@
-
-from sherpa_ai.actions.base import BaseAction
+from resources.SMFAction import SMFAction
 from resources.util import call_llm, extract_hierarchical_state_table, extract_transitions_guards_actions_table
 from resources.n_shot_examples_simple_linear import get_n_shot_examples
 
-class HierarchicalStateSearchAction(BaseAction):
+class HierarchicalStateSearchAction(SMFAction):
     """
     The HierarchicalStateSearchAction creates the Hierarchical State of the UML State Machine from the system description,
     and updates the transitions table to reflect the new parent states
@@ -16,13 +15,14 @@ class HierarchicalStateSearchAction(BaseAction):
     args: dict = {}
     usage: str = "Identify all hierarchical states in the system"
     description: str = ""
+    log_file_path: str = ""
 
     def execute(self):
         """
         The execute function prompts the LLM to create hierarchical states and update transitions using a 2-shot prompting approach
         """
         
-        print(f"Running {self.name}...")
+        self.log(f"Running {self.name}...")
 
         modeled_system, _ = self.belief.get('state_event_search_action')
         transitions_table = self.belief.get('action_search_action')
@@ -67,6 +67,6 @@ class HierarchicalStateSearchAction(BaseAction):
         hierarchical_state_table = extract_hierarchical_state_table(answer)
         updated_transitions_table = extract_transitions_guards_actions_table(answer)
 
-        print(f"Hierarchical State Table: {hierarchical_state_table}")
-        print(f"Updated Transitions State Table: {updated_transitions_table}")
+        self.log(f"Hierarchical State Table: {hierarchical_state_table}")
+        self.log(f"Updated Transitions State Table: {updated_transitions_table}")
         return hierarchical_state_table, updated_transitions_table
