@@ -1,9 +1,9 @@
 import re
-from sherpa_ai.actions.base import BaseAction
+from resources.SMFAction import SMFAction
 from resources.n_shot_examples_event_driven import get_n_shot_examples
 from resources.util import call_llm
 
-class InitialStateSearchAction(BaseAction):
+class InitialStateSearchAction(SMFAction):
     """
     The InitialStateSearchSearchAction class prompts the LLM to examine
     the description of the system and the identified states of the UML State Machine
@@ -17,9 +17,10 @@ class InitialStateSearchAction(BaseAction):
     args: dict = {}
     usage: str = "Given a description of a system and a list of all states of the system, identify the Initial State of the UML state machine of the system"
     description: str = ""
+    log_file_path: str = ""
 
     def execute(self):
-        print(f"Running {self.name}...")
+        self.log(f"Running {self.name}...")
 
         system_name, state_event_table = self.belief.get('state_event_search_action')
 
@@ -69,7 +70,7 @@ class InitialStateSearchAction(BaseAction):
         Now, please proceed with your analysis and identification of the initial state for the given system. It's OK for the initial_state_analysis section to be quite long.
         """
 
-        print(prompt)
+        self.log(prompt)
         response = call_llm(prompt=prompt,
                              temperature=0.7)
         
@@ -79,6 +80,6 @@ class InitialStateSearchAction(BaseAction):
             initial_state = initial_state_search.group(1)
         else:
             initial_state = "NOT FOUND"
-        print(initial_state)
+        self.log(initial_state)
 
         return initial_state
