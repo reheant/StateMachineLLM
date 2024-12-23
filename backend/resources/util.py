@@ -278,9 +278,9 @@ def gsm_tables_to_dict(hierarchical_states_table : Tag, transitions_table : Tag,
             "source": format_state_name_for_pytransitions(state_name=cols[0].get_text(), hierarchical_states_table=hierarchical_states_table),
             "dest": format_state_name_for_pytransitions(state_name=cols[1].get_text(), hierarchical_states_table=hierarchical_states_table),
         }
-        if (cols[4].get_text() != "NONE"):
+        if (len(cols) == 5 and cols[4].get_text() != "NONE"):
             transition["before"] = cols[4].get_text()
-        if (cols[3].get_text() != "NONE"):
+        if (len(cols) == 5 and cols[3].get_text() != "NONE"):
             transition["conditions"] = cols[3].get_text()
         
         transitions.append(transition)

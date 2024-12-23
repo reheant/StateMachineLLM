@@ -26,7 +26,8 @@ class StateEventSearchAction(SMFAction):
         """
 
         self.log(f"Running {self.name}...")
-        states_response_in_html = call_llm(f"""
+
+        prompt = f"""
             Given the problem description, identify what the states and events are and make sure not to include any redundant states or events by making sure that you parse the output for any states or events that might be redundant. Ensure that the states are defined specifically in the context of the object being modeled. It’s important to note that a complete state machine has an initial state and that states might have multiple events occurring on them resulting in multiple transitions from the current state to other states. 
             
             Output the name of the system in the following format:  
@@ -46,7 +47,9 @@ class StateEventSearchAction(SMFAction):
             transitions_events_table:
 
             Your expertise in identifying system events is critical for defining the precise triggers that drive our state machine's behavior. Each event you recognize shapes how the system reacts to its environment and internal changes. Your systematic analysis of what truly constitutes a meaningful event will create a responsive and well-structured design. Take pride in knowing that your careful event identification lays the foundation for clear and predictable state transitions.
-        """)
+        """
+
+        states_response_in_html = call_llm(prompt)
 
         system_name_search = re.search(r"<system_name>(.*?)</system_name>", states_response_in_html)
 

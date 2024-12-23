@@ -62,9 +62,22 @@ async def display_image():
     The display_image() function displays the state machine diagram after it has been translated into
     mermaid syntax and converted into an image
     """
-    image = cl.Image(path="ExhibitA.png", name="State Machine Image", display="inline", size='large')
+    image_directory = os.path.join(os.path.dirname(__file__), "..", "backend", "resources", "simple_linear_diagrams")
+
+    # Get the path of the most recently created diagram
+    try:
+        latest_file = max(
+            (os.path.join(image_directory, f) for f in os.listdir(image_directory)),
+            key=os.path.getmtime,
+        )
+    except ValueError:
+        # Handle the case where the directory is empty
+        await cl.Message(content="No images found in the directory.").send()
+        return
+
+    # Attach the most recent file to the message
+    image = cl.Image(path=latest_file, name="State Machine Image", display="inline", size='large')
     
-    # Attach the image to the message
     await cl.Message(
         content="State Machine Image Rendered",
         elements=[image],
