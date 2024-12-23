@@ -1,9 +1,9 @@
 
-from sherpa_ai.actions.base import BaseAction
+from resources.SMFAction import SMFAction
 from resources.util import call_llm, extract_transitions_guards_table
 from resources.n_shot_examples_simple_linear import get_n_shot_examples
 
-class HistoryStateSearchAction(BaseAction):
+class HistoryStateSearchAction(SMFAction):
     """
     The HistoryStateSearchAction creates the History States of the UML State Machine
     by updating the transitions of the transitions table to add relevant transitions
@@ -17,13 +17,14 @@ class HistoryStateSearchAction(BaseAction):
     args: dict = {}
     usage: str = "Identify all history states for hierarchical states in the system"
     description: str = ""
+    log_file_path: str = ""
 
     def execute(self):
         """
         The execute function prompts the LLM to identify transitions to history states and update
         the transitions table
         """
-        print(f"Running {self.name}...")
+        self.log(f"Running {self.name}...")
         hierarchical_states_table, transition_table = self.belief.get('hierarchical_state_search_action')
         modeled_system, _ = self.belief.get('state_event_search_action')
        
@@ -76,9 +77,9 @@ class HistoryStateSearchAction(BaseAction):
         answer = call_llm(prompt)
         
         if "NONE" in answer:
-            print(f"History State updated transitions: {transition_table}")
+            self.log(f"History State updated transitions: {transition_table}")
             return transition_table
         else:
             rv = extract_transitions_guards_table(answer, True)
-            print(rv)
+            self.log(rv)
             return rv
