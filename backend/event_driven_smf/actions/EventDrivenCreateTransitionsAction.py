@@ -1,8 +1,8 @@
-from sherpa_ai.actions.base import BaseAction
+from resources.SMFAction import SMFAction
 from resources.util import call_llm, extract_transitions_guards_actions_table, merge_tables
 from resources.n_shot_examples_event_driven import get_n_shot_examples
 
-class EventDrivenCreateTransitionsAction(BaseAction):
+class EventDrivenCreateTransitionsAction(SMFAction):
     """
     The EventDrivenCreateTransitionsAction iterates over the mapping of states and events identified in the
     EventDrivenAssociateEventsWithStatesAction and prompts the LLM to create transitions.
@@ -14,6 +14,7 @@ class EventDrivenCreateTransitionsAction(BaseAction):
     args: dict = {}
     usage: str = "Given a description of a system, the states of the system, and the events of the system, identify all transitions in the UML state machine of the system"
     description: str = ""
+    log_file_path: str = ""
 
     def create_transitions(self, system_name, state, event, states_table, max_retries=2):
         """
@@ -81,7 +82,7 @@ Remember:
 You are the keystone of this project's success. Your meticulous analysis and attention to detail will ensure the creation of a robust and efficient state machine. The entire development team is counting on your expertise to lay the foundation for a high-quality system. Take pride in your work and deliver excellence!
 """
 
-        print(prompt)
+        self.log(prompt)
         # iterate over a max number of retries in order to get the correct format
         # if the LLM does not get the correct format after max_retries, then we return none
         retries = 0
@@ -91,22 +92,22 @@ You are the keystone of this project's success. Your meticulous analysis and att
             
             # no transitions, so skip retries
             if "NO TRANSITIONS" in response:
-                print("No transitions created.")
+                self.log("No transitions created.")
                 return None
 
             # attempt to extract the transitions table
             transitions_table = extract_transitions_guards_actions_table(llm_response=response)
             if transitions_table is not None:
-                print(transitions_table)
+                self.log(transitions_table)
                 return transitions_table
             else:
-                print("No transitions table found in the response.")
+                self.log("No transitions table found in the response.")
 
             retries += 1
-            print(f"Retrying... ({retries}/{max_retries})")
+            self.log(f"Retrying... ({retries}/{max_retries})")
 
         # max retries met
-        print("Max retries reached. No valid transitions found.")
+        self.log("Max retries reached. No valid transitions found.")
         return None
 
     def execute(self):
@@ -117,7 +118,7 @@ You are the keystone of this project's success. Your meticulous analysis and att
         containing the transitions of the UML State Machine.
         """
         
-        print(f"Running {self.name}...")
+        self.log(f"Running {self.name}...")
 
         # get the system name for the prompt
         system_name = self.belief.get("event_driven_system_name_search_action")
@@ -141,6 +142,6 @@ You are the keystone of this project's success. Your meticulous analysis and att
                     transitions_tables.append(transitions)
         
         merged_transitions_table = merge_tables(html_tables_list=transitions_tables)
-        print(merged_transitions_table)
+        self.log(merged_transitions_table)
 
         return merged_transitions_table
