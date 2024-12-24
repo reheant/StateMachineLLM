@@ -355,7 +355,7 @@ def add_initial_hierarchical_states(gsm_states : list, hierarchical_initial_stat
 
     return gsm_states
 
-def create_event_based_gsm_diagram(hierarchical_states_table : Tag, transitions_table : Tag, parallel_state_table : Tag, initial_state : str, hierarchical_initial_states : dict):
+def create_event_based_gsm_diagram(hierarchical_states_table : Tag, transitions_table : Tag, parallel_state_table : Tag, initial_state : str, hierarchical_initial_states : dict, diagram_file_path : str):
     gsm_states, gsm_transitions, gsm_parallel_regions = gsm_tables_to_dict(hierarchical_states_table=hierarchical_states_table,
                                                                            transitions_table=transitions_table,
                                                                            parallel_state_table=parallel_state_table)
@@ -380,7 +380,7 @@ def create_event_based_gsm_diagram(hierarchical_states_table : Tag, transitions_
     # Generate and render a sequence diagram
     sequence = Graph('Sequence-diagram', gsm.sm.get_graph().draw(None))
     render = md.Mermaid(sequence)
-    render.to_png('ExhibitA.png')
+    render.to_png(diagram_file_path)
 
 def table_remove_spaces(table):
     """
