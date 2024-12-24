@@ -2,12 +2,17 @@ import sys
 import os
 
 script_dir = os.path.dirname(__file__)
-resources_dir = os.path.join(script_dir, '..', 'backend', 'simple_linear_smf')
-print(resources_dir)
-sys.path.append(resources_dir)
+simple_linear_dir = os.path.join(script_dir, '..', 'backend', 'simple_linear_smf')
+print(simple_linear_dir)
+sys.path.append(simple_linear_dir)
+
+event_driven_dir = os.path.join(script_dir, "..", "backend", "event_driven_smf")
+print(event_driven_dir)
+sys.path.append(event_driven_dir)
 
 import chainlit as cl
 from simple_linear_smf import run_sherpa_task
+from event_driven_smf import run_event_driven_smf
 import io
 import contextlib
 import asyncio
@@ -31,7 +36,7 @@ async def stream_function_output():
     stdout_capture = io.StringIO()
     
     with contextlib.redirect_stdout(stdout_capture):
-        task = asyncio.create_task(asyncio.to_thread(run_sherpa_task))
+        task = asyncio.create_task(asyncio.to_thread(run_event_driven_smf))
         
         while not task.done():
             await asyncio.sleep(0.1)
@@ -62,7 +67,7 @@ async def display_image():
     The display_image() function displays the state machine diagram after it has been translated into
     mermaid syntax and converted into an image
     """
-    image_directory = os.path.join(os.path.dirname(__file__), "..", "backend", "resources", "simple_linear_diagrams")
+    image_directory = os.path.join(os.path.dirname(__file__), "..", "backend", "resources", "event_driven_diagrams")
 
     # Get the path of the most recently created diagram
     try:
