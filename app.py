@@ -5,7 +5,7 @@ import asyncio
 
 import backend.resources.state_machine_descriptions
 from backend.resources.llm_tracker import llm
-from backend.start_event_driven_smf import run_sherpa_task
+from backend.event_driven_smf.event_driven_smf import run_sherpa_task
 
 @cl.set_chat_profiles
 async def chat_profile():

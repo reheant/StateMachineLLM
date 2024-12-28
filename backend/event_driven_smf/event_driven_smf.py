@@ -11,21 +11,22 @@ from sherpa_ai.agents.qa_agent import QAAgent
 from transitions.extensions import HierarchicalGraphMachine
 
 sys.path.append(os.path.dirname(__file__))
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
-from event_driven_smf.actions.EventDrivenSystemNameSearchAction import EventDrivenSystemNameSearchAction
-from event_driven_smf.actions.EventDrivenStateSearchAction import EventDrivenStateSearchAction
-from event_driven_smf.actions.EventDrivenInitialStateSearchAction import EventDrivenInitialStateSearchAction
-from event_driven_smf.actions.EventDrivenEventSearchAction import EventDrivenEventSearchAction
-from event_driven_smf.actions.EventDrivenAssociateEventsWithStatesAction import EventDrivenAssociateEventsWithStatesAction
-from event_driven_smf.actions.EventDrivenCreateTransitionsAction import EventDrivenCreateTransitionsAction
-from event_driven_smf.actions.EventDrivenCreateHierarchicalStatesAction import EventDrivenCreateHierarchicalStatesAction
-from event_driven_smf.actions.EventDrivenHierarchicalInitialStateSearchAction import EventDrivenHierarchicalInitialStateSearchAction
-from event_driven_smf.actions.EventDrivenDisplayResultsAction import EventDrivenDisplayResultsAction
-from event_driven_smf.actions.EventDrivenFilterTransitionsAction import EventDrivenFilterTransitionsAction
-from event_driven_smf.actions.EventDrivenHistoryStateSearchAction import EventDrivenHistoryStateSearchAction
-from event_driven_smf.actions.EventDrivenFactorOutTransitionsForHierarchalStates import EventDrivenFactorOutTransitionsForHierarchalStates
-from event_driven_smf.actions.EventDrivenParallelRegionsSearchAction import EventDrivenParallelRegionsSearchAction
-from event_driven_smf.event_driven_smf_transitions import transitions
+from actions.EventDrivenSystemNameSearchAction import EventDrivenSystemNameSearchAction
+from actions.EventDrivenStateSearchAction import EventDrivenStateSearchAction
+from actions.EventDrivenInitialStateSearchAction import EventDrivenInitialStateSearchAction
+from actions.EventDrivenEventSearchAction import EventDrivenEventSearchAction
+from actions.EventDrivenAssociateEventsWithStatesAction import EventDrivenAssociateEventsWithStatesAction
+from actions.EventDrivenCreateTransitionsAction import EventDrivenCreateTransitionsAction
+from actions.EventDrivenCreateHierarchicalStatesAction import EventDrivenCreateHierarchicalStatesAction
+from actions.EventDrivenHierarchicalInitialStateSearchAction import EventDrivenHierarchicalInitialStateSearchAction
+from actions.EventDrivenDisplayResultsAction import EventDrivenDisplayResultsAction
+from actions.EventDrivenFilterTransitionsAction import EventDrivenFilterTransitionsAction
+from actions.EventDrivenHistoryStateSearchAction import EventDrivenHistoryStateSearchAction
+from actions.EventDrivenFactorOutTransitionsForHierarchalStates import EventDrivenFactorOutTransitionsForHierarchalStates
+from actions.EventDrivenParallelRegionsSearchAction import EventDrivenParallelRegionsSearchAction
+from event_driven_smf_transitions import transitions
 
 from resources.state_machine_descriptions import thermomix_fall_2021
 from resources.util import create_event_based_gsm_diagram
@@ -123,7 +124,7 @@ def run_sherpa_task(system_prompt):
     """
     try:
         # Define the base directory for logs
-        base_dir = os.path.join(os.path.dirname(__file__), ".", "resources", "event_driven_log")
+        base_dir = os.path.join(os.path.dirname(__file__), "..", "resources", "event_driven_log")
         os.makedirs(base_dir, exist_ok=True)  # Ensure the directory exists
 
         # Construct the log file path

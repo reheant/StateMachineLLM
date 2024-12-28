@@ -13,16 +13,17 @@ import mermaid as md
 from mermaid.graph import Graph
 
 sys.path.append(os.path.dirname(__file__))
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
-from simple_linear_smf.actions.StateEventSearchAction import StateEventSearchAction
-from simple_linear_smf.actions.ParallelRegionSearchAction import ParallelStateSearchAction
-from simple_linear_smf.actions.TransitionsGuardsSearchAction import TransitionsGuardsSearchAction
-from simple_linear_smf.actions.ActionSearchAction import ActionSearchAction
-from simple_linear_smf.actions.HierarchicalStateSearchAction import HierarchicalStateSearchAction
-from simple_linear_smf.actions.HistoryStateSearchAction import HistoryStateSearchAction
-from simple_linear_smf.actions.FinalSanityCheckAction import FinalSanityCheckAction
-from simple_linear_smf.actions.InitialStateSearchAction import InitialStateSearchAction
-from simple_linear_smf.simple_linear_smf_transitions import transitions
+from actions.StateEventSearchAction import StateEventSearchAction
+from actions.ParallelRegionSearchAction import ParallelStateSearchAction
+from actions.TransitionsGuardsSearchAction import TransitionsGuardsSearchAction
+from actions.ActionSearchAction import ActionSearchAction
+from actions.HierarchicalStateSearchAction import HierarchicalStateSearchAction
+from actions.HistoryStateSearchAction import HistoryStateSearchAction
+from actions.FinalSanityCheckAction import FinalSanityCheckAction
+from actions.InitialStateSearchAction import InitialStateSearchAction
+from simple_linear_smf_transitions import transitions
 
 from resources.state_machine_descriptions import *
 from resources.environmental_impact.impact_tracker import tracker
@@ -97,7 +98,7 @@ def run_sherpa_task(system_prompt):
     """
     the run_event_driven_smf initiates the Sherpa Event Driven State Machine Framework
     """
-    with open(f'{os.path.dirname(__file__)}\\.\\resources\\simple_linear_log\\output_simple_linear{time.strftime("%m_%d_%H_%M_%S")}.txt', 'w') as f:
+    with open(f'{os.path.dirname(__file__)}\\..\\resources\\simple_linear_log\\output_simple_linear{time.strftime("%m_%d_%H_%M_%S")}.txt', 'w') as f:
         sys.stdout = f
         
         belief.set("description", system_prompt)
