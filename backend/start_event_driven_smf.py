@@ -1,36 +1,34 @@
 import sys
 import os
-
-script_dir = os.path.dirname(__file__)
-resources_dir = os.path.join(script_dir, '..')
-print(resources_dir)
-sys.path.append(resources_dir)
+import time
 
 from sherpa_ai.memory.belief import Belief
 from sherpa_ai.memory.state_machine import SherpaStateMachine
-from transitions.extensions import HierarchicalGraphMachine
 from sherpa_ai.events import Event, EventType
 from sherpa_ai.models import SherpaChatOpenAI
 from sherpa_ai.policies.react_policy import ReactPolicy
 from sherpa_ai.agents.qa_agent import QAAgent
+from transitions.extensions import HierarchicalGraphMachine
 
-from actions.EventDrivenSystemNameSearchAction import EventDrivenSystemNameSearchAction
-from actions.EventDrivenStateSearchAction import EventDrivenStateSearchAction
-from actions.EventDrivenInitialStateSearchAction import EventDrivenInitialStateSearchAction
-from actions.EventDrivenEventSearchAction import EventDrivenEventSearchAction
-from actions.EventDrivenAssociateEventsWithStatesAction import EventDrivenAssociateEventsWithStatesAction
-from actions.EventDrivenCreateTransitionsAction import EventDrivenCreateTransitionsAction
-from actions.EventDrivenCreateHierarchicalStatesAction import EventDrivenCreateHierarchicalStatesAction
-from actions.EventDrivenHierarchicalInitialStateSearchAction import EventDrivenHierarchicalInitialStateSearchAction
-from actions.EventDrivenDisplayResultsAction import EventDrivenDisplayResultsAction
-from actions.EventDrivenFilterTransitionsAction import EventDrivenFilterTransitionsAction
-from actions.EventDrivenHistoryStateSearchAction import EventDrivenHistoryStateSearchAction
-from actions.EventDrivenFactorOutTransitionsForHierarchalStates import EventDrivenFactorOutTransitionsForHierarchalStates
-from actions.EventDrivenParallelRegionsSearchAction import EventDrivenParallelRegionsSearchAction
-from event_driven_smf_transitions import transitions
+sys.path.append(os.path.dirname(__file__))
+
+from event_driven_smf.actions.EventDrivenSystemNameSearchAction import EventDrivenSystemNameSearchAction
+from event_driven_smf.actions.EventDrivenStateSearchAction import EventDrivenStateSearchAction
+from event_driven_smf.actions.EventDrivenInitialStateSearchAction import EventDrivenInitialStateSearchAction
+from event_driven_smf.actions.EventDrivenEventSearchAction import EventDrivenEventSearchAction
+from event_driven_smf.actions.EventDrivenAssociateEventsWithStatesAction import EventDrivenAssociateEventsWithStatesAction
+from event_driven_smf.actions.EventDrivenCreateTransitionsAction import EventDrivenCreateTransitionsAction
+from event_driven_smf.actions.EventDrivenCreateHierarchicalStatesAction import EventDrivenCreateHierarchicalStatesAction
+from event_driven_smf.actions.EventDrivenHierarchicalInitialStateSearchAction import EventDrivenHierarchicalInitialStateSearchAction
+from event_driven_smf.actions.EventDrivenDisplayResultsAction import EventDrivenDisplayResultsAction
+from event_driven_smf.actions.EventDrivenFilterTransitionsAction import EventDrivenFilterTransitionsAction
+from event_driven_smf.actions.EventDrivenHistoryStateSearchAction import EventDrivenHistoryStateSearchAction
+from event_driven_smf.actions.EventDrivenFactorOutTransitionsForHierarchalStates import EventDrivenFactorOutTransitionsForHierarchalStates
+from event_driven_smf.actions.EventDrivenParallelRegionsSearchAction import EventDrivenParallelRegionsSearchAction
+from event_driven_smf.event_driven_smf_transitions import transitions
+
 from resources.state_machine_descriptions import thermomix_fall_2021
 from resources.util import create_event_based_gsm_diagram
-import time
 from resources.environmental_impact.impact_tracker import tracker
 
 description = thermomix_fall_2021
@@ -119,13 +117,13 @@ llm = SherpaChatOpenAI(model_name="gpt-4o-mini", temperature=0.7)
 policy = ReactPolicy(role_description="Help the user finish the task", output_instruction="Determine which action and arguments would be the best continuing the task", llm=llm)
 qa_agent = QAAgent(llm=llm, belief=belief, num_runs=20, policy=policy)
 
-def run_event_driven_smf():
+def run_sherpa_task(system_prompt):
     """
     the run_event_driven_smf initiates the Sherpa Event Driven State Machine Framework
     """
     try:
         # Define the base directory for logs
-        base_dir = os.path.join(os.path.dirname(__file__), "..", "resources", "event_driven_log")
+        base_dir = os.path.join(os.path.dirname(__file__), ".", "resources", "event_driven_log")
         os.makedirs(base_dir, exist_ok=True)  # Ensure the directory exists
 
         # Construct the log file path
@@ -136,6 +134,9 @@ def run_event_driven_smf():
         with open(log_file_path, 'w') as f:
             sys.stdout = f  # Redirect all print statements to the log file
             try:
+
+                belief.set("description", system_prompt)
+
                 # Execute QA agent
                 qa_agent.run()
 
@@ -166,4 +167,4 @@ def run_event_driven_smf():
 
 
 if __name__ == "__main__":
-    run_event_driven_smf()
+    run_sherpa_task(description)
