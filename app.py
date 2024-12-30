@@ -7,6 +7,7 @@ import asyncio
 import backend.resources.state_machine_descriptions
 from backend.resources.llm_tracker import llm
 from backend.event_driven_smf.event_driven_smf import run_event_driven_smf
+from backend.simple_linear_smf.simple_linear_smf import run_sherpa_task
 
 @cl.set_chat_profiles
 async def chat_profile():
@@ -33,36 +34,38 @@ async def chat_profile():
     ]
 
 async def stream_function_output(system_prompt):
-    """
-    The stream_function_output runs the SMF and streams the output to the
-    Chainlit UI
-    """
-
     final_answer = cl.Message(content="", author="Sherpa Output")
     await final_answer.send()
 
     stdout_capture = io.StringIO()
-    
-    with contextlib.redirect_stdout(stdout_capture):
-        task = asyncio.create_task(asyncio.to_thread(run_event_driven_smf(system_prompt)))
-        
-        while not task.done():
-            await asyncio.sleep(0.1)
 
-            stdout_capture.seek(0)
-            current_output = stdout_capture.read()
-            
-            if current_output:
-                await final_answer.stream_token(current_output)
-                stdout_capture.truncate(0)
-                stdout_capture.seek(0)
+    async def run_and_capture():
+        with contextlib.redirect_stdout(stdout_capture):
+            await asyncio.to_thread(run_sherpa_task, system_prompt)  # Use to_thread for the blocking call
 
+    task = asyncio.create_task(run_and_capture())
+
+    while not task.done():
+        await asyncio.sleep(0.1)
+
+        # Stream captured output
         stdout_capture.seek(0)
-        final_output = stdout_capture.read()
-        if final_output:
-            await final_answer.stream_token(final_output)
+        current_output = stdout_capture.read()
+        stdout_capture.truncate(0)
+        stdout_capture.seek(0)
 
+        if current_output:
+            await final_answer.stream_token(current_output)
+
+    # Final output after task completion
+    stdout_capture.seek(0)
+    final_output = stdout_capture.read()
+    if final_output:
+        await final_answer.stream_token(final_output)
+
+    await task  # Ensure task exceptions propagate
     await final_answer.update()
+
 
 @cl.on_message
 async def run_conversation(message: cl.Message):
@@ -75,7 +78,7 @@ async def display_image():
     The display_image() function displays the state machine diagram after it has been translated into
     mermaid syntax and converted into an image
     """
-    image_directory = os.path.join(os.path.dirname(__file__), "..", "backend", "resources", "event_driven_diagrams")
+    image_directory = os.path.join(os.path.dirname(__file__), "backend", "resources", "simple_linear_diagrams")
 
     # Get the path of the most recently created diagram
     try:
