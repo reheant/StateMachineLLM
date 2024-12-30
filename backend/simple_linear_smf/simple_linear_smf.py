@@ -31,6 +31,8 @@ from resources.state_machine_descriptions import *
 from resources.environmental_impact.impact_tracker import tracker
 from resources.util import gsm_tables_to_dict
 
+# Default description if not ran with Chainlit
+description = thermomix_fall_2021
 
 def run_sherpa_task(system_prompt):
     """
@@ -58,35 +60,35 @@ def run_sherpa_task(system_prompt):
     # Sherpa actions of the Linear State Machine Framework
     state_event_state_action = StateEventSearchAction(usage="identifying events in problem description for state machine", 
                                                       belief=belief, 
-                                                      description=description,
+                                                      description=system_prompt,
                                                       log_file_path=log_file_path)
     parallel_state_action = ParallelStateSearchAction(usage="identifying parallel regions in problem description for state machine", 
                                                       belief=belief, 
-                                                      description=description,
+                                                      description=system_prompt,
                                                       log_file_path=log_file_path)
     transitions_guards_action = TransitionsGuardsSearchAction(usage="identifying transitions and guards in problem description for state machine", 
                                                               belief=belief, 
-                                                              description=description,
+                                                              description=system_prompt,
                                                               log_file_path=log_file_path)
     action_search_action = ActionSearchAction(usage="identifying actions in problem description for state machine", 
                                               belief=belief, 
-                                              description=description,
+                                              description=system_prompt,
                                               log_file_path=log_file_path)
     hierarchical_state_action = HierarchicalStateSearchAction(usage="identifying hierarchical states in problem description for state machine", 
                                                               belief=belief, 
-                                                              description=description,
+                                                              description=system_prompt,
                                                               log_file_path=log_file_path)
     history_state_action = HistoryStateSearchAction(usage="identifying history states in problem description for state machine", 
                                                     belief=belief, 
-                                                    description=description,
+                                                    description=system_prompt,
                                                     log_file_path=log_file_path)
     initial_state_search_action = InitialStateSearchAction(usage="identifying initial state in state machine", 
                                                            belief=belief, 
-                                                           description=description,
+                                                           description=system_prompt,
                                                            log_file_path=log_file_path)
     sanity_check_action = FinalSanityCheckAction(usage="compare generated state machine with problem description", 
                                                  belief=belief, 
-                                                 description=description,
+                                                 description=system_prompt,
                                                  log_file_path=log_file_path)
 
     # mapping between the names of Sherpa actions and their Action class
