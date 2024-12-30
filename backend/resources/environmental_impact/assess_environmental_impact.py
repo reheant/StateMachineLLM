@@ -30,6 +30,9 @@ def parse_token_usage(file_path):
             elif 'gpt-3.5-' in model_name:
                 active_params = 70
                 total_params = 70
+            elif 'claude' in model_name:
+                active_params = 400
+                total_params = 800
             
             if active_params is None or total_params is None:
                 continue

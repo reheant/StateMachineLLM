@@ -2,18 +2,19 @@ import sys
 import os
 import time
 
-script_dir = os.path.dirname(__file__)
-resources_dir = os.path.join(script_dir, '..')
-print(resources_dir)
-sys.path.append(resources_dir)
-
 from sherpa_ai.memory.belief import Belief
 from sherpa_ai.memory.state_machine import SherpaStateMachine
-from transitions.extensions import HierarchicalGraphMachine
 from sherpa_ai.models import SherpaChatOpenAI
 from sherpa_ai.policies.react_policy import ReactPolicy
 from sherpa_ai.agents.qa_agent import QAAgent
 from sherpa_ai.events import Event, EventType
+from transitions.extensions import HierarchicalGraphMachine
+import mermaid as md
+from mermaid.graph import Graph
+
+sys.path.append(os.path.dirname(__file__))
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+
 from actions.StateEventSearchAction import StateEventSearchAction
 from actions.ParallelRegionSearchAction import ParallelStateSearchAction
 from actions.TransitionsGuardsSearchAction import TransitionsGuardsSearchAction
@@ -23,16 +24,14 @@ from actions.HistoryStateSearchAction import HistoryStateSearchAction
 from actions.FinalSanityCheckAction import FinalSanityCheckAction
 from actions.InitialStateSearchAction import InitialStateSearchAction
 from simple_linear_smf_transitions import transitions
-from resources.util import gsm_tables_to_dict, choose_model
-import mermaid as md
-from mermaid.graph import Graph
+
 from resources.state_machine_descriptions import *
 from resources.environmental_impact.impact_tracker import tracker
+from resources.util import gsm_tables_to_dict
 
 description = thermomix_fall_2021
 
 belief = Belief()
-belief.set("description", description)
 # Sherpa actions of the Linear State Machine Framework
 state_event_state_action = StateEventSearchAction(usage="identifying events in problem description for state machine", 
                                                   belief=belief, 
@@ -95,12 +94,14 @@ policy = ReactPolicy(role_description="Help the user finish the task", output_in
 
 qa_agent = QAAgent(llm=llm, belief=belief, num_runs=10, policy=policy)
 
-def run_sherpa_task():
+def run_sherpa_task(system_prompt):
     """
     the run_event_driven_smf initiates the Sherpa Event Driven State Machine Framework
     """
     with open(f'{os.path.dirname(__file__)}\\..\\resources\\simple_linear_log\\output_simple_linear{time.strftime("%m_%d_%H_%M_%S")}.txt', 'w') as f:
         sys.stdout = f
+        
+        belief.set("description", system_prompt)
         
         qa_agent.run()
     
@@ -119,5 +120,5 @@ def run_sherpa_task():
         tracker.print_metrics()
 
 if __name__ == "__main__":
-    run_sherpa_task()
+    run_sherpa_task(description)
     
