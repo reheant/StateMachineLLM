@@ -12,20 +12,17 @@ from sherpa_ai.memory.state_machine import SherpaStateMachine
 from getpass import getpass
 import aisuite as ai
 from ecologits import EcoLogits
-from resources.environmental_impact.impact_tracker import tracker
-
-
+from .environmental_impact.impact_tracker import tracker
+from .llm_tracker import llm
 
 openai.api_key = os.environ.get("OPENAI_API_KEY")
 groq.api_key = os.environ.get("GROQ_API_KEY")
 anthropic.api_key = os.environ.get("ANTHROPIC_API_KEY")
 
-
 EcoLogits.init(providers="openai")
 client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 
 client = ai.Client()
-
 
 def choose_model():
     print("Please pick the model you want to use to power your assistant:")
@@ -33,7 +30,6 @@ def choose_model():
     print("2. Claude 3.5 Sonnet")
     print("3. Llama 3.2 3b Preview")
     print("4. Gemini 1.5 Pro 001")
-
 
     while True:
         try:
@@ -51,7 +47,8 @@ def choose_model():
         except ValueError:
             print("Invalid input. Please enter a number (1, 2, 3, or 4).")
 
-model = choose_model()
+# model = choose_model()
+# model = "openai:gpt-4o"
 
 def call_llm(prompt, max_tokens=1200, temperature=0.7):
     """
@@ -60,15 +57,17 @@ def call_llm(prompt, max_tokens=1200, temperature=0.7):
     """
     global energy_consumed, carbon_emissions, abiotic_resource_depletion
 
+    llm.print_metrics()
+    
     response = client.chat.completions.create(
-        model=model,
+        model=llm.current_llm,
         messages=[{"role": "system", "content": "You are a programming assistant specialized in generating HTML content. Your task is to create a state machine representation using HTML tables."},
                   {"role": "user", "content": prompt}],
         temperature=temperature,
         max_tokens=max_tokens
     )
 
-    if model == "openai:gpt-4o":
+    if llm.current_llm == "openai:gpt-4o":
         tracker.update_impacts(response)
 
     return str (response.choices[0].message.content)

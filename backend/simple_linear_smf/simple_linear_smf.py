@@ -2,18 +2,19 @@ import sys
 import os
 import time
 
-script_dir = os.path.dirname(__file__)
-resources_dir = os.path.join(script_dir, '..')
-print(resources_dir)
-sys.path.append(resources_dir)
-
 from sherpa_ai.memory.belief import Belief
 from sherpa_ai.memory.state_machine import SherpaStateMachine
-from transitions.extensions import HierarchicalGraphMachine
 from sherpa_ai.models import SherpaChatOpenAI
 from sherpa_ai.policies.react_policy import ReactPolicy
 from sherpa_ai.agents.qa_agent import QAAgent
 from sherpa_ai.events import Event, EventType
+from transitions.extensions import HierarchicalGraphMachine
+import mermaid as md
+from mermaid.graph import Graph
+
+sys.path.append(os.path.dirname(__file__))
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+
 from actions.StateEventSearchAction import StateEventSearchAction
 from actions.ParallelRegionSearchAction import ParallelStateSearchAction
 from actions.TransitionsGuardsSearchAction import TransitionsGuardsSearchAction
@@ -28,9 +29,10 @@ import mermaid as md
 from mermaid.graph import Graph
 from resources.state_machine_descriptions import *
 from resources.environmental_impact.impact_tracker import tracker
+from resources.util import gsm_tables_to_dict
 
 
-def run_sherpa_task():
+def run_sherpa_task(system_prompt):
     """
     the run_event_driven_smf initiates the Simple Linear State Machine Framework
     """
@@ -52,7 +54,7 @@ def run_sherpa_task():
     diagram_file_path = os.path.join(diagram_base_dir, diagram_file_name)
 
     belief = Belief()
-    belief.set("description", description)
+    belief.set("description", system_prompt)
     # Sherpa actions of the Linear State Machine Framework
     state_event_state_action = StateEventSearchAction(usage="identifying events in problem description for state machine", 
                                                       belief=belief, 
@@ -140,5 +142,5 @@ def run_sherpa_task():
     tracker.print_metrics()
 
 if __name__ == "__main__":
-    run_sherpa_task()
+    run_sherpa_task(description)
     

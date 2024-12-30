@@ -1,18 +1,17 @@
 import sys
 import os
-
-script_dir = os.path.dirname(__file__)
-resources_dir = os.path.join(script_dir, '..')
-print(resources_dir)
-sys.path.append(resources_dir)
+import time
 
 from sherpa_ai.memory.belief import Belief
 from sherpa_ai.memory.state_machine import SherpaStateMachine
-from transitions.extensions import HierarchicalGraphMachine
 from sherpa_ai.events import Event, EventType
 from sherpa_ai.models import SherpaChatOpenAI
 from sherpa_ai.policies.react_policy import ReactPolicy
 from sherpa_ai.agents.qa_agent import QAAgent
+from transitions.extensions import HierarchicalGraphMachine
+
+sys.path.append(os.path.dirname(__file__))
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 from actions.EventDrivenSystemNameSearchAction import EventDrivenSystemNameSearchAction
 from actions.EventDrivenStateSearchAction import EventDrivenStateSearchAction
@@ -28,13 +27,15 @@ from actions.EventDrivenHistoryStateSearchAction import EventDrivenHistoryStateS
 from actions.EventDrivenFactorOutTransitionsForHierarchalStates import EventDrivenFactorOutTransitionsForHierarchalStates
 from actions.EventDrivenParallelRegionsSearchAction import EventDrivenParallelRegionsSearchAction
 from event_driven_smf_transitions import transitions
+
 from resources.state_machine_descriptions import thermomix_fall_2021
 from resources.util import create_event_based_gsm_diagram
-import time
 from resources.environmental_impact.impact_tracker import tracker
 
+# Default description if not ran with Chainlit
+description = thermomix_fall_2021
 
-def run_event_driven_smf():
+def run_event_driven_smf(system_prompt):
     """
     the run_event_driven_smf initiates the Sherpa Event Driven State Machine Framework
     """
@@ -43,7 +44,7 @@ def run_event_driven_smf():
     os.makedirs(base_dir, exist_ok=True)  # Ensure the directory exists
 
     # Construct the log file path
-    file_prefix = f"output_event_driven_{time.strftime("%Y_%m_%d_%H_%M_%S")}"
+    file_prefix = f'output_event_driven_{time.strftime("%Y_%m_%d_%H_%M_%S")}'
     log_file_name = f'{file_prefix}.txt'
     log_file_path = os.path.join(base_dir, log_file_name)
 
@@ -53,10 +54,8 @@ def run_event_driven_smf():
     diagram_file_name = f"{file_prefix}.png"
     diagram_file_path = os.path.join(diagram_base_dir, diagram_file_name)
 
-    description = thermomix_fall_2021
-
     belief = Belief()
-    belief.set("description", description)
+    belief.set("description", system_prompt)
 
     # Sherpa actions of the Event State Machine Framework
     event_driven_system_name_search_action = EventDrivenSystemNameSearchAction(belief=belief,
@@ -177,4 +176,4 @@ def run_event_driven_smf():
 
 
 if __name__ == "__main__":
-    run_event_driven_smf()
+    run_event_driven_smf(description)
