@@ -59,46 +59,46 @@ def run_event_driven_smf(system_prompt):
 
     # Sherpa actions of the Event State Machine Framework
     event_driven_system_name_search_action = EventDrivenSystemNameSearchAction(belief=belief,
-                                                                               description=description,
+                                                                               description=system_prompt,
                                                                                log_file_path=log_file_path)
     event_driven_state_search_action = EventDrivenStateSearchAction(belief=belief,
-                                                                    description=description,
+                                                                    description=system_prompt,
                                                                     log_file_path=log_file_path)
     event_driven_initial_state_search_action = EventDrivenInitialStateSearchAction(belief=belief,
-                                                                                   description=description,
+                                                                                   description=system_prompt,
                                                                                    log_file_path=log_file_path)
     event_driven_event_search_action = EventDrivenEventSearchAction(belief=belief,
-                                                                    description=description,
+                                                                    description=system_prompt,
                                                                     log_file_path=log_file_path)
     event_driven_associate_events_with_states = EventDrivenAssociateEventsWithStatesAction(belief=belief,
-                                                                                           description=description,
+                                                                                           description=system_prompt,
                                                                                            log_file_path=log_file_path)
     event_driven_create_transitions_action = EventDrivenCreateTransitionsAction(belief=belief,
-                                                                                description=description,
+                                                                                description=system_prompt,
                                                                                 log_file_path=log_file_path)
     event_driven_filter_transitions_action = EventDrivenFilterTransitionsAction(belief=belief,
-                                                                                description=description,
+                                                                                description=system_prompt,
                                                                                 log_file_path=log_file_path)
     event_driven_filter_transitions_action = EventDrivenFilterTransitionsAction(belief=belief,
-                                                                                description=description,
+                                                                                description=system_prompt,
                                                                                 log_file_path=log_file_path)
     event_driven_parallel_regions_search_action = EventDrivenParallelRegionsSearchAction(belief=belief, 
-                                                                                         description=description,
+                                                                                         description=system_prompt,
                                                                                          log_file_path=log_file_path)
     event_driven_create_hierarchical_states_action = EventDrivenCreateHierarchicalStatesAction(belief=belief,
-                                                                                               description=description,
+                                                                                               description=system_prompt,
                                                                                                log_file_path=log_file_path)
     event_driven_hierarchical_initial_state_search_action = EventDrivenHierarchicalInitialStateSearchAction(belief=belief,
-                                                                                                            description=description,
+                                                                                                            description=system_prompt,
                                                                                                             log_file_path=log_file_path)
     event_driven_factor_out_transitions_for_hierarchal_states = EventDrivenFactorOutTransitionsForHierarchalStates(belief=belief,
-                                                                                                                   description=description,
+                                                                                                                   description=system_prompt,
                                                                                                                    log_file_path=log_file_path)
     event_driven_history_state_search_action =  EventDrivenHistoryStateSearchAction(belief=belief,
-                                                                                    description=description,
+                                                                                    description=system_prompt,
                                                                                     log_file_path=log_file_path)
     event_driven_display_results_action = EventDrivenDisplayResultsAction(belief=belief,
-                                                                          description=description,
+                                                                          description=system_prompt,
                                                                           log_file_path=log_file_path)
 
     # mapping between the names of Sherpa actions and their Action class
