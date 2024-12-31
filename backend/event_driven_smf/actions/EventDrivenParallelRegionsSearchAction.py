@@ -26,7 +26,7 @@ class EventDrivenParallelRegionsSearchAction(SMFAction):
             Note that parallel states are not common, should be used sparingly and ONLY if needed. 
             If there is no need for parallel states, then output the string "NO PARALLEL STATES IDENTIFIED". 
             If you have identified the need for a parallel state, you MUST add the Parallel States and its substates in an HTML table with the following format and headers:
-            ```html <table border="1"> <tr> <th>Parallel State</th> <th>Substate</th> </tr> </table>```
+            ```html <table border="1"> <tr> <th>Parallel State</th> <th>Parallel Region</th> <th>Substate</th> </tr> </table>```
 
             If there are parallel states, also update the states and events accordingly using the HTML table columns below. You MUST use the exact columns provided below and build off of the states and events table provided. 
             If there are no parallel states, then return the original states and events table that you are provided in this prompt.

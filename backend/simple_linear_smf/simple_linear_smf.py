@@ -32,7 +32,7 @@ from resources.environmental_impact.impact_tracker import tracker
 from resources.util import gsm_tables_to_dict
 
 # Default description if not ran with Chainlit
-description = dishwasher_winter_2019
+description = ATAS_fall_2022
 
 def run_simple_linear_smf(system_prompt):
     """
@@ -139,4 +139,76 @@ def run_simple_linear_smf(system_prompt):
     tracker.print_metrics()
 
 if __name__ == "__main__":
-    run_simple_linear_smf(description)
+    create_simple_linear_gsm_diagram(
+        '''<table border="1">
+<tr>
+<th>Superstate</th>
+<th>Substate</th>
+</tr>
+<tr>
+<td>ATAS</td>
+<td>Powered Off</td>
+</tr>
+<tr>
+<td>ATAS</td>
+<td>Operational Mode</td>
+</tr>
+<tr>
+<td>Operational Mode</td>
+<td>Ready</td>
+</tr>
+<tr>
+<td>Operational Mode</td>
+<td>Active</td>
+</tr>
+<tr>
+<td>Active</td>
+<td>Train Operations</td>
+</tr>
+<tr>
+<td>Train Operations</td>
+<td>Moving</td>
+</tr>
+<tr>
+<td>Train Operations</td>
+<td>Stopped</td>
+</tr>
+<tr>
+<td>Stopped</td>
+<td>Stop at Traffic Light</td>
+</tr>
+<tr>
+<td>Stopped</td>
+<td>Stop at Station</td>
+</tr>
+<tr>
+<td>Stopped</td>
+<td>Emergency Stop</td>
+</tr>
+<tr>
+<td>Train Operations</td>
+<td>Final Stop</td>
+</tr>
+</table>''', None, '''<table border="1">
+<tr>
+<th>Parallel State</th>
+<th>Parallel Region</th>
+<th>Substate</th>
+</tr>
+<tr>
+<td>Train Operations</td>
+<td>Segment Detection</td>
+<td>SDS Active</td>
+</tr>
+<tr>
+<td>Train Operations</td>
+<td>Movement Detection</td>
+<td>MDS Active</td>
+</tr>
+<tr>
+<td>Train Operations</td>
+<td>Obstruction Detection</td>
+<td>ODS Active</td>
+</tr>
+</table>''', 'Powered Off', {}, os.path.join(os.path.dirname(__file__), 'Itsfine.png')
+    )

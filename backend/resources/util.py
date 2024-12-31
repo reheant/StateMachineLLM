@@ -127,15 +127,6 @@ def extract_parallel_states_table(llm_response):
     """
     Extracts the parallel states table for Linear SMF responses
     """
-    parallel_states_table_headers = ["Parallel State", "Substate"]
-    parallel_states_table = extract_table_using_headers(llm_response=llm_response,
-                                                        headers=parallel_states_table_headers)
-    return parallel_states_table
-
-def extract_parallel_states_table_simple_linear(llm_response):
-    """
-    Extracts the parallel states table for Linear SMF responses
-    """
     parallel_states_table_headers = ["Parallel State", "Parallel Region", "Substate"]
     parallel_states_table = extract_table_using_headers(llm_response=llm_response,
                                                         headers=parallel_states_table_headers)
@@ -276,6 +267,9 @@ def nest_hierarchical_states(state_to_nest, list_states):
         elif isinstance(state, dict) and 'children' in state.keys():
             if nest_hierarchical_states(state_to_nest, state['children']):
                 return True
+        elif isinstance(state, dict) and 'parallel' in state.keys():
+            if nest_hierarchical_states(state_to_nest, state['parallel']):
+                return True
     
     return False
 
@@ -357,6 +351,9 @@ def gsm_tables_to_dict(hierarchical_states_table : Tag, transitions_table : Tag,
                     })
                 else:
                     parallel_state['parallel'][parallel_region_idx]['children'].append(cols[2].get_text())
+
+    # Add the parallel states to the pool of states
+    states.extend(parallel_states)
 
     # States under '-' really don't have a superstate
     non_composite_state = [state for state in states if isinstance(state, dict) and state['name'] == '-']

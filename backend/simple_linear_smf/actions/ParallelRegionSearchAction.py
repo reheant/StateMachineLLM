@@ -2,7 +2,7 @@
 from resources.SMFAction import SMFAction
 from resources.util import call_llm
 from resources.util import extract_states_events_table
-from resources.util import extract_parallel_states_table_simple_linear
+from resources.util import extract_parallel_states_table
 from resources.n_shot_examples_simple_linear import get_n_shot_examples
 
 class ParallelStateSearchAction(SMFAction):
@@ -72,7 +72,7 @@ class ParallelStateSearchAction(SMFAction):
                 return (updated_state_event_table, None)
             # extract tables
 
-            updated_parallel_state_table = extract_parallel_states_table_simple_linear(llm_response=response)
+            updated_parallel_state_table = extract_parallel_states_table(llm_response=response)
             updated_tables = (updated_state_event_table, updated_parallel_state_table)
             # if any of the tables are not provided, try again
             if None in updated_tables:
