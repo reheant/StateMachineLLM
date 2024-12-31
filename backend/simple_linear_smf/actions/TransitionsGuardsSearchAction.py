@@ -1,9 +1,8 @@
-
-from sherpa_ai.actions.base import BaseAction
+from resources.SMFAction import SMFAction
 from resources.util import call_llm, extract_transitions_guards_table
 from resources.n_shot_examples_simple_linear import get_n_shot_examples
 
-class TransitionsGuardsSearchAction(BaseAction):
+class TransitionsGuardsSearchAction(SMFAction):
     """
     The TransitionsGuardsSearchAction creates the transitions of the UML State Machine with relevant guards
 
@@ -15,6 +14,7 @@ class TransitionsGuardsSearchAction(BaseAction):
     args: dict = {}
     usage: str = "Identify all transitions and guards of the state machine from the system description"
     description: str = ""
+    log_file_path: str = ""
     
     def execute(self):
         """
@@ -22,7 +22,7 @@ class TransitionsGuardsSearchAction(BaseAction):
         guards
         """
 
-        print(f"Running {self.name}...")
+        self.log(f"Running {self.name}...")
         modeled_system, _ = self.belief.get('state_event_search_action')
         statesAndEvents, parallelRegions = self.belief.get('parallel_state_search_action')
         prompt = f'''
@@ -56,5 +56,5 @@ class TransitionsGuardsSearchAction(BaseAction):
         response = call_llm(prompt)
         transition_guard_table = extract_transitions_guards_table(response, True)
 
-        print(f"Transitions table: {transition_guard_table}")
+        self.log(f"Transitions table: {transition_guard_table}")
         return transition_guard_table

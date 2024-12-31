@@ -1,7 +1,7 @@
-from sherpa_ai.actions.base import BaseAction
+from resources.SMFAction import SMFAction
 from resources.util import refactor_transition_table_with_parent_states
 
-class EventDrivenRefactorTransitionNamesAction(BaseAction):
+class EventDrivenRefactorTransitionNamesAction(SMFAction):
     """
     The EventDrivenRefactorTransitionNamesAction takes the table of hierarchical states
     and renames all "From States" and "To States" in the transitions table to follow
@@ -10,7 +10,7 @@ class EventDrivenRefactorTransitionNamesAction(BaseAction):
     name: str = "event_driven_refactor_transition_names_action"
     args: dict = {}
     usage: str = "Given the hierarchical states and transitions of a UML state machine, refactor the names of the transitions to match the ParentState.ChildState format"
-
+    log_file_path: str = ""
 
     def execute(self):
         """
@@ -20,7 +20,7 @@ class EventDrivenRefactorTransitionNamesAction(BaseAction):
         with the "From State" and "To State" column entries renamed in the format "ParentState.ChildState"
         """
 
-        print(f"Running {self.name}...")
+        self.log(f"Running {self.name}...")
 
         event_driven_hierarchical_state_table = self.belief.get("event_driven_create_hierarchical_states_action")
         event_driven_transitions_table = self.belief.get("event_driven_create_transitions_action")
@@ -28,5 +28,5 @@ class EventDrivenRefactorTransitionNamesAction(BaseAction):
         refactored_event_driven_transitions_table = refactor_transition_table_with_parent_states(transitions_table=event_driven_transitions_table,
                                                                                                  hierarchical_state_table=event_driven_hierarchical_state_table)
         
-        print(refactored_event_driven_transitions_table)
+        self.log(refactored_event_driven_transitions_table)
         return refactored_event_driven_transitions_table

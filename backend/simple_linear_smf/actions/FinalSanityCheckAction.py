@@ -1,7 +1,7 @@
-from sherpa_ai.actions.base import BaseAction
+from resources.SMFAction import SMFAction
 from resources.util import call_llm, extract_hierarchical_state_table, extract_parallel_states_table, extract_transitions_guards_actions_table
 
-class FinalSanityCheckAction(BaseAction):
+class FinalSanityCheckAction(SMFAction):
     """
     The FinalSanityCheckAction prompts the LLM to make revision to the hierarchical states table,
     parallel states table, and transitions table
@@ -13,6 +13,7 @@ class FinalSanityCheckAction(BaseAction):
     args: dict = {}
     usage: str = "Confirm that sentences from the system description are captured in the generated state machine represented by HTML tables"
     description: str = ""
+    log_file_path: str = ""
     
     def send_sanity_check(self, table, table_name, max_retries=5):
         """
@@ -69,7 +70,7 @@ class FinalSanityCheckAction(BaseAction):
         applies updates to state/event, parallel states, and transitions table as advised by the LLM
         """
 
-        print(f"Running {self.name}...")
+        self.log(f"Running {self.name}...")
         
         hierarchical_state_table, _ = self.belief.get("hierarchical_state_search_action")
         _, parallel_state_table = self.belief.get("parallel_state_search_action")
@@ -90,8 +91,8 @@ class FinalSanityCheckAction(BaseAction):
         updated_transitions_table = self.send_sanity_check(table=transitions_table,
                                                            table_name="Transitions")
 
-        print(f"Updated Hierarchical State Table: {updated_hierarchical_state_table}")
-        print(f"Updated Parallel State Table: {updated_parallel_state_table}")
-        print(f"Updated Transitions Table: {updated_transitions_table}")
+        self.log(f"Updated Hierarchical State Table: {updated_hierarchical_state_table}")
+        self.log(f"Updated Parallel State Table: {updated_parallel_state_table}")
+        self.log(f"Updated Transitions Table: {updated_transitions_table}")
 
         return updated_hierarchical_state_table, updated_transitions_table, updated_parallel_state_table

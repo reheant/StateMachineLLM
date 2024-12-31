@@ -1,10 +1,9 @@
-
-from sherpa_ai.actions.base import BaseAction
+from resources.SMFAction import SMFAction
 from resources.util import call_llm
 from resources.util import extract_transitions_guards_actions_table
 from resources.n_shot_examples_simple_linear import get_n_shot_examples
 
-class ActionSearchAction(BaseAction):
+class ActionSearchAction(SMFAction):
     """
     The ActionSearchAction creates the actions for the transitions of the UML State Machine identified by TransitionsGuardsSearchAction
 
@@ -16,13 +15,14 @@ class ActionSearchAction(BaseAction):
     args: dict = {}
     usage: str = "Identify all actions for transitions between states in the system"
     description: str = ""
+    log_file_path: str = ""
 
     def execute(self):
         """
         The execute function prompts the LLM to add relevant actions to the transitions created in
         TransitionsGuardsSearchAction
         """
-        print(f"Running {self.name}...")
+        self.log(f"Running {self.name}...")
         transition_table = self.belief.get("transitions_guards_search_action")
 
 
@@ -61,5 +61,5 @@ class ActionSearchAction(BaseAction):
 
         transitions_guards_actions_table = extract_transitions_guards_actions_table(response)
         
-        print(transitions_guards_actions_table)
+        self.log(transitions_guards_actions_table)
         return transitions_guards_actions_table

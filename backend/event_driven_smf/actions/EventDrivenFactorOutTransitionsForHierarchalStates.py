@@ -1,17 +1,18 @@
 
-from sherpa_ai.actions.base import BaseAction
+from resources.SMFAction import SMFAction
 from resources.util import parse_html_table, getStateHierarchyDictFromList, dict_to_html_table
 from collections import defaultdict
 import copy
 
-class EventDrivenFactorOutTransitionsForHierarchalStates(BaseAction):
+class EventDrivenFactorOutTransitionsForHierarchalStates(SMFAction):
     name: str = "event_driven_factor_out_transitions_for_hierarchal_states_action"
     args: dict = {}
     usage: str = "Given a description of a system and the identified transitions of the system, factor out transitions from substates to superstates"
     description: str = ""
+    log_file_path: str = ""
 
     def execute(self):
-        print(f"Running {self.name}...")
+        self.log(f"Running {self.name}...")
 
         event_driven_transitions = str(self.belief.get("event_driven_create_transitions_action"))
         state_hierarchy = str(self.belief.get("event_driven_create_hierarchical_states_action"))

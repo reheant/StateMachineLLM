@@ -1,9 +1,9 @@
 
 import re
-from sherpa_ai.actions.base import BaseAction
+from resources.SMFAction import SMFAction
 from resources.util import call_llm, remove_transitions_from_exit_transition_table, extract_table_entries, create_exit_transitions_table, find_events_for_transitions_table, merge_tables
 
-class EventDrivenFilterTransitionsAction(BaseAction):
+class EventDrivenFilterTransitionsAction(SMFAction):
     """
     The EventDrivenFilterTransitionsAction takes examines the transitions table created
     by EventDrivenCreateTransitionsAction and prompts the LLM to reduce the number of
@@ -17,6 +17,7 @@ class EventDrivenFilterTransitionsAction(BaseAction):
     args: dict = {}
     usage: str = "Given a description of a system and the identified transitions of the system, reduce the number of inaccurate or unneccesary transitions in the UML State Machine"
     description: str = ""
+    log_file_path: str = ""
 
     
     def send_filter_transitions_prompt(self, system_name, transitions_table, events, state):
@@ -66,7 +67,7 @@ class EventDrivenFilterTransitionsAction(BaseAction):
         match = re.search(r"Transitions Removed:\s*([\w\s,]+)", response)
         
         if "NO TRANSITIONS REMOVED" in response:
-            print("No transitions removed")
+            self.log("No transitions removed")
             transitions_table = remove_transitions_from_exit_transition_table(transitions_table, set())
             return transitions_table
         else:
@@ -76,10 +77,10 @@ class EventDrivenFilterTransitionsAction(BaseAction):
                 ids_to_remove = [id.strip() for id in ids_to_remove_str.split(",") if id.strip()]
                 updated_transitions = remove_transitions_from_exit_transition_table(transitions_table=transitions_table,
                                                                                     ids_to_remove=ids_to_remove)
-                print(f"Removed transitions {ids_to_remove}")
+                self.log(f"Removed transitions {ids_to_remove}")
                 return updated_transitions
             else:
-                print(f"Match not found. Response: {response}")
+                self.log(f"Match not found. Response: {response}")
                 transitions_table = remove_transitions_from_exit_transition_table(transitions_table, set())
                 return transitions_table
         
@@ -94,7 +95,7 @@ class EventDrivenFilterTransitionsAction(BaseAction):
         transitions table of the UML state machine
         """
 
-        print(f"Running {self.name}...")
+        self.log(f"Running {self.name}...")
         system_name = self.belief.get("event_driven_system_name_search_action", "Thermomix TM6")
 
         event_driven_transitions_table = self.belief.get("event_driven_create_transitions_action")
@@ -120,6 +121,6 @@ class EventDrivenFilterTransitionsAction(BaseAction):
         # merge all the filtered transitions tables into a single HTML table
         filtered_transitions_table = merge_tables(html_tables_list=filtered_transitions_tables)
 
-        print(filtered_transitions_table)
+        self.log(filtered_transitions_table)
         return filtered_transitions_table
                 

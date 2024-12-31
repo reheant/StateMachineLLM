@@ -1,15 +1,16 @@
-from sherpa_ai.actions.base import BaseAction
+from resources.SMFAction import SMFAction
 from resources.util import call_llm, extract_states_events_table, extract_parallel_states_table
 
 
-class EventDrivenParallelRegionsSearchAction(BaseAction):
+class EventDrivenParallelRegionsSearchAction(SMFAction):
     name: str = "event_driven_parallel_regions_search_action"
     args: dict = {}
     usage: str = "Identify Parallel Regions from States and Events"
     description: str = ""
+    log_file_path: str = ""
 
     def execute(self):
-        print(f"Running {self.name}...")
+        self.log(f"Running {self.name}...")
 
         transitions_table = self.belief.get('event_driven_create_transitions_action')
         modeled_system = self.belief.get('event_driven_system_name_search_action')
@@ -38,9 +39,12 @@ class EventDrivenParallelRegionsSearchAction(BaseAction):
             The original HTML table descibing the states and events is: {transitions_table}
 
             Output:
-        """
+            """
         
+        self.log(prompt)
+
         response = call_llm(prompt)
+        self.log(response)
 
         if ("NO PARALLEL STATES IDENTIFIED" in response):
             return (transitions_table, None)
