@@ -45,7 +45,7 @@ def run_sherpa_task(system_prompt):
     os.makedirs(log_base_dir, exist_ok=True)  # Ensure the directory exists
 
     # Construct the log file path
-    file_prefix = f"output_simple_linear_{time.strftime("%Y_%m_%d_%H_%M_%S")}"
+    file_prefix = f'output_simple_linear_{time.strftime("%Y_%m_%d_%H_%M_%S")}'
     log_file_name = f"{file_prefix}.txt"
     log_file_path = os.path.join(log_base_dir, log_file_name)
 
