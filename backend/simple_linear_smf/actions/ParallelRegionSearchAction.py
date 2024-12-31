@@ -2,7 +2,7 @@
 from resources.SMFAction import SMFAction
 from resources.util import call_llm
 from resources.util import extract_states_events_table
-from resources.util import extract_parallel_states_table
+from resources.util import extract_parallel_states_table_simple_linear
 from resources.n_shot_examples_simple_linear import get_n_shot_examples
 
 class ParallelStateSearchAction(SMFAction):
@@ -36,7 +36,7 @@ class ParallelStateSearchAction(SMFAction):
 
             Note that a state machine may not have parallel states so ensure that the parallel state that you are outputting is one that follows the guidelines above and is not already encapsulated by a state. Furthermore, make sure that the state that you are outputting makes sense in the context about the object that you are modeling. 
             Note that parallel states are not common and should be used sparingly, and ONLY if needed. If there is no need for parallel states, then output the string EMPTY. If you have identified the need for a parallel state, you MUST add the Parallel States and its substates in an HTML table with the following format and headers:
-            ```html <table border="1"> <tr> <th>Parallel State</th> <th>Substate</th> </tr> </table> ```
+            ```html <table border="1"> <tr> <th>Parallel State</th> <th>Parallel Region</th> <th>Substate</th> </tr> </table> ```
             
 
             If there are parallel states, identify the events that take place concurrently. To do this, update the provided HTML table describing states and events. place the states that the events are being performed on under a parallel state with a state name that encompasses the behavior of such a state and identify the events that causes the state machine to enter and leave the parallel state to.  
@@ -72,7 +72,7 @@ class ParallelStateSearchAction(SMFAction):
                 return (updated_state_event_table, None)
             # extract tables
 
-            updated_parallel_state_table = extract_parallel_states_table(llm_response=response)
+            updated_parallel_state_table = extract_parallel_states_table_simple_linear(llm_response=response)
             updated_tables = (updated_state_event_table, updated_parallel_state_table)
             # if any of the tables are not provided, try again
             if None in updated_tables:

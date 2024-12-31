@@ -24,7 +24,7 @@ from actions.HistoryStateSearchAction import HistoryStateSearchAction
 from actions.FinalSanityCheckAction import FinalSanityCheckAction
 from actions.InitialStateSearchAction import InitialStateSearchAction
 from simple_linear_smf_transitions import transitions
-from resources.util import gsm_tables_to_dict
+from resources.util import create_simple_linear_gsm_diagram, map_state_to_pytransitions_name
 import mermaid as md
 from mermaid.graph import Graph
 from resources.state_machine_descriptions import *
@@ -32,13 +32,12 @@ from resources.environmental_impact.impact_tracker import tracker
 from resources.util import gsm_tables_to_dict
 
 # Default description if not ran with Chainlit
-description = thermomix_fall_2021
+description = dishwasher_winter_2019
 
-def run_sherpa_task(system_prompt):
+def run_simple_linear_smf(system_prompt):
     """
     the run_event_driven_smf initiates the Simple Linear State Machine Framework
     """
-    description = thermomix_fall_2021
 
     # Define the base directory for logs
     log_base_dir = os.path.join(os.path.dirname(__file__), "..", "resources", "simple_linear_log")
@@ -128,21 +127,16 @@ def run_sherpa_task(system_prompt):
     qa_agent = QAAgent(llm=llm, belief=belief, num_runs=10, policy=policy)
         
     qa_agent.run()
-
-    # run the sherpa task, and get the ouputs in order to generate the mermaid code and create visual diagram of state machine
-    gsm_states, gsm_transitions, gsm_parallel_regions = gsm_tables_to_dict(*belief.get("sanity_check_action"))
+    
     initial_state = belief.get("initial_state_search_action")
-    print(f"States: {gsm_states}")
-    print(f"Transitions: {gsm_transitions}")
-    print(f"Parallel Regions: {gsm_parallel_regions}")
-    gsm = SherpaStateMachine(states=gsm_states, transitions=gsm_transitions, initial=initial_state, sm_cls=HierarchicalGraphMachine)
-    print(gsm.sm.get_graph().draw(None))
-    sequence = Graph('Sequence-diagram',gsm.sm.get_graph().draw(None))
-    render = md.Mermaid(sequence)
-    render.to_png(diagram_file_path)
+    create_simple_linear_gsm_diagram(
+        *belief.get("sanity_check_action"),
+        initial_state,
+        hierarchical_initial_states={},
+        diagram_file_path=diagram_file_path
+    )
 
     tracker.print_metrics()
 
 if __name__ == "__main__":
-    run_sherpa_task(description)
-    
+    run_simple_linear_smf(description)
