@@ -85,7 +85,7 @@ After completing the setup, launch http://localhost:8000 in your browser
 # change the description to your use case in event_driven_smf.py or simple_linear_smf.py
 description = desired description
 if __name__ == "__main__":
-    run_sherpa_task() # or run_event_driven_smf() 
+    run_simple_linear_smf() # or run_event_driven_smf() 
 # Choose your required LLM in the terminal
 ```
 
