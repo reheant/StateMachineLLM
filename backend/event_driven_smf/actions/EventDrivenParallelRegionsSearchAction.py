@@ -13,32 +13,90 @@ class EventDrivenParallelRegionsSearchAction(SMFAction):
         self.log(f"Running {self.name}...")
 
         transitions_table = self.belief.get('event_driven_create_transitions_action')
-        modeled_system = self.belief.get('event_driven_system_name_search_action')
+        system_name = self.belief.get('event_driven_system_name_search_action')
 
         prompt = f"""
-            You are an AI assistant specialized in identifying parallel regions in a state machine from a problem description and a table that lists all the states and events of the state machine. 
-             
-            In a state machine, parallel states (also called orthogonal states) are independent states that can be active simultaneously, allowing the system to be in multiple states at once. They typically represent different aspects or components of the system that can operate independently of each other.
-            Think of it like a media player that can both be "Playing" music AND in "Shuffle" mode at the same time - these are two parallel states that don't interfere with each other but together describe the complete state of the system.
+            You are an AI assistant specialized in analyzing state machines and identifying parallel regions. Your task is to examine a system description, system name, and a transitions table to determine if parallel states exist and provide appropriate output.
 
-            You can identify parallel states by asking yourself: Is there an event in which the state machine can react in more than 1 state at the same time? Should the state machine remember be active in more than 1 state at a time? 
+            Here is the input you need to analyze:
 
-            Note that parallel states are not common, should be used sparingly and ONLY if needed. 
-            If there is no need for parallel states, then output the string "NO PARALLEL STATES IDENTIFIED". 
-            If you have identified the need for a parallel state, you MUST add the Parallel States and its substates in an HTML table with the following format and headers:
-            ```html <table border="1"> <tr> <th>Parallel State</th> <th>Parallel Region</th> <th>Substate</th> </tr> </table>```
+            <system_description>
+            {{system_description}}
+            </system_description>
 
-            If there are parallel states, also update the states and events accordingly using the HTML table columns below. You MUST use the exact columns provided below and build off of the states and events table provided. 
-            If there are no parallel states, then return the original states and events table that you are provided in this prompt.
-            ```html <table border="1"> <tr> <th>Current State</th> <th>Event</th> <th>Next State(s)</th> </tr> </table>``` 
+            <system_name>
+            {{modeled_system}}
+            </system_name>
 
-            The system description: {self.description}
+            <transitions_table>
+            {{transitions_table}}
+            </transitions_table>
 
-            The system you are modeling: {modeled_system}
+            Now, follow these steps to complete your analysis:
 
-            The original HTML table descibing the states and events is: {transitions_table}
+            1. Thoroughly analyze the provided information, paying special attention to the state transitions and system behavior.
 
-            Output:
+            2. Determine if parallel states exist in the state machine. Remember that parallel states:
+            - Are independent states that can be active simultaneously
+            - Allow the system to be in multiple states at once
+            - Typically represent different aspects or components of the system that can operate independently
+
+            3. Use the following questions to guide your analysis:
+            - Is there an event in which the state machine can react in more than one state at the same time?
+            - Should the state machine remember being active in more than one state at a time?
+
+            4. Document your thought process and analysis in <state_machine_analysis> tags. Be thorough in your reasoning and explain how you arrived at your conclusions. Include the following steps:
+            a. List out all states and events from the transitions table
+            b. Identify potential parallel states by looking for states that can be active simultaneously
+            c. Examine each potential parallel state pair and provide reasoning for why they might or might not be parallel
+            d. Summarize your findings
+
+            It's okay for this section to be quite long, as we want a thorough analysis.
+
+            5. Based on your analysis, provide one of the following outputs:
+
+            a. If no parallel states are identified:
+                - Output the exact string: "NO PARALLEL STATES IDENTIFIED"
+                - Return the original states and events table provided in the <transitions_table> section
+
+            b. If parallel states are identified:
+                - Create an HTML table listing the parallel states and their substates using the following format:
+                    ```html
+                    <table border="1">
+                    <tr>
+                        <th>Parallel State</th>
+                        <th>Parallel Region</th>
+                        <th>Substate</th>
+                    </tr>
+                    <tr>
+                        <td>[Parallel State Name]</td>
+                        <td>[Parallel Region Name]</td>
+                        <td>[Substate Name]</td>
+                    </tr>
+                    <!-- Add more rows as needed -->
+                    </table>
+                    ```
+                - Update the states and events table to reflect the parallel states, using the following format:
+                    ```html
+                    <table border="1">
+                    <tr>
+                        <th>Current State</th>
+                        <th>Event</th>
+                        <th>Next State(s)</th>
+                    </tr>
+                    <tr>
+                        <td>[Current State]</td>
+                        <td>[Event]</td>
+                        <td>[Next State(s)]</td>
+                    </tr>
+                    <!-- Add more rows as needed -->
+                    </table>
+                    ```
+
+            Remember, parallel states should be used sparingly and only when necessary. Be confident in your analysis and provide clear, well-structured output.
+
+            Your expertise in state machine analysis is crucial for the success of this task. The accuracy and clarity of your output will greatly impact the system design process.
+
             """
         
         self.log(prompt)
