@@ -55,7 +55,9 @@ n_shot_examples = {
         <tr><th>From State</th><th>To State</th><th>Event</th><th>Guard</th><th>Action</th></tr>
         <tr><td \>Idle</td><td>Idle</td><td>Toggle dishwasher program & Diswasher Waiting</td><td[>]Program number >= 1]</td><td>Diswasher repetitions = Program Number</td></tr>
         <tr><td>Idle</td><td>Idle</td><td>Toggle dishwasher drying time & Diswasher Waiting</td><td>NONE</td><td>if drying time equal to 20 then set it to 40 otherwise set it to 20</td></tr>
-        <tr><td>Idle</td><td>Cleaning</td><td>Start the diswasher</td><td>[Close dishwasher door]</td><td>Lock the dishwasher door and set the counter = 1</td></tr>
+        <tr><td>Idle</td><td>Intake</td><td>Start the diswasher</td><td>[Dishwasher door is closed]</td><td>Lock the dishwasher door and set the counter = 1</td></tr>
+        <tr><td>Idle</td><td>Washing</td><td>Start the diswasher</td><td>[Dishwasher door is closed]</td><td>Lock the dishwasher door and set the counter = 1</td></tr>
+        <tr><td>Idle</td><td>Drain</td><td>Start the diswasher</td><td>[Dishwasher door is closed]</td><td>Lock the dishwasher door and set the counter = 1</td></tr>
         </table>```""",
 
 
