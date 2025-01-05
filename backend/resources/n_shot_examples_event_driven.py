@@ -10,7 +10,6 @@ n_shot_examples = {
         <tr><td>Closed</td></tr>
         <tr><td>Locked</td></tr>
         <tr><td>Idle</td></tr>
-        <tr><td>Cleaning</td></tr>
         <tr><td>Intake</td></tr>
         <tr><td>Washing</td></tr>
         <tr><td>Drain</td></tr>
