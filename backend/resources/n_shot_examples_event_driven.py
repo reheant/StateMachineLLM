@@ -106,7 +106,7 @@ n_shot_examples = {
         <tr><td>Idle</td><td>Cleaning</td><td>Start the diswasher</td><td>[Dishwasher door is closed]</td><td>Lock the dishwasher door and set the counter = 1</td></tr>
         <tr><td>Intake</td><td>Washing</td><td>Dishwasher is washing</td><td>NONE</td><td>NONE</td></tr>
         <tr><td>Washing</td><td>Drain</td><td>Dishwasher Draining</td><td>[After 10 minutes of washing]</td><td>NONE</td></tr>
-        <tr><td>Drain</td><td>Intake</td><td>Dishwasher Draining</td><td>[Counter of wash cycles is less than program number] </td><td>NONE</td></tr>
+        <tr><td>Drain</td><td>Intake</td><td>Dishwasher Draining</td><td>[Counter of wash cycles is less than program number]</td><td>NONE</td></tr>
         <tr><td>Cleaning</td><td>Cleaning</td><td>Toggle dishwasher drying time</td><td>NONE</td><td>if drying time equal to 20 then set it to 40 otherwise set it to 20</td></tr>
         <tr><td>Cleaning</td><td>Drying</td><td>Unlock the dishwasher Door</td><td>NONE</td><td>NONE</td></tr>
         <tr><td>Drying</td><td>Suspended</td><td>Open Dishwasher Door</td><td>NONE</td><td>NONE</td></tr>
