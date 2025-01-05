@@ -3,7 +3,7 @@ from resources.state_machine_descriptions import *
 n_shot_examples = {
     "dishwasher_winter_2019": {
         "system_description": dishwasher_winter_2019,
-        "system_name": "DishwasherOn",
+        "system_name": "Dishwasher",
         "states_table": """```html<table border="1">
         <tr><th>StateName</th></tr>
         <tr><td>Open</td></tr>
