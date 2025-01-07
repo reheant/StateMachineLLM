@@ -7,7 +7,7 @@ import asyncio
 import backend.resources.state_machine_descriptions
 from backend.resources.llm_tracker import llm
 from backend.event_driven_smf.event_driven_smf import run_event_driven_smf
-from backend.simple_linear_smf.simple_linear_smf import run_sherpa_task
+from backend.simple_linear_smf.simple_linear_smf import run_simple_linear_smf
 
 @cl.set_chat_profiles
 async def chat_profile():
@@ -41,7 +41,7 @@ async def stream_function_output(system_prompt):
 
     async def run_and_capture():
         with contextlib.redirect_stdout(stdout_capture):
-            await asyncio.to_thread(run_sherpa_task, system_prompt)  # Use to_thread for the blocking call
+            await asyncio.to_thread(run_simple_linear_smf, system_prompt)  # Use to_thread for the blocking call
 
     task = asyncio.create_task(run_and_capture())
 

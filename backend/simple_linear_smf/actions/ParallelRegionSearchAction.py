@@ -36,7 +36,7 @@ class ParallelStateSearchAction(SMFAction):
 
             Note that a state machine may not have parallel states so ensure that the parallel state that you are outputting is one that follows the guidelines above and is not already encapsulated by a state. Furthermore, make sure that the state that you are outputting makes sense in the context about the object that you are modeling. 
             Note that parallel states are not common and should be used sparingly, and ONLY if needed. If there is no need for parallel states, then output the string EMPTY. If you have identified the need for a parallel state, you MUST add the Parallel States and its substates in an HTML table with the following format and headers:
-            ```html <table border="1"> <tr> <th>Parallel State</th> <th>Substate</th> </tr> </table> ```
+            ```html <table border="1"> <tr> <th>Parallel State</th> <th>Parallel Region</th> <th>Substate</th> </tr> </table> ```
             
 
             If there are parallel states, identify the events that take place concurrently. To do this, update the provided HTML table describing states and events. place the states that the events are being performed on under a parallel state with a state name that encompasses the behavior of such a state and identify the events that causes the state machine to enter and leave the parallel state to.  
