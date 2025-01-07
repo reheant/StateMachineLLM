@@ -138,6 +138,19 @@ n_shot_examples = {
             </table>""",
             "parallel_states_table": 
             """<table border="1">  
+            <tr><th>Superstate</th><th>Substate</th></tr>
+            <tr><td>DishwasherOn</td><td>Door</td></tr>
+            <tr><td>DishwasherOn</td><td>Washer</td></tr>
+            <tr><td>Door</td><td>Open</td></tr>
+            <tr><td>Door</td><td>Closed</td></tr>
+            <tr><td>Door</td><td>Locked</td></tr>
+            <tr><td>Washer</td><td>Cleaning</td></tr>
+            <tr><td>Washer</td><td>Idle</td></tr>
+            <tr><td>Washer</td><td>Drying</td></tr>
+            <tr><td>Washer</td><td>Suspended</td></tr>
+            <tr><td>Cleaning</td><td>Intake</td></tr>
+            <tr><td>Cleaning</td><td>Washing</td></tr>
+            <tr><td>Cleaning</td><td>Drain</td></tr>
             </table>"""
         }
 }
