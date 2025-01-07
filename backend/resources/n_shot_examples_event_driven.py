@@ -1,4 +1,4 @@
-from state_machine_descriptions import printer_winter_2017
+from state_machine_descriptions import printer_winter_2017, dishwasher_winter_2019
 
 n_shot_examples = {
     "dishwasher_winter_2019": {
