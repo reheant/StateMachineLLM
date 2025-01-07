@@ -1,6 +1,6 @@
 import re
 from resources.SMFAction import SMFAction
-from resources.n_shot_examples_event_driven import get_n_shot_examples
+from resources.n_shot_examples_simple_linear import get_n_shot_examples
 from resources.util import call_llm
 
 class InitialStateSearchAction(SMFAction):
@@ -23,6 +23,7 @@ class InitialStateSearchAction(SMFAction):
         self.log(f"Running {self.name}...")
 
         system_name, state_event_table = self.belief.get('state_event_search_action')
+        n_shot_example_list = self.belief.get("n_shot_examples")
 
         prompt = f"""
         You are an expert requirements engineer specializing in designing UML state machines from textual descriptions of systems. Your task is to identify the initial state of a system based on the provided information.
@@ -63,7 +64,7 @@ class InitialStateSearchAction(SMFAction):
 
         Remember, your response should be concise and accurate. The quality of your work is crucial, and incorrect answers may result in termination of your role.
 
-        {get_n_shot_examples(['printer_winter_2017'],['system_name','system_description', 'states_table', 'initial_state'])}
+        {get_n_shot_examples(n_shot_example_list,['system_name','system_description', 'states_table', 'initial_state'])}
 
         Your expertise in identifying the correct initial state is vital for the success of the entire system modeling process. Your accurate analysis will lay the foundation for a robust and reliable state machine design. Take pride in your role and let your expertise shine through in your thoughtful analysis and precise selection.
 

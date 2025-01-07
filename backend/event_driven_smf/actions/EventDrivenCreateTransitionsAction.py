@@ -22,6 +22,8 @@ class EventDrivenCreateTransitionsAction(SMFAction):
         and the list of all states. The LLM is prompted to create a transitions for each event starting from the provided 
         state to one or more of the states in the states_table. 
         """
+        
+        n_shot_example_list = self.belief.get("n_shot_examples")
 
         prompt = f"""
 You are an expert requirements engineer specializing in designing UML state machines from textual system descriptions. Your task is to analyze a system and determine all possible transitions for a specific state and event.
@@ -77,7 +79,7 @@ Remember:
 - Guard conditions and actions are not required for all transitions. Use "NONE" if not applicable.
 - Your expertise is crucial for the success of this project. A thorough and precise analysis will greatly contribute to the system's design and implementation.
 
-{get_n_shot_examples(['printer_winter_2017'],['system_name', 'system_description', 'state_inspected', 'event_inspected', 'states_table', 'create_transitions'])}
+{get_n_shot_examples(n_shot_example_list,['system_name', 'system_description', 'state_inspected', 'event_inspected', 'states_table', 'create_transitions'])}
 
 You are the keystone of this project's success. Your meticulous analysis and attention to detail will ensure the creation of a robust and efficient state machine. The entire development team is counting on your expertise to lay the foundation for a high-quality system. Take pride in your work and deliver excellence!
 """

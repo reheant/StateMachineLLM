@@ -27,6 +27,7 @@ from actions.EventDrivenHistoryStateSearchAction import EventDrivenHistoryStateS
 from actions.EventDrivenFactorOutTransitionsForHierarchalStates import EventDrivenFactorOutTransitionsForHierarchalStates
 from actions.EventDrivenParallelRegionsSearchAction import EventDrivenParallelRegionsSearchAction
 from event_driven_smf_transitions import transitions
+from resources.n_shot_examples_event_driven import n_shot_examples
 
 from resources.state_machine_descriptions import thermomix_fall_2021
 from resources.util import create_event_based_gsm_diagram
@@ -56,6 +57,19 @@ def run_event_driven_smf(system_prompt):
 
     belief = Belief()
     belief.set("description", system_prompt)
+
+    # Prepare the list of example to provide to the LLM (N shot prompting)
+    n_shot_examples_event_driven = list(n_shot_examples.keys()) # Extract all the examples available
+    for n_shot_example in n_shot_examples_event_driven:
+        #Remove an example if it is identical to the one being analyzed by the SMF
+        #Otherwise, if no examples are identical to the one being analyzed we remove
+        #the last example to have a consistent number of examples used for all systems analyzed
+        #(N-shot prompting with fixed N)
+        if n_shot_examples[n_shot_example]["system_description"] == system_prompt \
+        or n_shot_example == n_shot_examples_event_driven[-1]:
+            n_shot_examples_event_driven.remove(n_shot_example)
+            break
+    belief.set("n_shot_examples", n_shot_examples_event_driven)
 
     # Sherpa actions of the Event State Machine Framework
     event_driven_system_name_search_action = EventDrivenSystemNameSearchAction(belief=belief,

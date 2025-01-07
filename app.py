@@ -69,6 +69,7 @@ async def stream_function_output(system_prompt):
 
 @cl.on_message
 async def run_conversation(message: cl.Message):
+    await message.send() # Print the problem description as is
     await stream_function_output(message.content)
     await display_image()
 

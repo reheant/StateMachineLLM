@@ -30,6 +30,7 @@ class EventDrivenHistoryStateSearchAction(SMFAction):
         modeled_system = self.belief.get('event_driven_system_name_search_action')
         superstates = [state for state in gsm_tables_to_dict(self.belief.get('event_driven_create_hierarchical_states_action'), transitions_table, None)[0] if isinstance(state, dict)]
         events = self.belief.get('event_driven_event_search_action')
+        n_shot_example_list = self.belief.get("n_shot_examples")
 
         for superstate in superstates:
             prompt = f'''
@@ -99,7 +100,7 @@ class EventDrivenHistoryStateSearchAction(SMFAction):
 
                 Note: The events in the Event column MUST be part of the provided event table.
 
-                {get_n_shot_examples(['printer_winter_2017'],['system_name', 'system_description', 'transitions_table', 'events_table', 'superstate_inspected_for_history_state', 'substates_inspected_for_history_state', 'history_state_table'])}
+                {get_n_shot_examples(n_shot_example_list,['system_name', 'system_description', 'transitions_table', 'events_table', 'superstate_inspected_for_history_state', 'substates_inspected_for_history_state', 'history_state_table'])}
 
                 Remember, your analysis and decision are critical for the correct implementation of this state machine. The success of the entire system design depends on your expertise and attention to detail. Your concise and accurate assessment will greatly impact the efficiency and reliability of the final product.
                 '''

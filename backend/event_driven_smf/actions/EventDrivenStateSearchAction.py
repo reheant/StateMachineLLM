@@ -27,6 +27,7 @@ class EventDrivenStateSearchAction(SMFAction):
         self.log(f"Running {self.name}...")
 
         system_name = self.belief.get("event_driven_system_name_search_action")
+        n_shot_example_list = self.belief.get("n_shot_examples")
 
         prompt = f"""
                 You are an expert requirements engineer specializing in designing UML state machines from textual descriptions of systems. Your task is to identify all states of a UML state machine based on the given system description.
@@ -67,7 +68,7 @@ class EventDrivenStateSearchAction(SMFAction):
                 ```
                 </states_table>
 
-                {get_n_shot_examples(['printer_winter_2017'],['system_name','system_description', 'states_table'])}
+                {get_n_shot_examples(n_shot_example_list,['system_name','system_description', 'states_table'])}
 
 
                 Remember to keep your answer concise and focused on the required output. Accuracy is crucial; an incorrect answer could result in serious consequences for the project and your professional reputation.

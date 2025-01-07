@@ -55,7 +55,7 @@ def call_llm(prompt, max_tokens=1200, temperature=0.7):
     """
     global energy_consumed, carbon_emissions, abiotic_resource_depletion
 
-    llm.print_metrics()
+    #llm.print_metrics()
     
     response = client.chat.completions.create(
         model=llm.current_llm,

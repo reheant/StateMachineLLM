@@ -1,4 +1,4 @@
-from resources.state_machine_descriptions import *
+from state_machine_descriptions import printer_winter_2017
 
 n_shot_examples = {
     "printer_winter_2017": {
@@ -95,28 +95,28 @@ n_shot_examples = {
         <tr><th>From State</th><th>Event</th><th>Guard</th><th>Action</th></tr>
         <tr><td>Suspended</td><td>resume</td><td>NONE</td><td>NONE</td></tr>
         </table>```""",
-    },
-    "spa_manager_winter_2018": {
-        "system_description": spa_manager_winter_2018,
-        "system_name": "SpaManager",
-        "states_table": """<table border="1">
-        <tr><th>StateName</th></tr>
-        <tr><th>JacuzziOff</th></tr>
-        <tr><td>JacuzziOn</td></tr>
-        <tr><td>JacuzziLevel1</td></tr>
-        <tr><td>JacuzziLevel2</td></tr>
-        <tr><td>JacuzziLevel3</td></tr>
-        <tr><td>JacuzziPaused</td></tr>
-        <tr><td>SaunaOff</td></tr>
-        <tr><td>SaunaOn</td></tr>
-        <tr><td>SaunaOff</td></tr>
-        <tr><td>HeaterHeating</td></tr>
-        <tr><td>HeaterIdle</td></tr>
-        <tr><td>FanOff</td></tr>
-        <tr><td>FanOn</td></tr>
-        <tr><td>WaterIdle</td></tr>
-        </table>"""
-        }
+    }
+    #"spa_manager_winter_2018": {
+    #    "system_description": spa_manager_winter_2018,
+    #    "system_name": "SpaManager",
+    #    "states_table": """<table border="1">
+    #    <tr><th>StateName</th></tr>
+    #    <tr><th>JacuzziOff</th></tr>
+    #    <tr><td>JacuzziOn</td></tr>
+    #    <tr><td>JacuzziLevel1</td></tr>
+    #    <tr><td>JacuzziLevel2</td></tr>
+    #    <tr><td>JacuzziLevel3</td></tr>
+    #    <tr><td>JacuzziPaused</td></tr>
+    #    <tr><td>SaunaOff</td></tr>
+    #    <tr><td>SaunaOn</td></tr>
+    #    <tr><td>SaunaOff</td></tr>
+    #    <tr><td>HeaterHeating</td></tr>
+    #    <tr><td>HeaterIdle</td></tr>
+    #    <tr><td>FanOff</td></tr>
+    #    <tr><td>FanOn</td></tr>
+    #    <tr><td>WaterIdle</td></tr>
+    #    </table>"""
+    #    }
 }
 
 def get_n_shot_examples(example_names, tables):

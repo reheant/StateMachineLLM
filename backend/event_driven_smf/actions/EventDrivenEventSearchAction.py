@@ -26,6 +26,7 @@ class EventDrivenEventSearchAction(SMFAction):
         self.log(f"Running {self.name}...")
 
         system_name = self.belief.get("event_driven_system_name_search_action")
+        n_shot_example_list = self.belief.get("n_shot_examples")
 
         prompt = f"""
                 You are an expert requirements engineer specialized in designing UML state machines from textual system descriptions. Your task is to identify all events that could trigger state transitions in a UML state machine based on the given system description.
@@ -68,7 +69,7 @@ class EventDrivenEventSearchAction(SMFAction):
                 ```
                 </events_table>
 
-                {get_n_shot_examples(['printer_winter_2017'],['system_name', 'system_description', 'events_table'])}
+                {get_n_shot_examples(n_shot_example_list,['system_name', 'system_description', 'events_table'])}
 
                 Important guidelines:
                 - Include only the event names in the table, without additional details.

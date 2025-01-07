@@ -26,6 +26,8 @@ class HierarchicalStateSearchAction(SMFAction):
 
         modeled_system, _ = self.belief.get('state_event_search_action')
         transitions_table = self.belief.get('action_search_action')
+        n_shot_example_list = self.belief.get("n_shot_examples")
+
         prompt = f'''You are an AI assistant specialized in analyzing and optimizing state machines and state diagrams. You will be provided with a table that lists transitions between states, including the originating state, destination state, triggering event, associated action, and any guard conditions.
 
         Determine Parent States:
@@ -47,7 +49,7 @@ class HierarchicalStateSearchAction(SMFAction):
                 Ensure consistency and correctness in the transitions and states.
                 In the end you need to output 2 html tables with the following format:
         
-        {get_n_shot_examples(["Printer", "Spa Manager"], ["system_description", "transitions_events_guards_table", "hierarchical_state_table", "transitions_events_guards_table"])}
+        {get_n_shot_examples(n_shot_example_list, ["system_description", "transitions_events_guards_table", "hierarchical_state_table", "transitions_events_guards_table"])}
 
         Example:
 

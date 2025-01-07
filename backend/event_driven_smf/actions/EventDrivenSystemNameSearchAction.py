@@ -28,6 +28,8 @@ class EventDrivenSystemNameSearchAction(SMFAction):
         """
 
         self.log(f"Running {self.name}...")
+        n_shot_example_list = self.belief.get("n_shot_examples")
+
         prompt = f""""
             You are an expert requirements engineer specializing in UML state machine design. Your current task is to analyze a textual description of a system and identify its name. This name will be used as the foundation for creating a UML state machine, so accuracy is crucial.
 
@@ -57,7 +59,7 @@ class EventDrivenSystemNameSearchAction(SMFAction):
             After your analysis, provide the system name in the following format:
             <system_name>System Name</system_name>
 
-            {get_n_shot_examples(['printer_winter_2017'],['system_description','system_name'])}
+            {get_n_shot_examples(n_shot_example_list,['system_description','system_name'])}
 
             Remember, your response should be concise and accurate. The success of future UML modeling depends on your precise identification of the system name.
 

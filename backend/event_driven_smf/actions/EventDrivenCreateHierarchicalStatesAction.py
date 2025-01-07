@@ -31,6 +31,7 @@ class EventDrivenCreateHierarchicalStatesAction(SMFAction):
         system_name = self.belief.get("event_driven_system_name_search_action")
         states_table = self.belief.get("event_driven_state_search_action")
         event_driven_transitions_table = self.belief.get("event_driven_parallel_regions_search_action")
+        n_shot_example_list = self.belief.get("n_shot_examples")
 
         prompt = f"""
                 You are an expert requirements engineer specializing in designing UML state machines from textual descriptions of systems. Your task is to create a hierarchical state machine design based on the provided system information.
@@ -81,7 +82,7 @@ class EventDrivenCreateHierarchicalStatesAction(SMFAction):
                 2. If a state from the original table of identified transitions DOES NOT have a parent state in your design, enter "-" in the "Superstate" column.
                 3. Be concise in your final output, providing only the requested HTML table.
 
-                {get_n_shot_examples(['printer_winter_2017'],['system_name', 'system_description', 'states_table', 'transitions_table', 'hierarchical_table'])}
+                {get_n_shot_examples(n_shot_example_list,['system_name', 'system_description', 'states_table', 'transitions_table', 'hierarchical_table'])}
 
                 Remember, your expertise in UML state machines is crucial for creating an accurate and efficient hierarchical design. The quality of your work will directly impact the success of the system's implementation. Take pride in your role as a key contributor to this important project.
                 """

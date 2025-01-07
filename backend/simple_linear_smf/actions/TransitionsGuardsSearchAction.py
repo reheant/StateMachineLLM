@@ -25,6 +25,8 @@ class TransitionsGuardsSearchAction(SMFAction):
         self.log(f"Running {self.name}...")
         modeled_system, _ = self.belief.get('state_event_search_action')
         statesAndEvents, parallelRegions = self.belief.get('parallel_state_search_action')
+        n_shot_example_list = self.belief.get("n_shot_examples")
+
         prompt = f'''
         You are an AI assistant specialized in identifying the guards and transitions for a state machine. Given a problem description, a table of all the states and events, and a table of the parallel states and their substates. Note that the parallel state table input is optional so if user doesn’t provide one, assume that there is not parallel states in the state machine.
         Parse through each state in the states table and identify if there exists any missing events from the table. Parse through each state in the states table to identify whether the event triggers transitions to another state. If the state is a substate then there can only exist a transition inside the parallel region and from and to the parent state.
@@ -36,7 +38,7 @@ class TransitionsGuardsSearchAction(SMFAction):
         <tr> <td rowspan="3"> State1 </td> <td> State2 </td> <td> Event1 </td> <td> Condition1 </td> </tr>
         <tr> <td rowspan="3"> State3 </td> <td> State4 </td> <td> Event2 </td> <td> NONE </td> </tr> </table> ```
 
-        {get_n_shot_examples(["Printer", "Spa Manager"], ["system_description", "transitions_events_table", "parallel_states_table", "transitions_events_guards_table"])}
+        {get_n_shot_examples(n_shot_example_list, ["system_description", "transitions_events_table", "parallel_states_table", "transitions_events_guards_table"])}
 
         Example: 
         
