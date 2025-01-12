@@ -64,7 +64,7 @@ class InitialStateSearchAction(SMFAction):
 
         Remember, your response should be concise and accurate. The quality of your work is crucial, and incorrect answers may result in termination of your role.
 
-        {get_n_shot_examples(n_shot_example_list,['system_name','system_description', 'states_table', 'initial_state'])}
+        {get_n_shot_examples(n_shot_example_list,['system_description', 'hierarchical_state_table', 'initial_state'])}
 
         Your expertise in identifying the correct initial state is vital for the success of the entire system modeling process. Your accurate analysis will lay the foundation for a robust and reliable state machine design. Take pride in your role and let your expertise shine through in your thoughtful analysis and precise selection.
 
