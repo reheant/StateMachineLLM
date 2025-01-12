@@ -1,4 +1,4 @@
-from state_machine_descriptions import printer_winter_2017, spa_manager_winter_2018
+from resources.state_machine_descriptions import printer_winter_2017, spa_manager_winter_2018
 
 n_shot_examples = {
 
