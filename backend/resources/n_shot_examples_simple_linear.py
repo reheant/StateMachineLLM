@@ -137,20 +137,17 @@ n_shot_examples = {
             <tr><td>Cleaning</td><td>Drain</td></tr>
             </table>""",
             "parallel_states_table": 
-            """<table border="1">  
-            <tr><th>Superstate</th><th>Substate</th></tr>
-            <tr><td>DishwasherOn</td><td>Door</td></tr>
-            <tr><td>DishwasherOn</td><td>Washer</td></tr>
-            <tr><td>Door</td><td>Open</td></tr>
-            <tr><td>Door</td><td>Closed</td></tr>
-            <tr><td>Door</td><td>Locked</td></tr>
-            <tr><td>Washer</td><td>Cleaning</td></tr>
-            <tr><td>Washer</td><td>Idle</td></tr>
-            <tr><td>Washer</td><td>Drying</td></tr>
-            <tr><td>Washer</td><td>Suspended</td></tr>
-            <tr><td>Cleaning</td><td>Intake</td></tr>
-            <tr><td>Cleaning</td><td>Washing</td></tr>
-            <tr><td>Cleaning</td><td>Drain</td></tr>
+            """<table border="1">
+            <tr><th>Parallel State</th><th>Parallel Region</th><th>Substate</th></tr>
+            <tr><td>DishwasherOn</td><td>Door</td><td>Open</td></tr>
+            <tr><td>DishwasherOn</td><td>Door</td><td>Closed</td></tr>
+            <tr><td>DishwasherOn</td><td>Door</td><td>Locked</td></tr>
+            <tr><td>DishwasherOn</td><td>Washer</td><td>Idle</td></tr>
+            <tr><td>DishwasherOn</td><td>Washer</td><td>Drying</td></tr>
+            <tr><td>DishwasherOn</td><td>Washer</td><td>Suspended</td></tr>
+            <tr><td>Cleaning</td><td>Washer</td><td>Intake</td></tr>
+            <tr><td>Cleaning</td><td>Washer</td><td>Washing</td></tr>
+            <tr><td>Cleaning</td><td>Washer</td><td>Drain</td></tr>
             </table>"""
         }
   
