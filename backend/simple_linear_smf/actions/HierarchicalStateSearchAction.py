@@ -69,6 +69,9 @@ class HierarchicalStateSearchAction(SMFAction):
         hierarchical_state_table = extract_hierarchical_state_table(answer)
         updated_transitions_table = extract_transitions_guards_actions_table(answer)
 
+        if updated_transitions_table is None:
+            updated_transitions_table = transitions_table
+
         self.log(f"Hierarchical State Table: {hierarchical_state_table}")
         self.log(f"Updated Transitions State Table: {updated_transitions_table}")
         return hierarchical_state_table, updated_transitions_table
