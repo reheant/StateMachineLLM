@@ -345,7 +345,7 @@ n_shot_examples = {
         
         
         <!-- Fan transitions -->
-        <tr><td>FanOff</td><td>FanOn</td><td>Humidity Above 40% for 3+ Minutes</td><td>NONE</td><td>NONE</td></tr>
+        <tr><td>FanOff</td><td>FanOn</td><td>Humidity Above 40% for 3+ Minutes</td><td>[humidity>40% && exceedTime>3min]</td><td>NONE</td></tr>
         <tr><td>FanOn</td><td>FanOff</td><td>5 Minutes Elapsed (Fan Auto-Off)</td><td>NONE</td><td>NONE</td></tr>
         
         <!-- Water transitions -->
