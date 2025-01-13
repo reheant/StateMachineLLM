@@ -255,9 +255,6 @@ n_shot_examples = {
         <!-- Jacuzzi Events -->
         <tr><td>Turn Jacuzzi On</td></tr>
         <tr><td>Turn Jacuzzi Off</td></tr>
-        <tr><td>Set Pattern Level 1</td></tr>
-        <tr><td>Set Pattern Level 2</td></tr>
-        <tr><td>Set Pattern Level 3</td></tr>
         <tr><td>Pattern Level Up</td></tr>
         <tr><td>Pattern Level Down</td></tr>
         <tr><td>Pause Jacuzzi</td></tr>
