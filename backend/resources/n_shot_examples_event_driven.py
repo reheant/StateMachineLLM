@@ -369,6 +369,7 @@ n_shot_examples = {
         "history_state_table": """```html<table border="1"> 
         <tr><th>From State</th><th>Event</th><th>Guard</th><th>Action</th></tr>
         <tr><td>JacuzziOn</td><td>Set Pattern Type</td><td>NONE</td><td>NONE</td></tr>
+        <tr><td>JacuzziPaused</td><td>2 Minutes Elapsed (Auto-Resume)</td><td>NONE</td><td>NONE</td></tr>
         </table>```""",
 
     
