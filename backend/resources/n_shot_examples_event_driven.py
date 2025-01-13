@@ -307,17 +307,17 @@ n_shot_examples = {
         <tr><td>Jacuzzi</td><td>JacuzziOff</td></tr>
         <tr><td>Jacuzzi</td><td>JacuzziOn</td></tr>
         <tr><td>Jacuzzi</td><td>JacuzziPaused</td></tr>
-        <tr><td>On</td><td>Level1</td></tr>
-        <tr><td>On</td><td>Level2</td></tr>
-        <tr><td>On</td><td>Level3</td></tr>
+        <tr><td>JacuzziOn</td><td>Level1</td></tr>
+        <tr><td>JacuzziOn</td><td>Level2</td></tr>
+        <tr><td>JaczziOn</td><td>Level3</td></tr>
         
         <!-- Sauna section -->
         <tr><td>SpaManager</td><td>Sauna</td></tr>
         <tr><td>Sauna</td><td>SaunaOff</td></tr>
         <tr><td>Sauna</td><td>SaunaOn</td></tr>
-        <tr><td>On</td><td>Heater</td></tr>
-        <tr><td>On</td><td>Fan</td></tr>
-        <tr><td>On</td><td>Water</td></tr>
+        <tr><td>SaunaOn</td><td>Heater</td></tr>
+        <tr><td>SaunaOn</td><td>Fan</td></tr>
+        <tr><td>SaunaOn</td><td>Water</td></tr>
         <tr><td>Heater</td><td>HeaterHeating</td></tr>
         <tr><td>Heater</td><td>HeaterIdle</td></tr>
         <tr><td>Fan</td><td>FanOff</td></tr>
@@ -325,7 +325,56 @@ n_shot_examples = {
         <tr><td>Water</td><td>WaterIdle</td></tr>
         </table>```""",
 
+        "transitions_table": """```
+        html<table border="1">
+        <tr><th>From State</th><th>To State</th><th>Event</th><th>Guard</th><th>Action</th></tr>
+        
+        <!-- Jacuzzi transitions -->
+        <tr><td>JacuzziOff</td><td>JacuzziOn</td><td>Turn Jacuzzi On</td><td>NONE</td><td>NONE</td></tr>
+        <tr><td>JacuzziOn</td><td>JacuzziOff</td><td>Turn Jacuzzi Off</td><td>NONE</td><td>NONE</td></tr>
+        <tr><td>JacuzziOn</td><td>JacuzziPaused</td><td>Pause Jacuzzi</td><td>NONE</td><td>NONE</td></tr>
+        <tr><td>Level1</td><td>Level2</td><td>Pattern Level Up</td><td>NONE</td><td>NONE</td></tr>
+        <tr><td>Level2</td><td>Level1</td><td>Pattern Level Down</td><td>NONE</td><td>NONE</td></tr>
+        <tr><td>Level2</td><td>Level3</td><td>Pattern Level Up</td><td>NONE</td><td>NONE</td></tr>
+        <tr><td>Level3</td><td>Level2</td><td>Pattern Level Down</td><td>NONE</td><td>NONE</td></tr>
+    
+        <tr><td>Level1</td><td>JacuzziPaused</td><td>2 Minutes Elapsed (Auto-Pause)</td><td>NONE</td><td>NONE</td></tr>
+        <tr><td>Level2</td><td>JacuzziPaused</td><td>2 Minutes Elapsed (Auto-Pause)</td><td>NONE</td><td>NONE</td></tr>
+        <tr><td>Level3</td><td>JacuzziPaused</td><td>2 Minutes Elapsed (Auto-Pause)</td><td>NONE</td><td>NONE</td></tr>
+        <tr><td>JacuzziPaused</td><td>JacuzziOff</td><td>Turn Jacuzzi Off</td><td>NONE</td><td>NONE</td></tr>
+        
+        <!-- Sauna transitions -->
+        <tr><td>SaunaOff</td><td>SaunaOn</td><td>Turn Sauna On</td><td>NONE</td><td>NONE</td></tr>
+        <tr><td>SaunaOn</td><td>SaunaOff</td><td>Turn Sauna Off</td><td>NONE</td><td>NONE</td></tr>
+        
+        <!-- Heater transitions -->
+        <tr><td>HeaterHeating</td><td>HeaterIdle</td><td>Temperature Exceeds 90°C</td><td>NONE</td><td>NONE</td></tr>
+        <tr><td>HeaterIdle</td><td>HeaterHeating</td><td>Temperature Falls Below 85°C</td><td>NONE</td><td>NONE</td></tr>
+        
+        
+        <!-- Fan transitions -->
+        <tr><td>FanOff</td><td>FanOn</td><td>Humidity Above 40% for 3+ Minutes</td><td>NONE</td><td>NONE</td></tr>
+        <tr><td>FanOn</td><td>FanOff</td><td>5 Minutes Elapsed (Fan Auto-Off)</td><td>NONE</td><td>NONE</td></tr>
+        
+        <!-- Water transitions -->
+        <tr><td>WaterIdle</td><td>WaterIdle</td><td>Disperse Water</td><td>[Humidity Below 40% && !Fan.On && 15 Minutes Since Last Water Dispersion]</td><td>NONE</td></tr>
+        
+        </table>```""",
 
+        "superstate_inspected": "JacuzziOn",
+
+        "substates_inspected": "['Level1', 'Level2', 'Level3']",
+
+        "superstate_initial_state": "Level1",
+
+        "superstate_inspected_for_history_state": "JacuzziOn",
+
+        "substates_inspected_for_history_state": "['Level1', 'Level2', Level3]",
+
+        "history_state_table": """```html<table border="1"> 
+        <tr><th>From State</th><th>Event</th><th>Guard</th><th>Action</th></tr>
+        <tr><td>JacuzziOn</td><td>Set Pattern Type</td><td>NONE</td><td>NONE</td></tr>
+        </table>```""",
 
     
         }
