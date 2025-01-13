@@ -340,8 +340,8 @@ n_shot_examples = {
         <tr><td>SaunaOn</td><td>SaunaOff</td><td>Turn Sauna Off</td><td>NONE</td><td>NONE</td></tr>
         
         <!-- Heater transitions -->
-        <tr><td>HeaterHeating</td><td>HeaterIdle</td><td>Temperature Exceeds 90°C</td><td>NONE</td><td>NONE</td></tr>
-        <tr><td>HeaterIdle</td><td>HeaterHeating</td><td>Temperature Falls Below 85°C</td><td>NONE</td><td>NONE</td></tr>
+        <tr><td>HeaterHeating</td><td>HeaterIdle</td><td>Temperature Exceeds 90°C</td><td>[temp >= 90°C]</td><td>NONE</td></tr>
+        <tr><td>HeaterIdle</td><td>HeaterHeating</td><td>Temperature Falls Below 85°C</td><td>[temp >= 85°C]</td><td>NONE</td></tr>
         
         
         <!-- Fan transitions -->
