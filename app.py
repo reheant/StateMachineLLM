@@ -33,62 +33,6 @@ async def chat_profile():
         )
     ]
 
-@cl.on_message
-async def run_conversation(message: cl.Message):
-    final_answer = cl.Message(content="", author="Sherpa Output")
-    await final_answer.send()
-
-    stdout_capture = io.StringIO()
-    current_step = None
-    current_step_content = []
-
-    async def run_and_capture():
-        with contextlib.redirect_stdout(stdout_capture):
-            await asyncio.to_thread(run_simple_linear_smf, message.content)
-
-    task = asyncio.create_task(run_and_capture())
-
-    while not task.done():
-        await asyncio.sleep(0.1)
-
-        stdout_capture.seek(0)
-        current_output = stdout_capture.read()
-        
-        if current_output:
-            lines = current_output.splitlines()
-            for line in lines:
-                if line.startswith("Running"):
-                    if current_step is not None:
-                        step_content = "\n".join(current_step_content)
-                        current_step.output = step_content
-                        await current_step.update()
-                        await current_step.__aexit__(None, None, None)
-                    
-                    step_name = line[8:].replace("...", "").replace("start_", "") + " action" if line.startswith("Running ") else line
-                    current_step = cl.Step(name=step_name)
-                    await current_step.__aenter__()
-                    current_step_content = [line]
-                elif current_step is not None:
-                    current_step_content.append(line)
-
-            stdout_capture.truncate(0)
-            stdout_capture.seek(0)
-
-    if current_step is not None:
-        step_content = "\n".join(current_step_content)
-        current_step.output = step_content
-        await current_step.update()
-        await current_step.__aexit__(None, None, None)
-
-    await task 
-    
-    step_outputs = []
-    for line in final_answer.content.splitlines():
-        if line.strip():
-            step_outputs.append(line)
-    final_answer.content = "\n".join(step_outputs)
-    await final_answer.update()
-
 
 @cl.on_message
 async def run_conversation(message: cl.Message):
