@@ -279,8 +279,6 @@ n_shot_examples = {
         <!-- Water Events -->
         <tr><td>Water System to Idle</td></tr>
         <tr><td>Disperse Water</td></tr>
-        <tr><td>Humidity Below 40%</td></tr>
-        <tr><td>15 Minutes Since Last Water Dispersion</td></tr>
         </table>""",
 
         "state_inspected": "Level2",
