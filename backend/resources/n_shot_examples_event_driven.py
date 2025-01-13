@@ -277,7 +277,6 @@ n_shot_examples = {
         <tr><td>5 Minutes Elapsed (Fan Auto-Off)</td></tr>
         
         <!-- Water Events -->
-        <tr><td>Water System to Idle</td></tr>
         <tr><td>Disperse Water</td></tr>
         </table>""",
 
