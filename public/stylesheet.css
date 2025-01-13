@@ -4,10 +4,10 @@
 
 
 table th {
-    background-color: #a86508; /* Change this to your desired color */
+    background-color: #a86508;
 }
 
 
 table td:nth-child(2) {
-    background-color: #FFD700; /* Change this to your desired color */
+    background-color: #FFD700;
 }
