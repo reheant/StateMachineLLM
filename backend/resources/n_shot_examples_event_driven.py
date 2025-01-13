@@ -286,15 +286,15 @@ n_shot_examples = {
         <tr><td>15 Minutes Since Last Water Dispersion</td></tr>
         </table>""",
 
-        "state_inspected": "JacuzziOff",
+        "state_inspected": "Level2",
 
-        "associated_events": "Turn Jacuzzi On, Turn Jacuzzi Off, Pause Jacuzzi",
+        "associated_events": "Turn Jacuzzi Off, Pattern Level Up, Pattern Level Down, Set Pattern Type, Pause Jacuzzi",
 
-        "event_inspected": "Turn Jacuzzi On",
+        "event_inspected": "Pattern Level Up",
 
          "create_transitions": """```html<table border="1">
         <tr><th>From State</th><th>To State</th><th>Event</th><th>Guard</th><th>Action</th></tr>
-        <tr><td rowspan="3">JacuzziOff</td><td>JacuzziOn</td><td>Turn Jacuzzi on</td><td>NONE</td><td>NONE</td></tr>
+        <tr><td rowspan="3">Level2</td><td>Level3</td><td>Pattern Level Up</td><td>NONE</td><td>NONE</td></tr>
         </table>```""",
 
         "hierarchical_table":"""```
