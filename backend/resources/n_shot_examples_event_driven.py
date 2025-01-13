@@ -235,10 +235,9 @@ n_shot_examples = {
         "states_table": """<table border="1">
         <tr><th>StateName</th></tr>
         <tr><th>JacuzziOff</th></tr>
-        <tr><td>JacuzziOn</td></tr>
-        <tr><td>JacuzziLevel1</td></tr>
-        <tr><td>JacuzziLevel2</td></tr>
-        <tr><td>JacuzziLevel3</td></tr>
+        <tr><td>Level1</td></tr>
+        <tr><td>Level2</td></tr>
+        <tr><td>Level3</td></tr>
         <tr><td>JacuzziPaused</td></tr>
         <tr><td>SaunaOff</td></tr>
         <tr><td>SaunaOn</td></tr>
@@ -248,7 +247,87 @@ n_shot_examples = {
         <tr><td>FanOff</td></tr>
         <tr><td>FanOn</td></tr>
         <tr><td>WaterIdle</td></tr>
-        </table>"""
+        </table>""",
+
+        "initial_state": "JacuzziOff",
+
+        "events_table": """<table border="1">
+        <table border="1">
+        <tr><th>EventName</th></tr>
+        <!-- Jacuzzi Events -->
+        <tr><td>Turn Jacuzzi On</td></tr>
+        <tr><td>Turn Jacuzzi Off</td></tr>
+        <tr><td>Set Pattern Level 1</td></tr>
+        <tr><td>Set Pattern Level 2</td></tr>
+        <tr><td>Set Pattern Level 3</td></tr>
+        <tr><td>Pattern Level Up</td></tr>
+        <tr><td>Pattern Level Down</td></tr>
+        <tr><td>Pause Jacuzzi</td></tr>
+        <tr><td>Resume Jacuzzi from Pause</td></tr>
+        <tr><td>2 Minutes Elapsed (Auto-Pause)</td></tr>
+        <tr><td>Set Pattern Type</td></tr>
+        
+        <!-- Sauna Events -->
+        <tr><td>Turn Sauna On</td></tr>
+        <tr><td>Turn Sauna Off</td></tr>
+        <tr><td>Temperature Exceeds 90°C</td></tr>
+        <tr><td>Temperature Falls Below 85°C</td></tr>
+        <tr><td>Turn Heater On</td></tr>
+        <tr><td>Heater Goes to Idle</td></tr>
+        
+        <!-- Fan Events -->
+        <tr><td>Turn Fan On</td></tr>
+        <tr><td>Turn Fan Off</td></tr>
+        <tr><td>Humidity Above 40% for 3+ Minutes</td></tr>
+        <tr><td>5 Minutes Elapsed (Fan Auto-Off)</td></tr>
+        
+        <!-- Water Events -->
+        <tr><td>Water System to Idle</td></tr>
+        <tr><td>Disperse Water</td></tr>
+        <tr><td>Humidity Below 40%</td></tr>
+        <tr><td>15 Minutes Since Last Water Dispersion</td></tr>
+        </table>""",
+
+        "state_inspected": "JacuzziOff",
+
+        "associated_events": "Turn Jacuzzi On, Turn Jacuzzi Off, Pause Jacuzzi",
+
+        "event_inspected": "Turn Jacuzzi On",
+
+         "create_transitions": """```html<table border="1">
+        <tr><th>From State</th><th>To State</th><th>Event</th><th>Guard</th><th>Action</th></tr>
+        <tr><td rowspan="3">JacuzziOff</td><td>JacuzziOn</td><td>Turn Jacuzzi on</td><td>NONE</td><td>NONE</td></tr>
+        </table>```""",
+
+        "hierarchical_table":"""```
+        <table border="1">
+        <tr><th>Superstate</th><th>Substate</th></tr>
+        <!-- Jacuzzi section -->
+        <tr><td>SpaManager</td><td>Jacuzzi</td></tr>
+        <tr><td>Jacuzzi</td><td>JacuzziOff</td></tr>
+        <tr><td>Jacuzzi</td><td>JacuzziOn</td></tr>
+        <tr><td>Jacuzzi</td><td>JacuzziPaused</td></tr>
+        <tr><td>On</td><td>Level1</td></tr>
+        <tr><td>On</td><td>Level2</td></tr>
+        <tr><td>On</td><td>Level3</td></tr>
+        
+        <!-- Sauna section -->
+        <tr><td>SpaManager</td><td>Sauna</td></tr>
+        <tr><td>Sauna</td><td>SaunaOff</td></tr>
+        <tr><td>Sauna</td><td>SaunaOn</td></tr>
+        <tr><td>On</td><td>Heater</td></tr>
+        <tr><td>On</td><td>Fan</td></tr>
+        <tr><td>On</td><td>Water</td></tr>
+        <tr><td>Heater</td><td>HeaterHeating</td></tr>
+        <tr><td>Heater</td><td>HeaterIdle</td></tr>
+        <tr><td>Fan</td><td>FanOff</td></tr>
+        <tr><td>Fan</td><td>FanOn</td></tr>
+        <tr><td>Water</td><td>WaterIdle</td></tr>
+        </table>```""",
+
+
+
+    
         }
 }
 
