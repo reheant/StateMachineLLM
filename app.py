@@ -33,44 +33,64 @@ async def chat_profile():
         )
     ]
 
-async def stream_function_output(system_prompt):
+@cl.on_message
+async def run_conversation(message: cl.Message):
     final_answer = cl.Message(content="", author="Sherpa Output")
     await final_answer.send()
 
     stdout_capture = io.StringIO()
+    current_step = None
+    current_step_content = []
 
     async def run_and_capture():
         with contextlib.redirect_stdout(stdout_capture):
-            await asyncio.to_thread(run_simple_linear_smf, system_prompt)  # Use to_thread for the blocking call
+            await asyncio.to_thread(run_simple_linear_smf, message.content)
 
     task = asyncio.create_task(run_and_capture())
 
     while not task.done():
         await asyncio.sleep(0.1)
 
-        # Stream captured output
         stdout_capture.seek(0)
         current_output = stdout_capture.read()
-        stdout_capture.truncate(0)
-        stdout_capture.seek(0)
-
+        
         if current_output:
-            await final_answer.stream_token(current_output)
+            lines = current_output.splitlines()
+            for line in lines:
+                if line.startswith("Running"):
+                    if current_step is not None:
+                        step_content = "\n".join(current_step_content)
+                        current_step.output = step_content
+                        await current_step.update()
+                        await current_step.__aexit__(None, None, None)
+                    
+                    step_name = line[8:].replace("...", "").replace("start_", "") + " action" if line.startswith("Running ") else line
+                    current_step = cl.Step(name=step_name)
+                    await current_step.__aenter__()
+                    current_step_content = [line]
+                elif current_step is not None:
+                    current_step_content.append(line)
 
-    # Final output after task completion
-    stdout_capture.seek(0)
-    final_output = stdout_capture.read()
-    if final_output:
-        await final_answer.stream_token(final_output)
+            stdout_capture.truncate(0)
+            stdout_capture.seek(0)
 
-    await task  # Ensure task exceptions propagate
+    if current_step is not None:
+        step_content = "\n".join(current_step_content)
+        current_step.output = step_content
+        await current_step.update()
+        await current_step.__aexit__(None, None, None)
+
+    await task 
+    
+    step_outputs = []
+    for line in final_answer.content.splitlines():
+        if line.strip():
+            step_outputs.append(line)
+    final_answer.content = "\n".join(step_outputs)
     await final_answer.update()
 
-
-@cl.on_message
-async def run_conversation(message: cl.Message):
-    await stream_function_output(message.content)
-    await display_image()
+    async with cl.Step(name="Rendering Diagram") as diagram_step:
+        await display_image()
 
 
 async def display_image():
