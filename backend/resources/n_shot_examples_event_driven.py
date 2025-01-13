@@ -337,7 +337,9 @@ n_shot_examples = {
         <tr><td>Level2</td><td>JacuzziPaused</td><td>Pause Jacuzzi</td><td>NONE</td><td>NONE</td></tr>
         <tr><td>Level3</td><td>JacuzziPaused</td><td>Pause Jacuzzi</td><td>NONE</td><td>NONE</td></tr>
         <tr><td>JacuzziPaused</td><td>JacuzziOff</td><td>Turn Jacuzzi Off</td><td>NONE</td><td>NONE</td></tr>
-        
+        <tr><td>JacuzziPaused</td><td>Level1</td><td>2 Minutes Elapsed (Auto-Resume)</td><td>NONE</td><td>NONE</td></tr>
+        <tr><td>JacuzziPaused</td><td>Level2</td><td>2 Minutes Elapsed (Auto-Resume)</td><td>NONE</td><td>NONE</td></tr>
+        <tr><td>JacuzziPaused</td><td>Level3</td><td>2 Minutes Elapsed (Auto-Resume)</td><td>NONE</td><td>NONE</td></tr>
         <!-- Sauna transitions -->
         <tr><td>SaunaOff</td><td>SaunaOn</td><td>Turn Sauna On</td><td>NONE</td><td>NONE</td></tr>
         <tr><td>SaunaOn</td><td>SaunaOff</td><td>Turn Sauna Off</td><td>NONE</td><td>NONE</td></tr>
