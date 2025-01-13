@@ -240,8 +240,6 @@ n_shot_examples = {
         <tr><td>Level3</td></tr>
         <tr><td>JacuzziPaused</td></tr>
         <tr><td>SaunaOff</td></tr>
-        <tr><td>SaunaOn</td></tr>
-        <tr><td>SaunaOff</td></tr>
         <tr><td>HeaterHeating</td></tr>
         <tr><td>HeaterIdle</td></tr>
         <tr><td>FanOff</td></tr>
