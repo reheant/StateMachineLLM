@@ -333,9 +333,9 @@ n_shot_examples = {
         <tr><td>Level2</td><td>Level3</td><td>Pattern Level Up</td><td>NONE</td><td>NONE</td></tr>
         <tr><td>Level3</td><td>Level2</td><td>Pattern Level Down</td><td>NONE</td><td>NONE</td></tr>
     
-        <tr><td>Level1</td><td>JacuzziPaused</td><td>2 Minutes Elapsed (Auto-Pause)</td><td>NONE</td><td>NONE</td></tr>
-        <tr><td>Level2</td><td>JacuzziPaused</td><td>2 Minutes Elapsed (Auto-Pause)</td><td>NONE</td><td>NONE</td></tr>
-        <tr><td>Level3</td><td>JacuzziPaused</td><td>2 Minutes Elapsed (Auto-Pause)</td><td>NONE</td><td>NONE</td></tr>
+        <tr><td>Level1</td><td>JacuzziPaused</td><td>Pause Jacuzzi</td><td>NONE</td><td>NONE</td></tr>
+        <tr><td>Level2</td><td>JacuzziPaused</td><td>Pause Jacuzzi</td><td>NONE</td><td>NONE</td></tr>
+        <tr><td>Level3</td><td>JacuzziPaused</td><td>Pause Jacuzzi</td><td>NONE</td><td>NONE</td></tr>
         <tr><td>JacuzziPaused</td><td>JacuzziOff</td><td>Turn Jacuzzi Off</td><td>NONE</td><td>NONE</td></tr>
         
         <!-- Sauna transitions -->
