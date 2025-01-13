@@ -322,9 +322,12 @@ n_shot_examples = {
         <tr><th>From State</th><th>To State</th><th>Event</th><th>Guard</th><th>Action</th></tr>
         
         <!-- Jacuzzi transitions -->
-        <tr><td>JacuzziOff</td><td>JacuzziOn</td><td>Turn Jacuzzi On</td><td>NONE</td><td>NONE</td></tr>
-        <tr><td>JacuzziOn</td><td>JacuzziOff</td><td>Turn Jacuzzi Off</td><td>NONE</td><td>NONE</td></tr>
-        <tr><td>JacuzziOn</td><td>JacuzziPaused</td><td>Pause Jacuzzi</td><td>NONE</td><td>NONE</td></tr>
+        <tr><td>JacuzziOff</td><td>Level1</td><td>Turn Jacuzzi On</td><td>NONE</td><td>NONE</td></tr>
+        <tr><td>JacuzziOff</td><td>Level2</td><td>Turn Jacuzzi On</td><td>NONE</td><td>NONE</td></tr>
+        <tr><td>JacuzziOff</td><td>Level3</td><td>Turn Jacuzzi On</td><td>NONE</td><td>NONE</td></tr>
+        <tr><td>Level1</td><td>JacuzziOff</td><td>Turn Jacuzzi Off</td><td>NONE</td><td>NONE</td></tr>
+        <tr><td>Level2</td><td>JacuzziOff</td><td>Turn Jacuzzi Off</td><td>NONE</td><td>NONE</td></tr>
+        <tr><td>Level3</td><td>JacuzziOff</td><td>Turn Jacuzzi Off</td><td>NONE</td><td>NONE</td></tr>
         <tr><td>Level1</td><td>Level2</td><td>Pattern Level Up</td><td>NONE</td><td>NONE</td></tr>
         <tr><td>Level2</td><td>Level1</td><td>Pattern Level Down</td><td>NONE</td><td>NONE</td></tr>
         <tr><td>Level2</td><td>Level3</td><td>Pattern Level Up</td><td>NONE</td><td>NONE</td></tr>
