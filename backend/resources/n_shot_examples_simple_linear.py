@@ -145,9 +145,9 @@ n_shot_examples = {
             <tr><td>DishwasherOn</td><td>Washer</td><td>Idle</td></tr>
             <tr><td>DishwasherOn</td><td>Washer</td><td>Drying</td></tr>
             <tr><td>DishwasherOn</td><td>Washer</td><td>Suspended</td></tr>
-            <tr><td>Cleaning</td><td>Washer</td><td>Intake</td></tr>
-            <tr><td>Cleaning</td><td>Washer</td><td>Washing</td></tr>
-            <tr><td>Cleaning</td><td>Washer</td><td>Drain</td></tr>
+            <tr><td>DishwasherOn</td><td>Washer</td><td>Intake</td></tr>
+            <tr><td>DishwasherOn</td><td>Washer</td><td>Washing</td></tr>
+            <tr><td>DishwasherOn</td><td>Washer</td><td>Drain</td></tr>
             </table>"""
         }
   
