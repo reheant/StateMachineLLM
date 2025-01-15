@@ -258,7 +258,6 @@ n_shot_examples = {
         <tr><td>Pattern Level Up</td></tr>
         <tr><td>Pattern Level Down</td></tr>
         <tr><td>Pause Jacuzzi</td></tr>
-        <tr><td>Resume Jacuzzi from Pause</td></tr>
         <tr><td>2 Minutes Elapsed (Auto-Resume)</td></tr>
         <tr><td>Set Pattern Type</td></tr>
         
