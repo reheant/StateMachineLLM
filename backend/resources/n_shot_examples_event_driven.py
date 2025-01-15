@@ -264,10 +264,9 @@ n_shot_examples = {
         <!-- Sauna Events -->
         <tr><td>Turn Sauna On</td></tr>
         <tr><td>Turn Sauna Off</td></tr>
-        <tr><td>Temperature Exceeds 90°C</td></tr>
-        <tr><td>Temperature Falls Below 85°C</td></tr>
+        
         <tr><td>Turn Heater On</td></tr>
-        <tr><td>Heater Goes to Idle</td></tr>
+        <tr><td>Heater Goes Idle</td></tr>
         
         <!-- Fan Events -->
         <tr><td>Turn Fan On</td></tr>
@@ -344,13 +343,13 @@ n_shot_examples = {
         <tr><td>SaunaOn</td><td>SaunaOff</td><td>Turn Sauna Off</td><td>NONE</td><td>NONE</td></tr>
         
         <!-- Heater transitions -->
-        <tr><td>HeaterHeating</td><td>HeaterIdle</td><td>Temperature Exceeds 90°C</td><td>[temp >= 90°C]</td><td>NONE</td></tr>
-        <tr><td>HeaterIdle</td><td>HeaterHeating</td><td>Temperature Falls Below 85°C</td><td>[temp >= 85°C]</td><td>NONE</td></tr>
+        <tr><td>HeaterHeating</td><td>HeaterIdle</td><td>Heater Goes Idle</td><td>Temperature Exceeds 90°C</td><td>NONE</td></tr>
+        <tr><td>HeaterIdle</td><td>HeaterHeating</td><td>Turn Heater On</td><td>Temperature Falls Below 85°C</td><td>NONE</td></tr>
         
         
         <!-- Fan transitions -->
-        <tr><td>FanOff</td><td>FanOn</td><td>Humidity Above 40% for 3+ Minutes</td><td>[humidity>40% && exceedTime>3min]</td><td>NONE</td></tr>
-        <tr><td>FanOn</td><td>FanOff</td><td>5 Minutes Elapsed (Fan Auto-Off)</td><td>NONE</td><td>NONE</td></tr>
+        <tr><td>FanOff</td><td>FanOn</td><td>Turn Fan On</td><td>[Humidity Above 40% for 3+ minutes]</td><td>NONE</td></tr>
+        <tr><td>FanOn</td><td>FanOff</td><td>Turn Fan Off </td><td>[5 Minutes Elapsed (Fan Auto-Off)]</td><td>NONE</td></tr>
         
         <!-- Water transitions -->
         <tr><td>WaterIdle</td><td>WaterIdle</td><td>Disperse Water</td><td>[Humidity Below 40% && !Fan.On && 15 Minutes Since Last Water Dispersion]</td><td>NONE</td></tr>
