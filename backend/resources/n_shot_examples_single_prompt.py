@@ -2,7 +2,7 @@ from state_machine_descriptions import *
 
 n_shot_examples = {
     "printer_winter_2017": {
-        "system_description": dishwasher_winter_2019,
+        "system_description": printer_winter_2017,
         "umple_code_solution": '''class Printer{
  sm {
    Off {on -> On;}

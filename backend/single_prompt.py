@@ -13,7 +13,7 @@ from resources.state_machine_descriptions import *
 from resources.n_shot_examples_single_prompt import get_n_shot_examples, n_shot_examples
 
 # Default description if not ran with Chainlit
-description = ATAS_fall_2022
+description = dishwasher_winter_2019
 
 def run_single_prompt(system_prompt):
     """
@@ -122,4 +122,4 @@ Provide your answer:
 
 
 if __name__ == "__main__":
-    run_single_prompt(ATAS_fall_2022)
+    run_single_prompt(description)
