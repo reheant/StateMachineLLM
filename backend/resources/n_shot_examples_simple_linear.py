@@ -1,4 +1,4 @@
-from resources.state_machine_descriptions import printer_winter_2017, spa_manager_winter_2018
+from resources.state_machine_descriptions import printer_winter_2017, spa_manager_winter_2018, dishwasher_winter_2019
 
 n_shot_examples = {
 
@@ -17,7 +17,7 @@ n_shot_examples = {
     # spa manager system, ECSE 223 Winter 2018 Midterm #2 example
     "Spa Manager": {
         "system_description": spa_manager_winter_2018,
-        "initial_state": "Off",
+        "initial_state": "SpaManager",
         "transitions_events_table": """<table border="1"> <tr> <th>Current State</th> <th>Event</th> <th>Next State(s)</th> </tr> <tr> <td>JacuzziOff</td> <td>on</td> <td>JacuzziOn</td> </tr> <tr> <td>JacuzziOn</td> <td>off</td> <td>JacuzziOff</td> </tr> <tr> <td>Jacuzzi Level1</td> <td>up</td> <td>Jacuzzi Level2</td> </tr> <tr> <td>Jacuzzi Level2</td> <td>up</td> <td>Jacuzzi Level3</td> </tr> <tr> <td>Jacuzzi Level2</td> <td>down</td> <td>Jacuzzi Level1</td> </tr> <tr> <td>Jacuzzi Level3</td> <td>down</td> <td>Jacuzzi Level2</td> </tr> <tr> <td>JacuzziOn</td> <td>pause</td> <td>Jacuzzi Paused</td> </tr> <tr> <td>JacuzziOn</td> <td>setPattern</td> <td>Jacuzzi H</td> </tr> <tr> <td>Jacuzzi Paused</td> <td>off</td> <td>JacuzziOff</td> </tr> <tr> <td>Jacuzzi Paused</td> <td>resume</td> <td>Jacuzzi H</td> </tr> <tr> <td>Sauna Off</td> <td>on</td> <td>Sauna On</td> </tr> <tr> <td>Sauna On</td> <td>off</td> <td>Sauna Off</td> </tr> <tr> <td>Sauna Heat</td> <td>reachHighTemp</td> <td>Sauna Idle</td> </tr> <tr> <td>Sauna Idle</td> <td>reachLowTemp</td> <td>Sauna Heat</td> </tr> <tr> <td>Sauna Fan Off</td> <td>startFan</td> <td>Sauna Fan On</td> </tr> <tr> <td>Sauna Fan On</td> <td>stopFan</td> <td>Sauna Fan Off</td> </tr> <tr> <td>Sauna Water Idle</td> <td>disperseWater</td> <td>Sauna Water Idle</td> </tr></table>""",
         "transitions_events_guards_table": """<table border="1"> <tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> </tr> <tr> <td>JacuzziOff</td> <td>JacuzziOn</td> <td>on</td> <td></td> </tr> <tr> <td>JacuzziOn</td> <td>JacuzziOff</td> <td>off</td> <td></td> </tr> <tr> <td>Jacuzzi Level1</td> <td>Jacuzzi Level2</td> <td>up</td> <td></td> </tr> <tr> <td>Jacuzzi Level2</td> <td>Jacuzzi Level3</td> <td>up</td> <td></td> </tr> <tr> <td>Jacuzzi Level2</td> <td>Jacuzzi Level1</td> <td>down</td> <td></td> </tr> <tr> <td>Jacuzzi Level3</td> <td>Jacuzzi Level2</td> <td>down</td> <td></td> </tr> <tr> <td>JacuzziOn</td> <td>Jacuzzi Paused</td> <td>pause</td> <td></td> </tr> <tr> <td>JacuzziOn</td> <td>Jacuzzi H</td> <td>setPattern</td> <td></td> </tr> <tr> <td>Jacuzzi Paused</td> <td>JacuzziOff</td> <td>off</td> <td></td> </tr> <tr> <td>Jacuzzi Paused</td> <td>Jacuzzi H</td> <td>resume</td> <td></td> </tr> <tr> <td>Sauna Off</td> <td>Sauna On</td> <td>on</td> <td></td> </tr> <tr> <td>Sauna On</td> <td>Sauna Off</td> <td>off</td> <td></td> </tr> <tr> <td>Sauna Heat</td> <td>Sauna Idle</td> <td>reachHighTemp</td> <td>temp >= 90</td> </tr> <tr> <td>Sauna Idle</td> <td>Sauna Heat</td> <td>reachLowTemp</td> <td>temp &lt; 85</td> </tr> <tr> <td>Sauna Fan Off</td> <td>Sauna Fan On</td> <td>startFan</td> <td>humidity &gt; 0.40 && exceedTime &gt; 3</td> </tr> <tr> <td>Sauna Fan On</td> <td>Sauna Fan Off</td> <td>stopFan</td> <td></td> </tr> <tr> <td>Sauna Water Idle</td> <td>Sauna Water Idle</td> <td>disperseWater</td> <td>humidity &lt; 0.04 && !Fan On && timeSinceLast &gt; 15</td> </tr></table>""",
         "transitions_events_guards_actions_table": """<table border="1"> <tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Actions</th> </tr> <tr> <td>JacuzziOff</td> <td>JacuzziOn</td> <td>on</td> <td></td> <td></td> </tr> <tr> <td>JacuzziOn</td> <td>JacuzziOff</td> <td>off</td> <td></td> <td></td> </tr> <tr> <td>Jacuzzi Level1</td> <td>Jacuzzi Level2</td> <td>up</td> <td></td> <td></td> </tr> <tr> <td>Jacuzzi Level2</td> <td>Jacuzzi Level3</td> <td>up</td> <td></td> <td></td> </tr> <tr> <td>Jacuzzi Level2</td> <td>Jacuzzi Level1</td> <td>down</td> <td></td> <td></td> </tr> <tr> <td>Jacuzzi Level3</td> <td>Jacuzzi Level2</td> <td>down</td> <td></td> <td></td> </tr> <tr> <td>JacuzziOn</td> <td>Jacuzzi Paused</td> <td>pause</td> <td></td> <td></td> </tr> <tr> <td>JacuzziOn</td> <td>Jacuzzi H</td> <td>setPattern</td> <td></td> <td>setPattern(PatternType type)</td> </tr> <tr> <td>Jacuzzi Paused</td> <td>JacuzziOff</td> <td>off</td> <td></td> <td></td> </tr> <tr> <td>Jacuzzi Paused</td> <td>Jacuzzi H</td> <td>resume</td> <td></td> <td></td> </tr> <tr> <td>Sauna Off</td> <td>Sauna On</td> <td>on</td> <td></td> <td></td> </tr> <tr> <td>Sauna On</td> <td>Sauna Off</td> <td>off</td> <td></td> <td></td> </tr> <tr> <td>Sauna Heat</td> <td>Sauna Idle</td> <td>reachHighTemp</td> <td>temp >= 90</td> <td></td> </tr> <tr> <td>Sauna Idle</td> <td>Sauna Heat</td> <td>reachLowTemp</td> <td>temp &lt; 85</td> <td></td> </tr> <tr> <td>Sauna Fan Off</td> <td>Sauna Fan On</td> <td>startFan</td> <td>humidity &gt; 0.40 && exceedTime &gt; 3</td> <td></td> </tr> <tr> <td>Sauna Fan On</td> <td>Sauna Fan Off</td> <td>stopFan</td> <td></td> <td></td> </tr> <tr> <td>Sauna Water Idle</td> <td>Sauna Water Idle</td> <td>disperseWater</td> <td>humidity &lt; 0.04 && !Fan On && timeSinceLast &gt; 15</td> <td>disperse</td> </tr></table>""",
@@ -28,20 +28,8 @@ n_shot_examples = {
 
     # dishwasher system, ECSE 223 Winter 2019 Midterm #2 example
     "Dishwasher": {
-            "system_description":"""
-            A dishwasher comes with various programs that govern how the dishwasher cleans dishes. The user
-            may select one of the programs, adjust the drying time, and press the start button to start the
-            selected program.
-            When a dishwasher is started, water is first taken from the water intake pipe. Then, the dishes are
-            washed for 10 minutes and the water is drained. These steps are repeated a certain number of times
-            depending on the chosen dishwasher program. Afterwards, the dishwasher dries the dishes with hot
-            air. By default, the standard drying time of 20 minutes is used. However, the drying time may be
-            extended to 40 minutes at any point during the dishwasher program. The drying time may also be
-            reduced back to the default time but only as long as the drying phase has not started. When the
-            dishwasher is active, its door is locked until the start of the drying phase. It is possible to open the
-            door during the drying phase. When this happens, the drying phase is suspended. The drying phase
-            continues if the door is closed within 5 minutes of opening it. If the door stays open longer, then the
-            dishwasher does not continue with drying the dishes and ends the dishwasher program""",
+            "system_description":dishwasher_winter_2019,
+            "initial_state":"DishwasherOn",
             "transitions_events_table":
             """<table border="1">
             <tr><th>Current State</th><th>Event</th><th>Next State(s)</th></tr>
