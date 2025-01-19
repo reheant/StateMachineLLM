@@ -72,8 +72,7 @@ class InitialStateSearchAction(SMFAction):
         """
 
         self.log(prompt)
-        response = call_llm(prompt=prompt,
-                             temperature=0.7)
+        response = call_llm(prompt=prompt)
         
         initial_state_search = re.search(r"<initial_state>(.*?)</initial_state>", response)
 
