@@ -61,8 +61,7 @@ class EventDrivenFilterTransitionsAction(SMFAction):
         Your solution MUST be in the above format, otherwise it will be rejected.
         """
 
-        response = call_llm(prompt=prompt,
-                             temperature=0.7)
+        response = call_llm(prompt=prompt)
         
         match = re.search(r"Transitions Removed:\s*([\w\s,]+)", response)
         

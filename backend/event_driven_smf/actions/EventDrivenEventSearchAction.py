@@ -84,8 +84,7 @@ class EventDrivenEventSearchAction(SMFAction):
                 """
 
         self.log(prompt)
-        response = call_llm(prompt=prompt,
-                             temperature=0.7)
+        response = call_llm(prompt=prompt)
 
         event_driven_events_table = extract_event_driven_events_table(llm_response=response)
 

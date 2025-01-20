@@ -96,8 +96,7 @@ class EventDrivenAssociateEventsWithStatesAction(SMFAction):
         # if the LLM does not get the correct format after max_retries, then we return none
         retries = 0
         while retries < max_retries:
-            response = call_llm(prompt=prompt, 
-                                 temperature=0.7)
+            response = call_llm(prompt=prompt)
             
             associated_events_search = re.search(r"<associated_events>(.*?)</associated_events>", response)
 

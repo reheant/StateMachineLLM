@@ -88,8 +88,7 @@ class EventDrivenCreateHierarchicalStatesAction(SMFAction):
                 """
 
         self.log(prompt)
-        response = call_llm(prompt=prompt,
-                             temperature=0.7)
+        response = call_llm(prompt=prompt)
         
         hierarchical_state_table = None
         if "NO HIERARCHY" not in response:

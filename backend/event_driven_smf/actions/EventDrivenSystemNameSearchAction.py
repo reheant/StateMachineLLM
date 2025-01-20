@@ -70,8 +70,7 @@ class EventDrivenSystemNameSearchAction(SMFAction):
 
         self.log(prompt)
 
-        response = call_llm(prompt=prompt,
-                             temperature=0.7)
+        response = call_llm(prompt=prompt)
         
         system_name_search = re.search(r"<system_name>(.*?)</system_name>", response)
 
