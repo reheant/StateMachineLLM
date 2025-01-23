@@ -28,6 +28,7 @@ class EventDrivenAssociateEventsWithStatesAction(SMFAction):
         the sequence in which events can occur. Afterwards, the LLM is instructed to determine which events
         can occur in the provided state based on its identified partial orderings.
         """
+        n_shot_example_list = self.belief.get("n_shot_examples")
 
         prompt = f"""
                     You are an expert requirements engineer specializing in designing UML state machines from textual system descriptions. Your task is to analyze a given system and determine which events can trigger transitions in a specific state.
@@ -81,7 +82,7 @@ class EventDrivenAssociateEventsWithStatesAction(SMFAction):
 
                     <associated_events>event1, event2, event3</associated_events>
 
-                    {get_n_shot_examples(['printer_winter_2017'],['system_name', 'system_description', 'events_table', 'state_inspected', 'associated_events'])}
+                    {get_n_shot_examples(n_shot_example_list,['system_name', 'system_description', 'events_table', 'state_inspected', 'associated_events'])}
 
                     <state_inspected>Ready</state_inspected>
 
@@ -95,8 +96,7 @@ class EventDrivenAssociateEventsWithStatesAction(SMFAction):
         # if the LLM does not get the correct format after max_retries, then we return none
         retries = 0
         while retries < max_retries:
-            response = call_llm(prompt=prompt, 
-                                 temperature=0.7)
+            response = call_llm(prompt=prompt)
             
             associated_events_search = re.search(r"<associated_events>(.*?)</associated_events>", response)
 

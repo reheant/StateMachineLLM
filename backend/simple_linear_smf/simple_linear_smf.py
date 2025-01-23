@@ -29,10 +29,10 @@ import mermaid as md
 from mermaid.graph import Graph
 from resources.state_machine_descriptions import *
 from resources.environmental_impact.impact_tracker import tracker
-from resources.util import gsm_tables_to_dict
+from resources.n_shot_examples_simple_linear import n_shot_examples
 
 # Default description if not ran with Chainlit
-description = ATAS_fall_2022
+description = spa_manager_winter_2018
 
 def run_simple_linear_smf(system_prompt):
     """
@@ -56,6 +56,20 @@ def run_simple_linear_smf(system_prompt):
 
     belief = Belief()
     belief.set("description", system_prompt)
+
+    # Prepare the list of example to provide to the LLM (N shot prompting)
+    n_shot_examples_simple_linear = list(n_shot_examples.keys()) # Extract all the examples available
+    for n_shot_example in n_shot_examples_simple_linear:
+        #Remove an example if it is identical to the one being analyzed by the SMF
+        #Otherwise, if no examples are identical to the one being analyzed we remove
+        #the last example to have a consistent number of examples used for all systems analyzed
+        #(N-shot prompting with fixed N)
+        if n_shot_examples[n_shot_example]["system_description"] == system_prompt \
+        or n_shot_example == n_shot_examples_simple_linear[-1]:
+            n_shot_examples_simple_linear.remove(n_shot_example)
+            break
+    belief.set("n_shot_examples", n_shot_examples_simple_linear)
+
     # Sherpa actions of the Linear State Machine Framework
     state_event_state_action = StateEventSearchAction(usage="identifying events in problem description for state machine", 
                                                       belief=belief, 
@@ -139,76 +153,4 @@ def run_simple_linear_smf(system_prompt):
     tracker.print_metrics()
 
 if __name__ == "__main__":
-    create_simple_linear_gsm_diagram(
-        '''<table border="1">
-<tr>
-<th>Superstate</th>
-<th>Substate</th>
-</tr>
-<tr>
-<td>ATAS</td>
-<td>Powered Off</td>
-</tr>
-<tr>
-<td>ATAS</td>
-<td>Operational Mode</td>
-</tr>
-<tr>
-<td>Operational Mode</td>
-<td>Ready</td>
-</tr>
-<tr>
-<td>Operational Mode</td>
-<td>Active</td>
-</tr>
-<tr>
-<td>Active</td>
-<td>Train Operations</td>
-</tr>
-<tr>
-<td>Train Operations</td>
-<td>Moving</td>
-</tr>
-<tr>
-<td>Train Operations</td>
-<td>Stopped</td>
-</tr>
-<tr>
-<td>Stopped</td>
-<td>Stop at Traffic Light</td>
-</tr>
-<tr>
-<td>Stopped</td>
-<td>Stop at Station</td>
-</tr>
-<tr>
-<td>Stopped</td>
-<td>Emergency Stop</td>
-</tr>
-<tr>
-<td>Train Operations</td>
-<td>Final Stop</td>
-</tr>
-</table>''', None, '''<table border="1">
-<tr>
-<th>Parallel State</th>
-<th>Parallel Region</th>
-<th>Substate</th>
-</tr>
-<tr>
-<td>Train Operations</td>
-<td>Segment Detection</td>
-<td>SDS Active</td>
-</tr>
-<tr>
-<td>Train Operations</td>
-<td>Movement Detection</td>
-<td>MDS Active</td>
-</tr>
-<tr>
-<td>Train Operations</td>
-<td>Obstruction Detection</td>
-<td>ODS Active</td>
-</tr>
-</table>''', 'Powered Off', {}, os.path.join(os.path.dirname(__file__), 'Itsfine.png')
-    )
+    run_simple_linear_smf(description)

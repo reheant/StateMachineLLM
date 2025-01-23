@@ -24,6 +24,7 @@ class EventDrivenHierarchicalInitialStateSearchAction(SMFAction):
         """
         system_name = self.belief.get("event_driven_system_name_search_action")
         formatted_child_states = ", ".join(child_states)
+        n_shot_example_list = self.belief.get("n_shot_examples")
 
         prompt = f"""
                 You are an expert requirements engineer specializing in designing UML state machines from textual descriptions of systems. Your task is to determine the initial state of a superstate (or whether the superstate doesn't have an initial state).
@@ -51,7 +52,7 @@ class EventDrivenHierarchicalInitialStateSearchAction(SMFAction):
 
                 <superstate_initial_state>InitialState</superstate_initial_state>
 
-                {get_n_shot_examples(['printer_winter_2017'],['system_name', 'system_description', 'superstate_inspected', 'substates_inspected', 'superstate_initial_state'])}
+                {get_n_shot_examples(n_shot_example_list,['system_name', 'system_description', 'superstate_inspected', 'substates_inspected', 'superstate_initial_state'])}
 
                 Remember, your expertise in UML state machines is crucial for creating an accurate and efficient hierarchical design. The quality of your work will directly impact the success of the system's implementation. Take pride in your role as a key contributor to this important project.
                         The formatting must follow the example precisely. The initial state must be between quotation marks "". 
@@ -59,8 +60,7 @@ class EventDrivenHierarchicalInitialStateSearchAction(SMFAction):
                 """
 
         self.log(prompt)
-        response = call_llm(prompt=prompt,
-                             temperature=0.7)
+        response = call_llm(prompt=prompt)
         
         superstate_initial_state_search = re.search(r"<superstate_initial_state>(.*?)</superstate_initial_state>", response)
 

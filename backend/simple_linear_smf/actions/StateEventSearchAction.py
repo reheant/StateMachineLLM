@@ -26,6 +26,7 @@ class StateEventSearchAction(SMFAction):
         """
 
         self.log(f"Running {self.name}...")
+        n_shot_example_list = self.belief.get("n_shot_examples")
 
         prompt = f"""
             Given the problem description, identify what the states and events are and make sure not to include any redundant states or events by making sure that you parse the output for any states or events that might be redundant. Ensure that the states are defined specifically in the context of the object being modeled. It’s important to note that a complete state machine has an initial state and that states might have multiple events occurring on them resulting in multiple transitions from the current state to other states. 
@@ -36,7 +37,7 @@ class StateEventSearchAction(SMFAction):
             Then produce the HTML table that summarizes the states and events MUST use these table headers:
             ```html <table border="1"> <tr> <th>Current State</th> <th>Event</th> <th>Next State(s)</th> </tr> </table> ```
 
-            {get_n_shot_examples(["Printer", "Spa Manager"], ["system_description", "transitions_events_table"])}
+            {get_n_shot_examples(n_shot_example_list, ["system_description", "transitions_events_table"])}
             
             Example:
             

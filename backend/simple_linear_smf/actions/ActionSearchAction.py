@@ -24,6 +24,7 @@ class ActionSearchAction(SMFAction):
         """
         self.log(f"Running {self.name}...")
         transition_table = self.belief.get("transitions_guards_search_action")
+        n_shot_example_list = self.belief.get("n_shot_examples")
 
 
         prompt = f"""
@@ -42,7 +43,7 @@ class ActionSearchAction(SMFAction):
                      The definition of an action in a UML state machine is described below:
                      When an event instance is dispatched, the state machine responds by performing actions, such as changing a variable, performing I/O, invoking a function, generating another event instance, or changing to another state. Any parameter values associated with the current event are available to all actions directly caused by that event.
                      
-                    {get_n_shot_examples(["Printer", "Spa Manager"], ["system_description", "transitions_events_guards_table", "transitions_events_guards_actions_table"])}
+                    {get_n_shot_examples(n_shot_example_list, ["system_description", "transitions_events_guards_table", "transitions_events_guards_actions_table"])}
 
                     Example: 
 

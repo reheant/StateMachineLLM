@@ -21,15 +21,15 @@ class EventDrivenParallelRegionsSearchAction(SMFAction):
             Here is the input you need to analyze:
 
             <system_description>
-            {{system_description}}
+            {self.description}
             </system_description>
 
             <system_name>
-            {{modeled_system}}
+            {system_name}
             </system_name>
 
             <transitions_table>
-            {{transitions_table}}
+            {transitions_table}
             </transitions_table>
 
             Now, follow these steps to complete your analysis:

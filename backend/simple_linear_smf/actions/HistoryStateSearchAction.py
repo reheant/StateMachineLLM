@@ -27,6 +27,7 @@ class HistoryStateSearchAction(SMFAction):
         self.log(f"Running {self.name}...")
         hierarchical_states_table, transition_table = self.belief.get('hierarchical_state_search_action')
         modeled_system, _ = self.belief.get('state_event_search_action')
+        n_shot_example_list = self.belief.get("n_shot_examples")
        
         prompt = f'''
         You are an AI assistant specialized in creating state machines.
@@ -57,7 +58,7 @@ class HistoryStateSearchAction(SMFAction):
                 If no history states are required, output: NONE.
                 If history states are required, update the transitions table to include the history state by appending another row that includes the history state:
             
-        {get_n_shot_examples(["Printer", "Spa Manager"], ["system_description", "hierarchical_state_table", "transitions_events_guards_actions_table", "transitions_events_guards_actions_history_table"])}
+        {get_n_shot_examples(n_shot_example_list, ["system_description", "hierarchical_state_table", "transitions_events_guards_actions_table", "transitions_events_guards_actions_history_table"])}
         
         Example:
 

@@ -1,4 +1,4 @@
-from resources.state_machine_descriptions import *
+from resources.state_machine_descriptions import printer_winter_2017, dishwasher_winter_2019, spa_manager_winter_2018
 
 n_shot_examples = {
     "dishwasher_winter_2019": {

@@ -27,6 +27,7 @@ class ParallelStateSearchAction(SMFAction):
         """
 
         system_name, state_event_table = self.belief.get('state_event_search_action')
+        n_shot_example_list = self.belief.get("n_shot_examples")
 
         prompt = f""" 
             You are an AI assistant specialized in identifying parallel regions in a state machine from a problem description and a table that lists all the states and events of the state machine. The definition of a parallel state is:
@@ -43,7 +44,7 @@ class ParallelStateSearchAction(SMFAction):
             To do this, update the states and events accordingly using the HTML table columns below. You MUST use the exact columns provided below and build off of the states and events table provided. If there are no parallel states, then return the original states and events table that you are provided in this prompt.
             ```html <table border="1"> <tr> <th>Current State</th> <th>Event</th> <th>Next State(s)</th> </tr> </table> ```                          
         
-            {get_n_shot_examples(["Printer", "Spa Manager"], ["system_description", "transitions_events_table", "parallel_states_table"])}
+            {get_n_shot_examples(n_shot_example_list, ["system_description", "transitions_events_table", "parallel_states_table"])}
 
             Example:
 

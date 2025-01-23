@@ -202,11 +202,13 @@ def addColumn(table : Tag, headerName : str, columnIdx : int, placeholderValue :
 
     return table
 
-def extractColumn(table : Tag, columnIdx : int):
+def extractColumn(table, columnIdx : int):
     """
     The extractColumn gets all entries in the column at index
     columnIdx
     """
+
+    table = str_to_Tag(table)
     column_list = []
 
     # Add new column data to each row
@@ -271,7 +273,7 @@ def nest_hierarchical_states(state_to_nest, list_states):
     
     return False
 
-def gsm_tables_to_dict(hierarchical_states_table : Tag, transitions_table : Tag, parallel_state_table : Tag):
+def gsm_tables_to_dict(hierarchical_states_table : Tag, transitions_table : Tag, parallel_state_table : Tag, nesting : bool = True):
     """
     Extracts the states, transitions, and parallel regions of a Generated State Machine (GSM) and returns
     them in a list
@@ -364,10 +366,11 @@ def gsm_tables_to_dict(hierarchical_states_table : Tag, transitions_table : Tag,
     # remove states which are already encompassed by a parent state
     states = [state for state in states if (non_composite_state and state in non_composite_state[0]["children"]) or isinstance(state, dict)]
 
-    # Nesting hierarchical states
-    for i in range(len(states)-1, -1, -1):
-        if nest_hierarchical_states(states[i], states):
-            states.pop(i)
+    if nesting:
+        # Nesting hierarchical states
+        for i in range(len(states)-1, -1, -1):
+            if nest_hierarchical_states(states[i], states):
+                states.pop(i)
 
     # Remove all spaces not to confuse mermaid
     # states = list(map(state_remove_spaces, states))

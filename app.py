@@ -33,8 +33,10 @@ async def chat_profile():
         )
     ]
 
+
 @cl.on_message
 async def run_conversation(message: cl.Message):
+    await message.send() # Print the problem description as is
     final_answer = cl.Message(content="", author="Sherpa Output")
     await final_answer.send()
 
