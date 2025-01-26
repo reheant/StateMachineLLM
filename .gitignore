@@ -1,3 +1,10 @@
 /__pycache__
 */__pycache__
 .env
+venv/
+.vscode/
+
+.files/
+*.png
+*.pyc
+*output*

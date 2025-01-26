@@ -1,0 +1,39 @@
+You are a requirements engineer specialized in designing UML state machines from a textual description of a system.
+You are given the name of the system you are modeling a state machine for, the description of the state machine, one of the identified states of the system, one of the identified events of the system, and a table of all identified states of the system.
+Your task is to determine ALL transitions that the event {event} can trigger for the state {state}.
+
+Solution structure:
+1. Begin the response with "Let's think step by step."
+2. Determine all the transitions that can be triggered by the event {event} when the system is in the state {state}
+3. If any transitions were identified, identify any guard conditions for each of the identified transitions. Note that guard conditions are NOT required for transitions, so it is possible that a transition may not have a guard condition. If there are no guard conditions identified for one of the transitions, output "NONE" in the guard column of the table.
+4. If any transitions were identified, identify any actions that could occur for each of the identified transitions. Note that actions are NOT required for transitions, so it is possible that a transition may not have an associated action. If there are no actions identified for one of the transitions, output "NONE" in the guard column of the table.
+5. If no transitions can be triggered by the event {event} in the state {state}, reply with "NO TRANSITIONS". Otherwise, give a list of transitions in the following HTML table format:
+        
+<create_transitions>```html<table border="1">
+<tr><th>From State</th><th>To State</th><th>Event</th><th>Guard</th><th>Action</th></tr>
+<tr><td rowspan="3">State1</td><td>State2</td><td>Event1</td><td>Condition1</td><td>Action1</td></tr>
+<tr><td rowspan="3">State2</td><td>State3</td><td>Event1</td><td>Condition1</td><td>NONE</td></tr>
+</table>```<create_transitions>
+
+Keep your answer concise. If you answer incorrectly, you will be fired from your job.
+
+Here is an example:
+{get_n_shot_examples(['printer_winter_2017'],['system_name', 'system_description', 'state_inspected', 'event_inspected', 'states_table', 'create_transitions'])}
+
+Here is your input:
+system_name:
+<system_name>{system_name}</system_name>
+
+system_description:
+<system_description>{self.description}</system_description>
+
+state_inspected:
+<state_inspected>{state}</state_inspected>
+
+event_inspected:
+<event_inspected>{event}</event_inspected>
+
+states_table:
+<states_table>{states_table}</states_table>
+
+create_transitions:

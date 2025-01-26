@@ -1,3 +1,13 @@
 .watermark {
     display: none !important;
 }
+
+
+table th {
+    background-color: #a86508;
+}
+
+
+table td:nth-child(2) {
+    background-color: #FFD700;
+}

@@ -1,0 +1,203 @@
+
+Example output:
+Hierarchical States Table:
+<table border="1">
+<tr><th>Superstate</th><th>Substate</th></tr>
+<tr><td>-</td><td>TransportationMode</td></tr>
+<tr><td>-</td><td>Off</td></tr>
+<tr><td>On</td><td>HomeScreen</td></tr>
+<tr><td>On</td><td>RecipeProcess</td></tr>
+<tr><td>On</td><td>Error</td></tr>
+<tr><td>RecipeProcess</td><td>RecipeSelection</td></tr>
+<tr><td>RecipeProcess</td><td>AddIngredients</td></tr>
+<tr><td>RecipeProcess</td><td>Chopping</td></tr>
+<tr><td>RecipeProcess</td><td>Cooking</td></tr>
+<tr><td>RecipeProcess</td><td>MealReady</td></tr>
+</table>
+Initial System State: TransportationMode
+Hierarchical Initial States:
+{'On': None, 'RecipeProcess': None}
+Transitions:
+<table border='1'>
+  <tr>
+    <th>From State</th>
+    <th>To State</th>
+    <th>Event</th>
+    <th>Guard</th>
+    <th>Action</th>
+  </tr>
+  <tr>
+    <td>TransportationMode</td>
+    <td>On.HomeScreen</td>
+    <td>selectorPressed</td>
+    <td>NONE</td>
+    <td>NONE</td>
+  </tr>
+  <tr>
+    <td>Off</td>
+    <td>On.HomeScreen</td>
+    <td>selectorPressed</td>
+    <td>NONE</td>
+    <td>Turn on Thermomix and show home screen</td>
+  </tr>
+  <tr>
+    <td>On</td>
+    <td>On.HomeScreen</td>
+    <td>selectorPressed</td>
+    <td>NONE</td>
+    <td>ShowHomeScreen</td>
+  </tr>
+  <tr>
+    <td>On</td>
+    <td>On.HomeScreen</td>
+    <td>cancelAutoShutdown</td>
+    <td>NONE</td>
+    <td>Show HomeScreen</td>
+  </tr>
+  <tr>
+    <td>On</td>
+    <td>On.HomeScreen</td>
+    <td>bowlRemoved</td>
+    <td>NONE</td>
+    <td>NONE</td>
+  </tr>
+  <tr>
+    <td>On.HomeScreen</td>
+    <td>On.HomeScreen</td>
+    <td>cancelAutoShutdown</td>
+    <td>NONE</td>
+    <td>NONE</td>
+  </tr>
+  <tr>
+    <td>RecipeProcess.RecipeSelection</td>
+    <td>RecipeProcess.AddIngredients</td>
+    <td>startRecipe</td>
+    <td>bowlCorrectlyPlaced()</td>
+    <td>displayInstructions()</td>
+  </tr>
+  <tr>
+    <td>RecipeProcess.RecipeSelection</td>
+    <td>On.HomeScreen</td>
+    <td>bowlRemoved</td>
+    <td>NONE</td>
+    <td>NONE</td>
+  </tr>
+  <tr>
+    <td>RecipeProcess.AddIngredients</td>
+    <td>RecipeProcess.Chopping</td>
+    <td>nextStep</td>
+    <td>correctAmountAdded()</td>
+    <td>NONE</td>
+  </tr>
+  <tr>
+    <td>RecipeProcess.Chopping</td>
+    <td>RecipeProcess.Cooking</td>
+    <td>nextStep</td>
+    <td>NONE</td>
+    <td>NONE</td>
+  </tr>
+  <tr>
+    <td>RecipeProcess.Cooking</td>
+    <td>RecipeProcess.MealReady</td>
+    <td>nextStep</td>
+    <td>NONE</td>
+    <td>NONE</td>
+  </tr>
+  <tr>
+    <td>RecipeProcess.Cooking</td>
+    <td>On.HomeScreen</td>
+    <td>bowlRemoved</td>
+    <td>NONE</td>
+    <td>NONE</td>
+  </tr>
+  <tr>
+    <td>RecipeProcess.MealReady</td>
+    <td>On.HomeScreen</td>
+    <td>nextStep</td>
+    <td>NONE</td>
+    <td>NONE</td>
+  </tr>
+  <tr>
+    <td>On.Error</td>
+    <td>On.HomeScreen</td>
+    <td>bowlRemoved</td>
+    <td>NONE</td>
+    <td>NONE</td>
+  </tr>
+</table>
+States: ['Error', {'name': 'RecipeProcess', 'children': ['RecipeSelection', 'AddIngredients', 'Chopping', 'Cooking', 'MealReady']}, 'Chopping', 'RecipeProcess.RecipeSelection', 'TransportationMode', 'On.HomeScreen', 'On.Error', 'AddIngredients', 'RecipeProcess.Cooking', 'Off', 'Cooking', 'MealReady', 'HomeScreen', 'RecipeProcess.Chopping', 'RecipeProcess.MealReady', {'name': 'On', 'children': ['HomeScreen', 'RecipeProcess', 'Error']}, 'RecipeSelection', 'RecipeProcess.AddIngredients']
+Transitions: [{'trigger': 'selectorPressed', 'source': 'TransportationMode', 'dest': 'On.HomeScreen'}, {'trigger': 'selectorPressed', 'source': 'Off', 'dest': 'On.HomeScreen', 'before': 'TurnonThermomixandshowhomescreen'}, {'trigger': 'selectorPressed', 'source': 'On', 'dest': 'On.HomeScreen', 'before': 'ShowHomeScreen'}, {'trigger': 'cancelAutoShutdown', 'source': 'On', 'dest': 'On.HomeScreen', 'before': 'ShowHomeScreen'}, {'trigger': 'bowlRemoved', 'source': 'On', 'dest': 'On.HomeScreen'}, {'trigger': 'cancelAutoShutdown', 'source': 'On.HomeScreen', 'dest': 'On.HomeScreen'}, {'trigger': 'startRecipe', 'source': 'RecipeProcess.RecipeSelection', 'dest': 'RecipeProcess.AddIngredients', 'before': 'displayInstructions()', 'conditions': 'bowlCorrectlyPlaced()'}, {'trigger': 'bowlRemoved', 'source': 'RecipeProcess.RecipeSelection', 'dest': 'On.HomeScreen'}, {'trigger': 'nextStep', 'source': 'RecipeProcess.AddIngredients', 'dest': 'RecipeProcess.Chopping', 'conditions': 'correctAmountAdded()'}, {'trigger': 'nextStep', 'source': 'RecipeProcess.Chopping', 'dest': 'RecipeProcess.Cooking'}, {'trigger': 'nextStep', 'source': 'RecipeProcess.Cooking', 'dest': 'RecipeProcess.MealReady'}, {'trigger': 'bowlRemoved', 'source': 'RecipeProcess.Cooking', 'dest': 'On.HomeScreen'}, {'trigger': 'nextStep', 'source': 'RecipeProcess.MealReady', 'dest': 'On.HomeScreen'}, {'trigger': 'bowlRemoved', 'source': 'On.Error', 'dest': 'On.HomeScreen'}]
+Parallel Regions: []
+---
+State Machine
+---
+stateDiagram-v2
+  direction LR
+  classDef s_default fill:white,color:black
+  classDef s_inactive fill:white,color:black
+  classDef s_parallel color:black,fill:white
+  classDef s_active color:red,fill:darksalmon
+  classDef s_previous color:blue,fill:azure
+  
+  state "Error" as Error
+  Class Error s_default
+  state "RecipeProcess" as RecipeProcess
+  Class RecipeProcess s_default
+  state RecipeProcess {
+    state "RecipeSelection" as RecipeProcess_RecipeSelection
+    state "AddIngredients" as RecipeProcess_AddIngredients
+    state "Chopping" as RecipeProcess_Chopping
+    state "Cooking" as RecipeProcess_Cooking
+    state "MealReady" as RecipeProcess_MealReady
+  }
+  state "Chopping" as Chopping
+  Class Chopping s_default
+  state "RecipeProcess.RecipeSelection" as RecipeProcess.RecipeSelection
+  Class RecipeProcess.RecipeSelection s_default
+  state "TransportationMode" as TransportationMode
+  Class TransportationMode s_active
+  state "On.HomeScreen" as On.HomeScreen
+  Class On.HomeScreen s_default
+  state "On.Error" as On.Error
+  Class On.Error s_default
+  state "AddIngredients" as AddIngredients
+  Class AddIngredients s_default
+  state "RecipeProcess.Cooking" as RecipeProcess.Cooking
+  Class RecipeProcess.Cooking s_default
+  state "Off" as Off
+  Class Off s_default
+  state "Cooking" as Cooking
+  Class Cooking s_default
+  state "MealReady" as MealReady
+  Class MealReady s_default
+  state "HomeScreen" as HomeScreen
+  Class HomeScreen s_default
+  state "RecipeProcess.Chopping" as RecipeProcess.Chopping
+  Class RecipeProcess.Chopping s_default
+  state "RecipeProcess.MealReady" as RecipeProcess.MealReady
+  Class RecipeProcess.MealReady s_default
+  state "On" as On
+  Class On s_default
+  state On {
+    state "HomeScreen" as On_HomeScreen
+    state "RecipeProcess" as On_RecipeProcess
+    state "Error" as On_Error
+  }
+  state "RecipeSelection" as RecipeSelection
+  Class RecipeSelection s_default
+  state "RecipeProcess.AddIngredients" as RecipeProcess.AddIngredients
+  Class RecipeProcess.AddIngredients s_default
+  
+  TransportationMode --> On.HomeScreen: selectorPressed
+  Off --> On.HomeScreen: selectorPressed
+  On --> On.HomeScreen: selectorPressed | cancelAutoShutdown | bowlRemoved
+  On.HomeScreen --> On.HomeScreen: cancelAutoShutdown
+  RecipeProcess.RecipeSelection --> On.HomeScreen: bowlRemoved
+  RecipeProcess.RecipeSelection --> RecipeProcess.AddIngredients: startRecipe
+  RecipeProcess.Cooking --> On.HomeScreen: bowlRemoved
+  RecipeProcess.Cooking --> RecipeProcess.MealReady: nextStep
+  On.Error --> On.HomeScreen: bowlRemoved
+  RecipeProcess.AddIngredients --> RecipeProcess.Chopping: nextStep
+  RecipeProcess.Chopping --> RecipeProcess.Cooking: nextStep
+  RecipeProcess.MealReady --> On.HomeScreen: nextStep
+  [*] --> TransportationMode

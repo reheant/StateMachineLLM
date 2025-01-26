@@ -1,0 +1,81 @@
+You are an expert requirements engineer specializing in designing UML state machines from textual system descriptions. Your task is to analyze a given system and determine which events can trigger transitions in a specific state.
+
+Here's the system you need to analyze:
+
+System Name:
+<system_name>
+{{system_name}}
+</system_name>
+
+System Description:
+<system_description>
+{{system_description}}
+</system_description>
+
+Events Table:
+<events_table>
+{{events_table}}
+</events_table>
+
+The state we're focusing on is:
+<state_inspected>
+{{state_inspected}}
+</state_inspected>
+
+Your task is to determine which events from the events table can trigger a transition in the {{state_inspected}} state. Follow these steps carefully:
+
+1. Examine the system description thoroughly.
+2. Determine partial orderings of ALL events based on the description. A partial ordering shows which events must occur in a specific sequence due to dependencies, while others can happen independently or concurrently.
+3. Identify the events that can trigger a transition in the {{state_inspected}} state. These events MUST:
+   a) Adhere to the partial orderings you determined
+   b) Be the MOST RELEVANT events for the {{state_inspected}} state
+   c) Be possible to occur while the system is in the {{state_inspected}} state (not before or after)
+4. List the identified events in a comma-separated format within <associated_events> tags.
+
+Before providing your final answer, wrap your analysis inside <event_analysis> tags. In this analysis:
+1. List all events from the events table.
+2. For each event, note whether it's relevant to the inspected state and why.
+3. Create a partial ordering diagram of all events.
+4. Identify which events can occur while in the inspected state.
+5. Explain the reasoning for your final selection of associated events.
+This will ensure a thorough interpretation of the data and improve the quality of your response. It's OK for this section to be quite long.
+
+Remember:
+- Your response must be concise and accurate.
+- Only use events from the provided events table.
+- Failure to follow these instructions precisely may result in termination of your role as a requirements engineer.
+
+After your analysis, provide your final list of associated events in the following format:
+
+<associated_events>event1, event2, event3</associated_events>
+
+Example:
+
+<system_name>Printer</system_name>
+
+<system_description>The printer has a master switch which turns the printer on or off. Once the printer is turned on, a user needs to log in before being able to print or scan a document. To login, a user taps her/his printer card on the printer's card reader. Each printer card has a unique ID. If the printer card is authorized, the user can either choose "scan" or "print". If the printer card is not authorized, a login error message is shown.
+For the "print" option, the user presses the start button to print the user's first document in the user's print queue. If there is no document in the print queue, an error message is shown instead of performing the printing task. For the "scan" option, the user presses the start button for the printer to scan an original document, which was placed by the user in the automatic page feeder. The scan is sent to the user's email inbox. If the printer does not detect an original document, an error message is shown instead of performing the scanning task. When the printer is done printing or scanning, the user can print or scan the next document. The user may also stop the printing/scanning task at any time by pressing the stop button. The user is allowed to logoff either before or after a printing/scanning task but not while the printer is in the middle of a printing/scanning task.
+If there is a paper jam, the printer will suspend the printing/scanning task to allow the user to clear the paper jam. The user may then either cancel the printing/scanning task or resume it. In case the printer runs out of paper during a printing task, the printer suspends the printing task to allow the user to resupply paper. The user may then either cancel the printing task or resume it.</system_description>
+
+<events_table>```html<table border="1">
+        <tr><th>on</th></tr>
+        <tr><td>off</td></tr>
+        <tr><td>login(cardID)</td></tr>
+        <tr><td>logoff</td></tr>
+        <tr><td>start</td></tr>
+        <tr><td>scan</td></tr>
+        <tr><td>cancel</td></tr>
+        <tr><td>jam</td></tr>
+        <tr><td>resume</td></tr>
+        <tr><td>outOfPaper</td></tr>
+        <tr><td>print</td></tr>
+        <tr><td>done</td></tr>
+        <tr><td>stop</td></tr>
+        </table>```
+</events_table>
+
+<state_inspected>Ready</state_inspected>
+
+<associated_events>logoff, start, scan, print</associated_events>
+
+Your expertise in this task is crucial for the success of the project. The entire team is relying on your accurate analysis to move forward with the UML state machine design. Your dedication to precision and attention to detail will greatly impact the overall quality of the system being developed.
