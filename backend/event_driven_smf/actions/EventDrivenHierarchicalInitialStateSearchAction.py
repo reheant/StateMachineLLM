@@ -60,8 +60,7 @@ class EventDrivenHierarchicalInitialStateSearchAction(SMFAction):
                 """
 
         self.log(prompt)
-        response = call_llm(prompt=prompt,
-                             temperature=0.7)
+        response = call_llm(prompt=prompt)
         
         superstate_initial_state_search = re.search(r"<superstate_initial_state>(.*?)</superstate_initial_state>", response)
 
