@@ -13,7 +13,7 @@ from resources.state_machine_descriptions import *
 from resources.n_shot_examples_single_prompt import get_n_shot_examples, n_shot_examples
 
 # Default description if not ran with Chainlit
-description = dishwasher_winter_2019
+description = chess_clock_fall_2019
 
 def run_single_prompt(system_prompt):
     """

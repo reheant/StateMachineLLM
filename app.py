@@ -46,7 +46,7 @@ async def run_conversation(message: cl.Message):
 
     async def run_and_capture():
         with contextlib.redirect_stdout(stdout_capture):
-            await asyncio.to_thread(run_simple_linear_smf, message.content)
+            await asyncio.to_thread(run_event_driven_smf, message.content)
 
     task = asyncio.create_task(run_and_capture())
 
