@@ -132,7 +132,7 @@ def run_simple_linear_smf(system_prompt):
                 "HistoryStates", 
                 "InitialStateSearch",
                 "SanityCheck", 
-                "Code Generation"
+                "CodeGeneration",
                 "Done"
             ]
     initial = "SearchStatesEvents"
