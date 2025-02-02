@@ -265,9 +265,8 @@ n_shot_examples = {
             <tr><td>DishwasherOn</td><td>Washer</td><td>Intake</td></tr>
             <tr><td>DishwasherOn</td><td>Washer</td><td>Washing</td></tr>
             <tr><td>DishwasherOn</td><td>Washer</td><td>Drain</td></tr>
-            </table>"""
-        },
-        "generated_umple_code":"""
+            </table>""",
+            "generated_umple_code":"""
         class Dishwasher {
         status {
             state0 {
@@ -320,6 +319,7 @@ n_shot_examples = {
         }
         }
         """
+        }
   
       
 }
