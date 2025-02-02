@@ -1,6 +1,7 @@
 from resources.SMFAction import SMFAction
 from resources.util import call_llm, extract_transitions_guards_table
 from resources.n_shot_examples_simple_linear import get_n_shot_examples
+import re
 
 class AutomatedGenerationAction(SMFAction):
     """
@@ -83,7 +84,9 @@ class AutomatedGenerationAction(SMFAction):
         """
 
         response = call_llm(prompt)
-        umple_code = response.search(r"<umple_code>(.*?)</umple_code>", response)
+        print(response)
+        match = re.search(r"<umple_code>\s*(.*?)\s*</umple_code>", response, re.DOTALL)
+        umple_code = match.group(1) if match is not None else None
 
         self.log(f"Generated umple code: {umple_code}")
         return umple_code
