@@ -269,7 +269,7 @@ n_shot_examples = {
             "generated_umple_code":"""
         class Dishwasher {
         status {
-            state0 {
+            DishwasherOn {
             doorState {
                 Closed {
                 open -> Open;
