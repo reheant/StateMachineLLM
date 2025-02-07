@@ -6,7 +6,7 @@ import time
 sys.path.append(os.path.dirname(__file__))
 sys.path.append(os.path.join(os.path.dirname(__file__), 'resources'))
 
-from resources.util import call_llm, umpleCodeProcessing, umpleCodeSearch, graphVizGeneration
+from resources.util import call_llm, setup_file_paths, process_umple_attempt, umpleCodeProcessing, umpleCodeSearch, graphVizGeneration
 from resources.state_machine_descriptions import *
 from resources.n_shot_examples_single_prompt import get_n_shot_examples, n_shot_examples
 
@@ -17,24 +17,9 @@ def run_single_prompt(system_prompt):
     """
     the run_event_driven_smf initiates the Simple Linear State Machine Framework
     """
-
-    # Define the base directory for logs
-    log_base_dir = os.path.join(os.path.dirname(__file__), "resources", "single_prompt_log")
-    os.makedirs(log_base_dir, exist_ok=True)  # Ensure the directory exists
-
-    # Construct the log file path
-    file_prefix = f'output_single_prompt_{time.strftime("%Y_%m_%d_%H_%M_%S")}'
-    log_file_name = f"{file_prefix}.txt"
-    log_file_path = os.path.join(log_base_dir, log_file_name)
-    generated_umple_code_path = os.path.join(log_base_dir, f"{file_prefix}.ump")
-    umple_jar_path = os.path.join(os.path.dirname(__file__), "resources", 'umple.jar')
-
-    # construct the diagram file path
-    diagram_base_dir = os.path.join(os.path.dirname(__file__), "resources", "single_prompt_diagrams")
-    os.makedirs(diagram_base_dir, exist_ok=True)  # Ensure the directory exists
-    diagram_file_name = f"{file_prefix}"
-    diagram_file_path = os.path.join(diagram_base_dir, diagram_file_name)
-
+    # Setup file paths
+    paths = setup_file_paths(os.path.dirname(__file__))
+    
     # Prepare the list of example to provide to the LLM (N shot prompting)
     n_shot_examples_single_prompt = list(n_shot_examples.keys())[:4] # Extract all the examples available
     for n_shot_example in n_shot_examples_single_prompt:
@@ -57,56 +42,23 @@ def run_single_prompt(system_prompt):
 	6.	Explain how you parse the problem description to extract history states for the state machine
 	7.	Assemble the state machine in umple code using information from steps 1. through 6. and encapsulate the code between brackets like the following: <umple_code_solution>code</umple_code_solution>
 
-Use Umple documentation as a guide and ensure the state machines generated comply with Umple syntax standards. Additionally, ensure that there are no warnings or errors generated from the Umple code you provide.
+    Use Umple documentation as a guide and ensure the state machines generated comply with Umple syntax standards. Additionally, ensure that there are no warnings or errors generated from the Umple code you provide.
 
-The following are examples.
+    The following are examples.
 
-{get_n_shot_examples(n_shot_examples_single_prompt, ["system_description", "umple_code_solution"])}
+    {get_n_shot_examples(n_shot_examples_single_prompt, ["system_description", "umple_code_solution"])}
 
-Now your Problem Description: 
-{system_prompt}
+    Now your Problem Description: 
+    {system_prompt}
 
-Provide your answer:
+    Provide your answer:
 
-'''
-    
+    '''
+
+    # Replace original loop with:
     for i in range(5):
-        answer = call_llm(prompt)
-        
-        try:
-            generated_umple_code = umpleCodeSearch(answer, generated_umple_code_path)
-        except Exception as e:
-            error = f"Attempt {i} at extracting umple code failed\n\n"
-            with open(log_file_path, 'a') as file:
-                file.write(error)
-            print(error)
-            continue
-
-        print(f"Attempt {i} at extracting umple code successful\nGenerated umple code:")
-        print(generated_umple_code)
-
-        #Log the generated code
-        with open(log_file_path, 'a') as file:
-            file.write(generated_umple_code)
-        
-        try:
-            generated_umple_gv_path = umpleCodeProcessing(umple_jar_path, generated_umple_code_path, log_base_dir)
-        except subprocess.CalledProcessError as e:
-            error = f"Attempt {i} at processing umple code failed\n\n"
-            with open(log_file_path, 'a') as file:
-                file.write(error)
-            print(error)
-
-            with open(log_file_path, 'a') as file:
-                file.write(f"{e.stderr}\n\n")
-            print(f"{e.stderr}\n\n")
-            continue
-        
-        print(f"Attempt {i} at processing umple code successful")
-
-        graphVizGeneration(generated_umple_gv_path, diagram_file_path)
-        break
-
+        if process_umple_attempt(i, prompt, paths) != "False":
+            break
 
 if __name__ == "__main__":
     run_single_prompt(description)

@@ -1,7 +1,8 @@
 from resources.SMFAction import SMFAction
-from resources.util import call_llm, extract_transitions_guards_table
+from resources.util import call_llm, umpleCodeProcessing, umpleCodeSearch, graphVizGeneration, setup_file_paths, process_umple_attempt
 from resources.n_shot_examples_simple_linear import get_n_shot_examples
 import re
+import os
 
 class AutomatedGenerationAction(SMFAction):
     """
@@ -83,10 +84,14 @@ class AutomatedGenerationAction(SMFAction):
 
         """
 
-        response = call_llm(prompt)
-        print(response)
-        match = re.search(r"<umple_code>\s*(.*?)\s*</umple_code>", response, re.DOTALL)
-        umple_code = match.group(1) if match is not None else None
+        # Setup file paths
+        paths = setup_file_paths(os.path.dirname(__file__))
 
-        self.log(f"Generated umple code: {umple_code}")
+       # Replace original loop with:
+        for i in range(5):
+            umple_code = process_umple_attempt(i, prompt, paths)
+            if umple_code != "False":
+                break
+        
+
         return umple_code
