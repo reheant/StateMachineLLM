@@ -3,6 +3,9 @@ import anthropic
 import groq
 import openai
 from openai import OpenAI
+import graphviz
+import re
+import subprocess
 import re
 from bs4 import BeautifulSoup, Tag
 from transitions.extensions import HierarchicalGraphMachine
@@ -842,6 +845,57 @@ def getStateHierarchyDictFromList(state_hierarchy_list):
             hierarchy[superstate].append(substate)
     
     return hierarchy
+
+def umpleCodeSearch(llm_response: str, generated_umple_code_path: str):
+    ''' Function that extracts umple code from an LLM response
+    params:
+    llm_response is the string response from the LLM
+    generated_umple_code_path is the path of the file in which to write the extracted umple code. The file path must have the extension ".ump" 
+    
+    raises:
+    Exception if no umple code is found in the extracted code'''
+    generated_umple_code_search = re.search(r"<umple_code_solution>(.*?)</umple_code_solution>", llm_response, re.DOTALL)
+
+    if generated_umple_code_search:
+        generated_umple_code = generated_umple_code_search.group(1)
+    else:
+        raise Exception
+
+    #Create a file to store generated code
+    with open(generated_umple_code_path, 'w') as file:
+        file.write(generated_umple_code)
+    
+    return generated_umple_code
+
+def umpleCodeProcessing(umple_jar_path: str, generated_umple_code_path: str, log_base_dir:str):
+    ''' Function to compile umple code and generate graphviz file
+    params:
+    umple_jar_path is the path to the jar executable that compiles umple code
+    generated_umple_code_path is the path the umple file containing the code to compile
+    log_base_dir is the directory under which to output the compiled code (the file containing the compiled code is named the same as the umple file with a different extension)
+    
+    returns:
+    the path of the generated graphviz file
+    
+    raises:
+    subprocess.CalledProcessError if the umple code is contains errors'''
+    subprocess.run(['java', '-jar', umple_jar_path, generated_umple_code_path, '-g', 'GvStateDiagram', '--path', log_base_dir], capture_output=True, check=True, text=True)
+
+    return os.path.join(log_base_dir, f"{os.path.splitext(os.path.basename(generated_umple_code_path))[0]}.gv")
+
+def graphVizGeneration(generated_umple_gv_path, diagram_file_path: str):
+    ''' Function that interprets GraphViz file (.gv) to produce GraphViz diagram image
+    params:
+    generated_umple_gv_path is the file that contains the graphviz code (it is returned by the umpleCodeProcessing function)
+    diagram_file_path is the path where to output the .png diagram
+    '''
+    with open(generated_umple_gv_path, 'r') as file:
+        dot_code = file.read()
+
+    # Render the DOT file using Graphviz
+    graph = graphviz.Source(dot_code)
+    graph.render(diagram_file_path, format='png')
+
 
 if __name__ == "__main__":
     prompt = "Hi, I need help answering a question about states machines. What are events?"

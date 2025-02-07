@@ -1,4 +1,3 @@
-import re
 import subprocess
 import sys
 import os
@@ -7,8 +6,7 @@ import time
 sys.path.append(os.path.dirname(__file__))
 sys.path.append(os.path.join(os.path.dirname(__file__), 'resources'))
 
-import graphviz
-from resources.util import call_llm
+from resources.util import call_llm, umpleCodeProcessing, umpleCodeSearch, graphVizGeneration
 from resources.state_machine_descriptions import *
 from resources.n_shot_examples_single_prompt import get_n_shot_examples, n_shot_examples
 
@@ -75,30 +73,24 @@ Provide your answer:
     for i in range(5):
         answer = call_llm(prompt)
         
-        generated_umple_code_search = re.search(r"<umple_code_solution>(.*?)</umple_code_solution>", answer, re.DOTALL)
-
-        if generated_umple_code_search:
-            generated_umple_code = generated_umple_code_search.group(1)
-        else:
+        try:
+            generated_umple_code = umpleCodeSearch(answer, generated_umple_code_path)
+        except Exception as e:
             error = f"Attempt {i} at extracting umple code failed\n\n"
             with open(log_file_path, 'a') as file:
                 file.write(error)
             print(error)
             continue
-        
+
         print(f"Attempt {i} at extracting umple code successful\nGenerated umple code:")
         print(generated_umple_code)
 
         #Log the generated code
         with open(log_file_path, 'a') as file:
             file.write(generated_umple_code)
-
-        #Create a file to store generated code
-        with open(generated_umple_code_path, 'w') as file:
-            file.write(generated_umple_code)
         
         try:
-            result = subprocess.run(['java', '-jar', umple_jar_path, generated_umple_code_path, '-g', 'GvStateDiagram', '--path', log_base_dir], capture_output=True, check=True, text=True)
+            generated_umple_gv_path = umpleCodeProcessing(umple_jar_path, generated_umple_code_path, log_base_dir)
         except subprocess.CalledProcessError as e:
             error = f"Attempt {i} at processing umple code failed\n\n"
             with open(log_file_path, 'a') as file:
@@ -112,12 +104,7 @@ Provide your answer:
         
         print(f"Attempt {i} at processing umple code successful")
 
-        with open(os.path.join(log_base_dir, f"{file_prefix}.gv"), 'r') as file:
-            dot_code = file.read()
-
-        # Render the DOT file using Graphviz
-        graph = graphviz.Source(dot_code)
-        graph.render(diagram_file_path, format='png')
+        graphVizGeneration(generated_umple_gv_path, diagram_file_path)
         break
 
 
