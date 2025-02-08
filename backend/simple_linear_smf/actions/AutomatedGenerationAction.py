@@ -69,9 +69,9 @@ class AutomatedGenerationAction(SMFAction):
 
         After your analysis, present your final Umple code in <umple_code> tags. The code should be valid Umple syntax and fully represent the system described in the input tables.
 
-        <umple_code>
+        <umple_code_solution>
 
-        </umple_code>
+        </umple_code_solution>
 
         Before you begin, here's an example of how to approach a simple state machine analysis and code generation:
 
@@ -85,7 +85,8 @@ class AutomatedGenerationAction(SMFAction):
         """
 
         # Setup file paths
-        paths = setup_file_paths(os.path.dirname(__file__))
+        paths = setup_file_paths(os.path.abspath(os.path.join(__file__, "..", "..", "..")), 
+                                 file_type="simple_linear")
 
        # Replace original loop with:
         for i in range(5):
