@@ -79,7 +79,7 @@ class AutomatedGenerationAction(SMFAction):
         
         Remember, the quality of your work is crucial. Take pride in your role and let your expertise shine through in your thoughtful analysis and precise code generation. Your ability to create accurate and efficient Umple code is invaluable to the software development process.
 
-        Now, please proceed with your analysis and generation of the Umple code for the given system. Take your time to ensure accuracy and completeness in both your analysis and the generated code.
+        Now, please proceed with your analysis and generation of the Umple code for the given system. Take your time to ensure accuracy and completeness in both your analysis and the generated code. Please ensure that you remove all spaces from the state and substate names to generate syntactically correct umple code. 
 
 
         """
