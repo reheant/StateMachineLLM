@@ -11,19 +11,144 @@ n_shot_examples = {
         "transitions_events_guards_actions_table": """<table border="1"><tr><th>From State</th><th>To State</th><th>Event</th><th>Guard</th><th>Action</th></tr><tr><td>Off</td><td>On</td><td>on</td><td>NONE</td><td>NONE</td></tr><tr><td>On</td><td>Off</td><td>off</td><td>NONE</td><td>NONE</td></tr><tr><td>Idle</td><td>Idle</td><td>login(cardID)</td><td>!idAuthorized(cardID)</td><td>NONE</td></tr><tr><td>Idle</td><td>Ready</td><td>login(cardID)</td><td>idAuthorized(cardID)</td><td>action="none";</td></tr><tr><td>Ready</td><td>Idle</td><td>logoff</td><td>NONE</td><td>NONE</td></tr><tr><td>Ready</td><td>Ready</td><td>start</td><td>action=="scan" && !originalLoaded()</td><td>NONE</td></tr><tr><td>Ready</td><td>Ready</td><td>start</td><td>action=="print" && !documentInQueue()</td><td>NONE</td></tr><tr><td>Ready</td><td>Ready</td><td>scan</td><td>NONE</td><td>action="scan";</td></tr><tr><td>Ready</td><td>Ready</td><td>print</td><td>NONE</td><td>action="print";</td></tr><tr><td>Ready</td><td>ScanAndEmail</td><td>start</td><td>action=="scan" && originalLoaded()</td><td>NONE</td></tr><tr><td>Ready</td><td>Print</td><td>start</td><td>action=="print" && documentInQueue()</td><td>NONE</td></tr><tr><td>Busy</td><td>Suspended</td><td>jam</td><td>NONE</td><td>NONE</td></tr><tr><td>Busy</td><td>Ready</td><td>stop</td><td>NONE</td><td>NONE</td></tr><tr><td>Busy</td><td>Ready</td><td>done</td><td>NONE</td><td>NONE</td></tr><tr><td>Print</td><td>Suspended</td><td>outOfPaper</td><td>NONE</td><td>NONE</td></tr><tr><td>Suspended</td><td>Ready</td><td>cancel</td><td>NONE</td><td>NONE</td></tr></table>""",
         "transitions_events_guards_actions_history_table": """<table border="1"><tr><th>From State</th><th>To State</th><th>Event</th><th>Guard</th><th>Action</th></tr><tr><td>Off</td><td>On</td><td>on</td><td>NONE</td><td>NONE</td></tr><tr><td>On</td><td>Off</td><td>off</td><td>NONE</td><td>NONE</td></tr><tr><td>Idle</td><td>Idle</td><td>login</td><td>!idAuthorized(cardID)</td><td>NONE</td></tr><tr><td>Idle</td><td>Ready</td><td>login</td><td>idAuthorized(cardID)</td><td>action="none";</td></tr><tr><td>Ready</td><td>Idle</td><td>logoff</td><td>NONE</td><td>NONE</td></tr><tr><td>Ready</td><td>Ready</td><td>start</td><td>action=="scan"&&!originalLoaded()</td><td>NONE</td></tr><tr><td>Ready</td><td>Ready</td><td>start</td><td>action=="print"&&!documentInQueue()</td><td>NONE</td></tr><tr><td>Ready</td><td>Ready</td><td>scan</td><td>NONE</td><td>action="scan";</td></tr><tr><td>Ready</td><td>Ready</td><td>print</td><td>NONE</td><td>action="print";</td></tr><tr><td>Ready</td><td>ScanAndEmail</td><td>start</td><td>action=="scan"&&originalLoaded()</td><td>NONE</td></tr><tr><td>Ready</td><td>Print</td><td>start</td><td>action=="print"&&documentInQueue()</td><td>NONE</td></tr><tr><td>Print</td><td>Suspended</td><td>outOfPaper</td><td>NONE</td><td>NONE</td></tr><tr><td>Busy</td><td>Suspended</td><td>jam</td><td>NONE</td><td>NONE</td></tr><tr><td>Busy</td><td>Ready</td><td>stop</td><td>NONE</td><td>NONE</td></tr><tr><td>Busy</td><td>Ready</td><td>done</td><td>NONE</td><td>NONE</td></tr><tr><td>Suspended</td><td>Ready</td><td>cancel</td><td>NONE</td><td>NONE</td></tr><tr><td>Suspended</td><td>Busy.H</td><td>resume</td><td>NONE</td><td>NONE</td></tr></table>""",
         "hierarchical_state_table": """<table border="1"><tr><th>Superstate</th><th>Substate</th></tr><tr><td>Printer</td><td>Off</td></tr><tr><td>Printer</td><td>On</td></tr><tr><td>On</td><td>Idle</td></tr><tr><td>On</td><td>Ready</td></tr><tr><td>On</td><td>Busy</td></tr><tr><td>On</td><td>Suspended</td></tr><tr><td>Busy</td><td>ScanAndEmail</td></tr><tr><td>Busy</td><td>Print</td></tr></table>""",
-        "parallel_states_table": """EMPTY"""
+        "parallel_states_table": """EMPTY""",
+        "generated_umple_code":"""
+        class Printer{
+        sm {
+        Off {on -> On;}
+        On{
+            off -> Off;
+            Idle {
+            login(cardID) [!idAuthorized(cardID)] -> Idle;
+            login(cardID) [idAuthorized(cardID)] / {action="none";} -> Ready;
+            }
+            
+            Ready{
+            logoff -> Idle;
+            start [action=="scan" && !originalLoaded()] -> Ready;
+            start [action=="print" && !documentInQueue()] -> Ready;
+            
+            scan /{action="scan";} -> Ready;
+            
+            print /{action="print";} -> Ready;
+            
+            start [action=="scan" && originalLoaded()] -> ScanAndEmail;
+            
+            start [action=="print" && documentInQueue()] -> Print;
+            }
+            
+            Busy{
+            ScanAndEmail{
+                
+            }
+            
+            Print{
+                outOfPaper -> Suspended;
+            }
+            
+            jam -> Suspended;
+            
+            stop -> Ready;
+            done -> Ready;
+            }
+            
+            Suspended{
+            cancel -> Ready;
+            
+            resume -> Busy.H;
+            }
+        }
+        }
+        }
+        """
     },
 
-    # spa manager system, ECSE 223 Winter 2018 Midterm #2 example
+    # spa manager, ECSE 223 Winter 2018 Midterm #2 example
     "Spa Manager": {
         "system_description": spa_manager_winter_2018,
         "initial_state": "SpaManager",
-        "transitions_events_table": """<table border="1"> <tr> <th>Current State</th> <th>Event</th> <th>Next State(s)</th> </tr> <tr> <td>JacuzziOff</td> <td>on</td> <td>JacuzziOn</td> </tr> <tr> <td>JacuzziOn</td> <td>off</td> <td>JacuzziOff</td> </tr> <tr> <td>Jacuzzi Level1</td> <td>up</td> <td>Jacuzzi Level2</td> </tr> <tr> <td>Jacuzzi Level2</td> <td>up</td> <td>Jacuzzi Level3</td> </tr> <tr> <td>Jacuzzi Level2</td> <td>down</td> <td>Jacuzzi Level1</td> </tr> <tr> <td>Jacuzzi Level3</td> <td>down</td> <td>Jacuzzi Level2</td> </tr> <tr> <td>JacuzziOn</td> <td>pause</td> <td>Jacuzzi Paused</td> </tr> <tr> <td>JacuzziOn</td> <td>setPattern</td> <td>Jacuzzi H</td> </tr> <tr> <td>Jacuzzi Paused</td> <td>off</td> <td>JacuzziOff</td> </tr> <tr> <td>Jacuzzi Paused</td> <td>resume</td> <td>Jacuzzi H</td> </tr> <tr> <td>Sauna Off</td> <td>on</td> <td>Sauna On</td> </tr> <tr> <td>Sauna On</td> <td>off</td> <td>Sauna Off</td> </tr> <tr> <td>Sauna Heat</td> <td>reachHighTemp</td> <td>Sauna Idle</td> </tr> <tr> <td>Sauna Idle</td> <td>reachLowTemp</td> <td>Sauna Heat</td> </tr> <tr> <td>Sauna Fan Off</td> <td>startFan</td> <td>Sauna Fan On</td> </tr> <tr> <td>Sauna Fan On</td> <td>stopFan</td> <td>Sauna Fan Off</td> </tr> <tr> <td>Sauna Water Idle</td> <td>disperseWater</td> <td>Sauna Water Idle</td> </tr></table>""",
-        "transitions_events_guards_table": """<table border="1"> <tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> </tr> <tr> <td>JacuzziOff</td> <td>JacuzziOn</td> <td>on</td> <td></td> </tr> <tr> <td>JacuzziOn</td> <td>JacuzziOff</td> <td>off</td> <td></td> </tr> <tr> <td>Jacuzzi Level1</td> <td>Jacuzzi Level2</td> <td>up</td> <td></td> </tr> <tr> <td>Jacuzzi Level2</td> <td>Jacuzzi Level3</td> <td>up</td> <td></td> </tr> <tr> <td>Jacuzzi Level2</td> <td>Jacuzzi Level1</td> <td>down</td> <td></td> </tr> <tr> <td>Jacuzzi Level3</td> <td>Jacuzzi Level2</td> <td>down</td> <td></td> </tr> <tr> <td>JacuzziOn</td> <td>Jacuzzi Paused</td> <td>pause</td> <td></td> </tr> <tr> <td>JacuzziOn</td> <td>Jacuzzi H</td> <td>setPattern</td> <td></td> </tr> <tr> <td>Jacuzzi Paused</td> <td>JacuzziOff</td> <td>off</td> <td></td> </tr> <tr> <td>Jacuzzi Paused</td> <td>Jacuzzi H</td> <td>resume</td> <td></td> </tr> <tr> <td>Sauna Off</td> <td>Sauna On</td> <td>on</td> <td></td> </tr> <tr> <td>Sauna On</td> <td>Sauna Off</td> <td>off</td> <td></td> </tr> <tr> <td>Sauna Heat</td> <td>Sauna Idle</td> <td>reachHighTemp</td> <td>temp >= 90</td> </tr> <tr> <td>Sauna Idle</td> <td>Sauna Heat</td> <td>reachLowTemp</td> <td>temp &lt; 85</td> </tr> <tr> <td>Sauna Fan Off</td> <td>Sauna Fan On</td> <td>startFan</td> <td>humidity &gt; 0.40 && exceedTime &gt; 3</td> </tr> <tr> <td>Sauna Fan On</td> <td>Sauna Fan Off</td> <td>stopFan</td> <td></td> </tr> <tr> <td>Sauna Water Idle</td> <td>Sauna Water Idle</td> <td>disperseWater</td> <td>humidity &lt; 0.04 && !Fan On && timeSinceLast &gt; 15</td> </tr></table>""",
-        "transitions_events_guards_actions_table": """<table border="1"> <tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Actions</th> </tr> <tr> <td>JacuzziOff</td> <td>JacuzziOn</td> <td>on</td> <td></td> <td></td> </tr> <tr> <td>JacuzziOn</td> <td>JacuzziOff</td> <td>off</td> <td></td> <td></td> </tr> <tr> <td>Jacuzzi Level1</td> <td>Jacuzzi Level2</td> <td>up</td> <td></td> <td></td> </tr> <tr> <td>Jacuzzi Level2</td> <td>Jacuzzi Level3</td> <td>up</td> <td></td> <td></td> </tr> <tr> <td>Jacuzzi Level2</td> <td>Jacuzzi Level1</td> <td>down</td> <td></td> <td></td> </tr> <tr> <td>Jacuzzi Level3</td> <td>Jacuzzi Level2</td> <td>down</td> <td></td> <td></td> </tr> <tr> <td>JacuzziOn</td> <td>Jacuzzi Paused</td> <td>pause</td> <td></td> <td></td> </tr> <tr> <td>JacuzziOn</td> <td>Jacuzzi H</td> <td>setPattern</td> <td></td> <td>setPattern(PatternType type)</td> </tr> <tr> <td>Jacuzzi Paused</td> <td>JacuzziOff</td> <td>off</td> <td></td> <td></td> </tr> <tr> <td>Jacuzzi Paused</td> <td>Jacuzzi H</td> <td>resume</td> <td></td> <td></td> </tr> <tr> <td>Sauna Off</td> <td>Sauna On</td> <td>on</td> <td></td> <td></td> </tr> <tr> <td>Sauna On</td> <td>Sauna Off</td> <td>off</td> <td></td> <td></td> </tr> <tr> <td>Sauna Heat</td> <td>Sauna Idle</td> <td>reachHighTemp</td> <td>temp >= 90</td> <td></td> </tr> <tr> <td>Sauna Idle</td> <td>Sauna Heat</td> <td>reachLowTemp</td> <td>temp &lt; 85</td> <td></td> </tr> <tr> <td>Sauna Fan Off</td> <td>Sauna Fan On</td> <td>startFan</td> <td>humidity &gt; 0.40 && exceedTime &gt; 3</td> <td></td> </tr> <tr> <td>Sauna Fan On</td> <td>Sauna Fan Off</td> <td>stopFan</td> <td></td> <td></td> </tr> <tr> <td>Sauna Water Idle</td> <td>Sauna Water Idle</td> <td>disperseWater</td> <td>humidity &lt; 0.04 && !Fan On && timeSinceLast &gt; 15</td> <td>disperse</td> </tr></table>""",
-        "transitions_events_guards_actions_history_table": """<table border="1"> <tr> <th>From State</th> <th>To State</th> <th>Event</th> <th>Guard</th> <th>Actions</th> </tr> <tr> <td>JacuzziOff</td> <td>JacuzziOn</td> <td>on</td> <td></td> <td></td> </tr> <tr> <td>JacuzziOn</td> <td>JacuzziOff</td> <td>off</td> <td></td> <td></td> </tr> <tr> <td>Jacuzzi Level1</td> <td>Jacuzzi Level2</td> <td>up</td> <td></td> <td></td> </tr> <tr> <td>Jacuzzi Level2</td> <td>Jacuzzi Level3</td> <td>up</td> <td></td> <td></td> </tr> <tr> <td>Jacuzzi Level2</td> <td>Jacuzzi Level1</td> <td>down</td> <td></td> <td></td> </tr> <tr> <td>Jacuzzi Level3</td> <td>Jacuzzi Level2</td> <td>down</td> <td></td> <td></td> </tr> <tr> <td>JacuzziOn</td> <td>Jacuzzi Paused</td> <td>pause</td> <td></td> <td></td> </tr> <tr> <td>JacuzziOn</td> <td>Jacuzzi H</td> <td>setPattern</td> <td></td> <td>setPattern(PatternType type)</td> </tr> <tr> <td>Jacuzzi Paused</td> <td>JacuzziOff</td> <td>off</td> <td></td> <td></td> </tr> <tr> <td>Jacuzzi Paused</td> <td>Jacuzzi H</td> <td>resume</td> <td></td> <td></td> </tr> <tr> <td>Sauna Off</td> <td>Sauna On</td> <td>on</td> <td></td> <td></td> </tr> <tr> <td>Sauna On</td> <td>Sauna Off</td> <td>off</td> <td></td> <td></td> </tr> <tr> <td>Sauna Heat</td> <td>Sauna Idle</td> <td>reachHighTemp</td> <td>temp >= 90</td> <td></td> </tr> <tr> <td>Sauna Idle</td> <td>Sauna Heat</td> <td>reachLowTemp</td> <td>temp &lt; 85</td> <td></td> </tr> <tr> <td>Sauna Fan Off</td> <td>Sauna Fan On</td> <td>startFan</td> <td>humidity &gt; 0.40 && exceedTime &gt; 3</td> <td></td> </tr> <tr> <td>Sauna Fan On</td> <td>Sauna Fan Off</td> <td>stopFan</td> <td></td> <td></td> </tr> <tr> <td>Sauna Water Idle</td> <td>Sauna Water Idle</td> <td>disperseWater</td> <td>humidity &lt; 0.04 && !Fan On && timeSinceLast &gt; 15</td> <td>disperse</td> </tr></table>""",
-        "hierarchical_state_table": """<table border="1"> <tr> <th>Superstate</th> <th>Substate</th> </tr><tr> <td>SpaManager</td> <td>Jacuzzi</td> </tr> <tr> <td>Jacuzzi</td> <td>JacuzziOff</td> </tr> <tr> <td>Jacuzzi</td> <td>JacuzziOn</td> </tr> <tr> <td>JacuzziOn</td> <td>Jacuzzi Level1</td> </tr> <tr> <td>JacuzziOn</td> <td>Jacuzzi Level2</td> </tr> <tr> <td>JacuzziOn</td> <td>Jacuzzi Level3</td> </tr> <tr> <td>JacuzziOn</td> <td>Jacuzzi Paused</td> </tr> <tr> <td>JacuzziOn</td> <td>Jacuzzi H</td> </tr><tr> <td>SpaManager</td> <td>Sauna</td> </tr> <tr> <td>Sauna</td> <td>Sauna Off</td> </tr> <tr> <td>Sauna</td> <td>Sauna On</td> </tr> <tr> <td>Sauna On</td> <td>Sauna Heat</td> </tr> <tr> <td>Sauna On</td> <td>Sauna Idle</td> </tr> <tr> <td>Sauna On</td> <td>Sauna Fan Off</td> </tr> <tr> <td>Sauna On</td> <td>Sauna Fan On</td> </tr> <tr> <td>Sauna On</td> <td>Sauna Water Idle</td> </tr></table>""",
-        "parallel_states_table": """<table border="1"> <tr> <th>Parallel State<th> <th>Parallel Region</th> <th>Substate</th> </tr> <tr> <td>SpaManager<td> <td>Jacuzzi</td> <td>JacuzziOff</td> </tr> <tr> <td>SpaManager<td> <td>Jacuzzi</td> <td>JacuzziOn</td> </tr> <tr> <td>SpaManager<td> <td>Jacuzzi</td> <td>Paused</td> </tr> <tr> <td>SpaManager<td> <td>Sauna</td> <td>SaunaOff</td> </tr> <tr> <td>SpaManager<td> <td>Sauna</td> <td>SaunaOn</td> </tr> <tr> <td>SaunaOn<td> <td>Heater</td> <td>Heat</td> </tr> <tr> <td>SaunaOn<td> <td>Heater</td> <td>HeaterIdle</td> </tr> <tr> <td>SaunaOn<td> <td>Fan</td> <td>FanOff</td> </tr> <tr> <td>SaunaOn<td> <td>Fan</td> <td>FanOn</td> </tr> <tr> <td>SaunaOn<td> <td>Water</td> <td>WaterIdle</td> </tr></table>"""
+        "transitions_events_table": """<table border="1"> <tr> <th>Current State</th> <th>Event</th> <th>Next State(s)</th> </tr> <tr> <td>JacuzziOff</td> <td>on</td> <td>JacuzziOn</td> </tr> <tr> <td>JacuzziOn</td> <td>off</td> <td>JacuzziOff</td> </tr> <tr> <td>JacuzziLevel1</td> <td>up</td> <td>JacuzziLevel2</td> </tr> <tr> <td>JacuzziLevel2</td> <td>up</td> <td>JacuzziLevel3</td> </tr> <tr> <td>JacuzziLevel2</td> <td>down</td> <td>JacuzziLevel1</td> </tr> <tr> <td>JacuzziLevel3</td> <td>down</td> <td>JacuzziLevel2</td> </tr> <tr> <td>JacuzziOn</td> <td>pause</td> <td>JacuzziPaused</td> </tr> <tr> <td>JacuzziOn</td> <td>setPattern</td> <td>JacuzziH</td> </tr> <tr> <td>JacuzziPaused</td> <td>off</td> <td>JacuzziOff</td> </tr> <tr> <td>JacuzziPaused</td> <td>resume</td> <td>JacuzziH</td> </tr> <tr> <td>SaunaOff</td> <td>on</td> <td>SaunaOn</td> </tr> <tr> <td>SaunaOn</td> <td>off</td> <td>SaunaOff</td> </tr> <tr> <td>SaunaHeat</td> <td>reachHighTemp</td> <td>SaunaIdle</td> </tr> <tr> <td>SaunaIdle</td> <td>reachLowTemp</td> <td>SaunaHeat</td> </tr> <tr> <td>SaunaFanOff</td> <td>startFan</td> <td>SaunaFanOn</td> </tr> <tr> <td>SaunaFanOn</td> <td>stopFan</td> <td>SaunaFanOff</td> </tr> <tr> <td>SaunaWaterIdle</td> <td>disperseWater</td> <td>SaunaWaterIdle</td> </tr></table>""",
+        "transitions_events_guards_table":"""<tableborder="1"><tr><th>FromState</th><th>ToState</th><th>Event</th><th>Guard</th></tr><tr><td>JacuzziOff</td><td>JacuzziOn</td><td>on</td><td></td></tr><tr><td>JacuzziOn</td><td>JacuzziOff</td><td>off</td><td></td></tr><tr><td>JacuzziLevel1</td><td>JacuzziLevel2</td><td>up</td><td></td></tr><tr><td>JacuzziLevel2</td><td>JacuzziLevel3</td><td>up</td><td></td></tr><tr><td>JacuzziLevel2</td><td>JacuzziLevel1</td><td>down</td><td></td></tr><tr><td>JacuzziLevel3</td><td>JacuzziLevel2</td><td>down</td><td></td></tr><tr><td>JacuzziOn</td><td>JacuzziPaused</td><td>pause</td><td></td></tr><tr><td>JacuzziOn</td><td>JacuzziH</td><td>setPattern</td><td></td></tr><tr><td>JacuzziPaused</td><td>JacuzziOff</td><td>off</td><td></td></tr><tr><td>JacuzziPaused</td><td>JacuzziH</td><td>resume</td><td></td></tr><tr><td>SaunaOff</td><td>SaunaOn</td><td>on</td><td></td></tr><tr><td>SaunaOn</td><td>SaunaOff</td><td>off</td><td></td></tr><tr><td>SaunaHeat</td><td>SaunaIdle</td><td>reachHighTemp</td><td>temp>=90</td></tr><tr><td>SaunaIdle</td><td>SaunaHeat</td><td>reachLowTemp</td><td>temp&lt;85</td></tr><tr><td>SaunaFanOff</td><td>SaunaFanOn</td><td>startFan</td><td>humidity&gt;0.40&&exceedTime&gt;3</td></tr><tr><td>SaunaFanOn</td><td>SaunaFanOff</td><td>stopFan</td><td></td></tr><tr><td>SaunaWaterIdle</td><td>SaunaWaterIdle</td><td>disperseWater</td><td>humidity&lt;0.04&&!FanOn&&timeSinceLast&gt;15</td></tr></table>""",
+        "transitions_events_guards_actions_table":"""<tableborder="1"><tr><th>FromState</th><th>ToState</th><th>Event</th><th>Guard</th><th>Actions</th></tr><tr><td>JacuzziOff</td><td>JacuzziOn</td><td>on</td><td></td><td></td></tr><tr><td>JacuzziOn</td><td>JacuzziOff</td><td>off</td><td></td><td></td></tr><tr><td>JacuzziLevel1</td><td>JacuzziLevel2</td><td>up</td><td></td><td></td></tr><tr><td>JacuzziLevel2</td><td>JacuzziLevel3</td><td>up</td><td></td><td></td></tr><tr><td>JacuzziLevel2</td><td>JacuzziLevel1</td><td>down</td><td></td><td></td></tr><tr><td>JacuzziLevel3</td><td>JacuzziLevel2</td><td>down</td><td></td><td></td></tr><tr><td>JacuzziOn</td><td>JacuzziPaused</td><td>pause</td><td></td><td></td></tr><tr><td>JacuzziOn</td><td>JacuzziH</td><td>setPattern</td><td></td><td>setPattern(PatternTypetype)</td></tr><tr><td>JacuzziPaused</td><td>JacuzziOff</td><td>off</td><td></td><td></td></tr><tr><td>JacuzziPaused</td><td>JacuzziH</td><td>resume</td><td></td><td></td></tr><tr><td>SaunaOff</td><td>SaunaOn</td><td>on</td><td></td><td></td></tr><tr><td>SaunaOn</td><td>SaunaOff</td><td>off</td><td></td><td></td></tr><tr><td>SaunaHeat</td><td>SaunaIdle</td><td>reachHighTemp</td><td>temp>=90</td><td></td></tr><tr><td>SaunaIdle</td><td>SaunaHeat</td><td>reachLowTemp</td><td>temp&lt;85</td><td></td></tr><tr><td>SaunaFanOff</td><td>SaunaFanOn</td><td>startFan</td><td>humidity&gt;0.40&&exceedTime&gt;3</td><td></td></tr><tr><td>SaunaFanOn</td><td>SaunaFanOff</td><td>stopFan</td><td></td><td></td></tr><tr><td>SaunaWaterIdle</td><td>SaunaWaterIdle</td><td>disperseWater</td><td>humidity&lt;0.04&&!FanOn&&timeSinceLast&gt;15</td><td>disperse</td></tr></table>""",
+        "transitions_events_guards_actions_history_table":"""<tableborder="1"><tr><th>FromState</th><th>ToState</th><th>Event</th><th>Guard</th><th>Actions</th></tr><tr><td>JacuzziOff</td><td>JacuzziOn</td><td>on</td><td></td><td></td></tr><tr><td>JacuzziOn</td><td>JacuzziOff</td><td>off</td><td></td><td></td></tr><tr><td>JacuzziLevel1</td><td>JacuzziLevel2</td><td>up</td><td></td><td></td></tr><tr><td>JacuzziLevel2</td><td>JacuzziLevel3</td><td>up</td><td></td><td></td></tr><tr><td>JacuzziLevel2</td><td>JacuzziLevel1</td><td>down</td><td></td><td></td></tr><tr><td>JacuzziLevel3</td><td>JacuzziLevel2</td><td>down</td><td></td><td></td></tr><tr><td>JacuzziOn</td><td>JacuzziPaused</td><td>pause</td><td></td><td></td></tr><tr><td>JacuzziOn</td><td>JacuzziH</td><td>setPattern</td><td></td><td>setPattern(PatternTypetype)</td></tr><tr><td>JacuzziPaused</td><td>JacuzziOff</td><td>off</td><td></td><td></td></tr><tr><td>JacuzziPaused</td><td>JacuzziH</td><td>resume</td><td></td><td></td></tr><tr><td>SaunaOff</td><td>SaunaOn</td><td>on</td><td></td><td></td></tr><tr><td>SaunaOn</td><td>SaunaOff</td><td>off</td><td></td><td></td></tr><tr><td>SaunaHeat</td><td>SaunaIdle</td><td>reachHighTemp</td><td>temp>=90</td><td></td></tr><tr><td>SaunaIdle</td><td>SaunaHeat</td><td>reachLowTemp</td><td>temp&lt;85</td><td></td></tr><tr><td>SaunaFanOff</td><td>SaunaFanOn</td><td>startFan</td><td>humidity&gt;0.40&&exceedTime&gt;3</td><td></td></tr><tr><td>SaunaFanOn</td><td>SaunaFanOff</td><td>stopFan</td><td></td><td></td></tr><tr><td>SaunaWaterIdle</td><td>SaunaWaterIdle</td><td>disperseWater</td><td>humidity&lt;0.04&&!FanOn&&timeSinceLast&gt;15</td><td>disperse</td></tr></table>""",
+        "hierarchical_state_table":"""<tableborder="1"><tr><th>Superstate</th><th>Substate</th></tr><tr><td>SpaManager</td><td>Jacuzzi</td></tr><tr><td>Jacuzzi</td><td>JacuzziOff</td></tr><tr><td>Jacuzzi</td><td>JacuzziOn</td></tr><tr><td>JacuzziOn</td><td>JacuzziLevel1</td></tr><tr><td>JacuzziOn</td><td>JacuzziLevel2</td></tr><tr><td>JacuzziOn</td><td>JacuzziLevel3</td></tr><tr><td>JacuzziOn</td><td>JacuzziPaused</td></tr><tr><td>JacuzziOn</td><td>JacuzziH</td></tr><tr><td>SpaManager</td><td>Sauna</td></tr><tr><td>Sauna</td><td>SaunaOff</td></tr><tr><td>Sauna</td><td>SaunaOn</td></tr><tr><td>SaunaOn</td><td>SaunaHeat</td></tr><tr><td>SaunaOn</td><td>SaunaIdle</td></tr><tr><td>SaunaOn</td><td>SaunaFanOff</td></tr><tr><td>SaunaOn</td><td>SaunaFanOn</td></tr><tr><td>SaunaOn</td><td>SaunaWaterIdle</td></tr></table>""",
+        "parallel_states_table":"""<tableborder="1"><tr><th>ParallelState<th><th>ParallelRegion</th><th>Substate</th></tr><tr><td>SpaManager<td><td>Jacuzzi</td><td>JacuzziOff</td></tr><tr><td>SpaManager<td><td>Jacuzzi</td><td>JacuzziOn</td></tr><tr><td>SpaManager<td><td>Jacuzzi</td><td>Paused</td></tr><tr><td>SpaManager<td><td>Sauna</td><td>SaunaOff</td></tr><tr><td>SpaManager<td><td>Sauna</td><td>SaunaOn</td></tr><tr><td>SaunaOn<td><td>Heater</td><td>Heat</td></tr><tr><td>SaunaOn<td><td>Heater</td><td>HeaterIdle</td></tr><tr><td>SaunaOn<td><td>Fan</td><td>FanOff</td></tr><tr><td>SaunaOn<td><td>Fan</td><td>FanOn</td></tr><tr><td>SaunaOn<td><td>Water</td><td>WaterIdle</td></tr></table>""",
+        "generated_umple_code":"""
+        class SpaManager{
+        sm {
+        SpaManager{
+            Jacuzzi{
+                Off{
+                    on -> Jacuzzi.On;   
+                }
+            
+            On{
+                off -> Jacuzzi.Off;
+                
+                Level1{
+                up -> Level2; 
+                }
+                
+                Level2{
+                up -> Level3;
+                down -> Level1;
+                }
+                
+                Level3{
+                down -> Level2; 
+                }
+                
+                pause -> Paused;
+                
+                setPattern(PatternType type) -> Jacuzzi.On.H;
+            }
+            
+            Paused{
+            off -> Jacuzzi.Off;
+                
+                after2min -> Jacuzzi.On.H;
+            }
+            }
+            ||
+            Sauna{
+            Off{
+            on -> Sauna.On;
+            }
+            
+            On{
+                off -> Sauna.Off;
+                
+                Heater{
+                    Heat{
+                    [temp>=90] -> Heater.Idle;
+                    }
+                
+                Idle{
+                    [temp < 85] -> Heat;     
+                }
+                }
+                ||
+                Fan{
+                Off{
+                [humidity > 0.40 && exceedTime>3] -> Fan.On; 
+                }
+                
+                On{
+                after5min -> Fan.Off; 
+                }
+                }
+                ||
+                Water{
+                Idle{
+                    disperse [humidity<0.04 && !Fan.On && timeSinceLast>15] -> Water.Idle;
+                }
+                }
+            }
+            }
+        }
+        }
+        }
+        """
     },
 
     # dishwasher system, ECSE 223 Winter 2019 Midterm #2 example
@@ -140,7 +265,60 @@ n_shot_examples = {
             <tr><td>DishwasherOn</td><td>Washer</td><td>Intake</td></tr>
             <tr><td>DishwasherOn</td><td>Washer</td><td>Washing</td></tr>
             <tr><td>DishwasherOn</td><td>Washer</td><td>Drain</td></tr>
-            </table>"""
+            </table>""",
+            "generated_umple_code":"""
+        class Dishwasher {
+        status {
+            DishwasherOn {
+            doorState {
+                Closed {
+                open -> Open;
+                lock -> Locked;
+                }
+                Open {
+                close -> Closed;
+                }
+                Locked {
+                unlock -> Closed;
+                }
+            }
+            ||
+            washingState {
+                Idle {
+                selectProgram(n) [n >= 1] -> /{r=n;} Idle;
+                toggleDryingTime -> /{if (dT=20) dT=40; else dT = 20} Idle;
+                start [door.isClosed()] -> /{door.lock();c=1;} Cleaning;
+                }
+                Suspended {
+                close -> Drying;
+                after(5) -> Idle;
+                }
+                Drying {
+                extendDryingTime -> /{dT=40;} Drying;
+                open -> Suspended;
+                after(dT) -> Idle;
+                }
+                Cleaning {
+                Intake {
+                    entry/{} -> Washing;
+                }
+                Washing {
+                    after(10) -> Drain;
+                }
+                Drain {
+                    [c < r] ->/{c++;} Intake;
+                    [c >= r] -> FinalCleaning;
+                }
+                FinalCleaning {
+                    entry/{door.unlock();} -> Drying;
+                }
+                toggleDryingTime -> /{if (dT=20) dT=40; else dT = 20} Cleaning.H;
+                }
+            }
+            }
+        }
+        }
+        """
         }
   
       

@@ -58,8 +58,16 @@ initial_state_search = {
 sanity_check = {
     "trigger": "start_sanity_check",
     "source": "SanityCheck",
-    "dest": "Done",
+    "dest": "CodeGeneration",
     "before": "sanity_check_action",
+}
+
+# step 9: ask LLM to generate Umple code from tables
+generate_code = {
+  "trigger": "start_code_generation",
+  "source": "CodeGeneration",
+  "dest": "Done",
+  "before": "automated_generation_action"
 }
 
 transitions = [
@@ -70,5 +78,6 @@ transitions = [
                 hierarchical_states,
                 history_states,
                 initial_state_search,
-                sanity_check
+                sanity_check,
+                generate_code
                ]

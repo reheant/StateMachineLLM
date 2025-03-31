@@ -23,6 +23,7 @@ from actions.HierarchicalStateSearchAction import HierarchicalStateSearchAction
 from actions.HistoryStateSearchAction import HistoryStateSearchAction
 from actions.FinalSanityCheckAction import FinalSanityCheckAction
 from actions.InitialStateSearchAction import InitialStateSearchAction
+from actions.AutomatedGenerationAction import AutomatedGenerationAction
 from simple_linear_smf_transitions import transitions
 from resources.util import create_simple_linear_gsm_diagram, map_state_to_pytransitions_name
 import mermaid as md
@@ -103,6 +104,10 @@ def run_simple_linear_smf(system_prompt):
                                                  belief=belief, 
                                                  description=system_prompt,
                                                  log_file_path=log_file_path)
+    automated_generation_action = AutomatedGenerationAction(usage="automatically generate umple code from state machine", 
+                                                            belief=belief, 
+                                                            description=system_prompt,
+                                                            log_file_path=log_file_path)
 
     # mapping between the names of Sherpa actions and their Action class
     action_map = {
@@ -113,7 +118,8 @@ def run_simple_linear_smf(system_prompt):
         hierarchical_state_action.name: hierarchical_state_action,
         history_state_action.name: history_state_action,
         initial_state_search_action.name: initial_state_search_action,
-        sanity_check_action.name: sanity_check_action
+        sanity_check_action.name: sanity_check_action,
+        automated_generation_action.name: automated_generation_action
     }
 
     # states of the Linear State Machine Framework
@@ -126,6 +132,7 @@ def run_simple_linear_smf(system_prompt):
                 "HistoryStates", 
                 "InitialStateSearch",
                 "SanityCheck", 
+                "CodeGeneration",
                 "Done"
             ]
     initial = "SearchStatesEvents"
@@ -141,14 +148,17 @@ def run_simple_linear_smf(system_prompt):
     qa_agent = QAAgent(llm=llm, belief=belief, num_runs=10, policy=policy)
         
     qa_agent.run()
+
     
-    initial_state = belief.get("initial_state_search_action")
-    create_simple_linear_gsm_diagram(
-        *belief.get("sanity_check_action"),
-        initial_state,
-        hierarchical_initial_states={},
-        diagram_file_path=diagram_file_path
-    )
+    print(belief.get("automated_generation_action"))
+    # Commented out to test run_simple_linear_smf
+    # initial_state = belief.get("initial_state_search_action")
+    # create_simple_linear_gsm_diagram(
+    #     *belief.get("sanity_check_action"),
+    #     initial_state,
+    #     hierarchical_initial_states={},
+    #     diagram_file_path=diagram_file_path
+    # )
 
     tracker.print_metrics()
 

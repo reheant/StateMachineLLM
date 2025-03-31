@@ -3,7 +3,11 @@ import anthropic
 import groq
 import openai
 from openai import OpenAI
+import graphviz
 import re
+import subprocess
+import re
+import time
 from bs4 import BeautifulSoup, Tag
 from transitions.extensions import HierarchicalGraphMachine
 import mermaid as md
@@ -842,6 +846,147 @@ def getStateHierarchyDictFromList(state_hierarchy_list):
             hierarchy[superstate].append(substate)
     
     return hierarchy
+
+def umpleCodeSearch(llm_response: str, generated_umple_code_path: str, writeFile=True):
+    ''' Function that extracts umple code from an LLM response
+    params:
+    llm_response is the string response from the LLM
+    generated_umple_code_path is the path of the file in which to write the extracted umple code. The file path must have the extension ".ump" 
+    
+    raises:
+    Exception if no umple code is found in the extracted code'''
+    generated_umple_code_search = re.search(r"<umple_code_solution>(.*?)</umple_code_solution>", llm_response, re.DOTALL)
+
+    if generated_umple_code_search:
+        generated_umple_code = generated_umple_code_search.group(1)
+    else:
+        raise Exception
+
+    if writeFile:
+        #Create a file to store generated code
+        with open(generated_umple_code_path, 'w') as file:
+            file.write(generated_umple_code)
+    
+    return generated_umple_code
+
+def setup_file_paths(base_dir: str, file_type: str = "single_prompt") -> dict:
+    """
+    Setup file paths for logs, Umple code, and diagrams
+    Args:
+        base_dir: Base directory path
+        file_type: Type of file (default: "single_prompt")
+    Returns:
+        dict: Dictionary containing all necessary file paths
+    """
+    
+    # Setup directories
+    log_base_dir = os.path.join(base_dir, "resources", f"{file_type}_log")
+    diagram_base_dir = os.path.join(base_dir, "resources", f"{file_type}_diagrams")
+    
+    # Create directories
+    os.makedirs(log_base_dir, exist_ok=True)
+    os.makedirs(diagram_base_dir, exist_ok=True)
+    
+    # Generate file names
+    file_prefix = f'output_{file_type}_{time.strftime("%Y_%m_%d_%H_%M_%S")}'
+    log_file_name = f"{file_prefix}.txt"
+    
+    return {
+        'log_base_dir': log_base_dir,
+        'log_file_path': os.path.join(log_base_dir, log_file_name),
+        'generated_umple_code_path': os.path.join(log_base_dir, f"{file_prefix}.ump"),
+        'umple_jar_path': os.path.join(base_dir, "resources", 'umple.jar'),
+        'diagram_base_dir': diagram_base_dir,
+        'diagram_file_path': os.path.join(diagram_base_dir, file_prefix)
+    }
+
+def umpleCodeProcessing(umple_jar_path: str, generated_umple_code_path: str, log_base_dir:str):
+    ''' Function to compile umple code and generate graphviz file
+    params:
+    umple_jar_path is the path to the jar executable that compiles umple code
+    generated_umple_code_path is the path the umple file containing the code to compile
+    log_base_dir is the directory under which to output the compiled code (the file containing the compiled code is named the same as the umple file with a different extension)
+    
+    returns:
+    the path of the generated graphviz file
+    
+    raises:
+    subprocess.CalledProcessError if the umple code is contains errors'''
+    subprocess.run(['java', '-jar', umple_jar_path, generated_umple_code_path, '-g', 'GvStateDiagram', '--path', log_base_dir], capture_output=True, check=True, text=True)
+
+    return os.path.join(log_base_dir, f"{os.path.splitext(os.path.basename(generated_umple_code_path))[0]}.gv")
+
+def graphVizGeneration(generated_umple_gv_path, diagram_file_path: str):
+    ''' Function that interprets GraphViz file (.gv) to produce GraphViz diagram image
+    params:
+    generated_umple_gv_path is the file that contains the graphviz code (it is returned by the umpleCodeProcessing function)
+    diagram_file_path is the path where to output the .png diagram
+    '''
+    with open(generated_umple_gv_path, 'r') as file:
+        dot_code = file.read()
+
+    # Render the DOT file using Graphviz
+    graph = graphviz.Source(dot_code)
+    graph.render(diagram_file_path, format='png')
+
+def process_umple_attempt(i: int, prompt: str, paths: dict) -> str:
+    """
+    Process a single attempt at generating and processing Umple code
+    Args:
+        i: Attempt number
+        prompt: LLM prompt
+        paths: Dictionary containing file paths
+    Returns:
+        bool: True if successful, False otherwise
+    """
+    try:
+        answer = call_llm(prompt)
+        
+        # Extract Umple code
+        try:
+            generated_umple_code = umpleCodeSearch(answer, paths['generated_umple_code_path'])
+        except Exception as e:
+            error = f"Attempt {i} at extracting umple code failed\n\n"
+            with open(paths['log_file_path'], 'a') as file:
+                file.write(error)
+            print(error)
+            return "False"
+
+        print(f"Attempt {i} at extracting umple code successful\nGenerated umple code:")
+        print(generated_umple_code)
+
+        # Log generated code
+        with open(paths['log_file_path'], 'a') as file:
+            file.write(generated_umple_code)
+        
+        # Process Umple code
+        try:
+            generated_umple_gv_path = umpleCodeProcessing(
+                paths['umple_jar_path'], 
+                paths['generated_umple_code_path'], 
+                paths['log_base_dir']
+            )
+        except subprocess.CalledProcessError as e:
+            error = f"Attempt {i} at processing umple code failed\n\n"
+            with open(paths['log_file_path'], 'a') as file:
+                file.write(error)
+                file.write(f"{e.stderr}\n\n")
+            print(error)
+            print(f"{e.stderr}\n\n")
+            return "False"
+        
+        print(f"Attempt {i} at processing umple code successful")
+
+        # Generate GraphViz diagram
+        graphVizGeneration(generated_umple_gv_path, paths['diagram_file_path'])
+        return generated_umple_code
+
+    except Exception as e:
+        print(f"Unexpected error in attempt {i}: {str(e)}")
+        return "False"
+
+
+
 
 if __name__ == "__main__":
     prompt = "Hi, I need help answering a question about states machines. What are events?"

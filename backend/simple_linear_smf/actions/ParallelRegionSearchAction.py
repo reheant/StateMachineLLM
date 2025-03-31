@@ -62,28 +62,27 @@ class ParallelStateSearchAction(SMFAction):
         """
         
         retries = 0
-        retry = True
-        
-        # call GPT 4 while we should retry and we haven't reached max retries
-        while retries < 5 and retry:
-            response = call_llm(prompt)
-            updated_state_event_table = extract_states_events_table(llm_response=response)
-            
-            if ("EMPTY" in response):
-                return (updated_state_event_table, None)
-            # extract tables
 
+        while retries < 5:
+            response = call_llm(prompt)  # Call GPT-4
+            updated_state_event_table = extract_states_events_table(llm_response=response)
+
+            if "EMPTY" in response:  
+                return (updated_state_event_table, None)  # Exit early if EMPTY response
+            
+            # Extract additional tables
             updated_parallel_state_table = extract_parallel_states_table(llm_response=response)
             updated_tables = (updated_state_event_table, updated_parallel_state_table)
-            # if any of the tables are not provided, try again
-            if None in updated_tables:
-                retry = True
-            else:
-                retry = False
             
-            retries += 1
-        
-        return updated_tables
+            # If extraction succeeded, return tables
+            if None not in updated_tables:
+                return updated_tables  
+
+            retries += 1  # Increment only if retrying
+
+        # If all retries failed, return None
+        return (None, None)
+
     
     def execute(self):
         """
@@ -106,6 +105,6 @@ class ParallelStateSearchAction(SMFAction):
         
         # state_event_table will never be None, parallel_state_table may be None if there are no parallel states
         
-        self.log(f"Parallel State event table: {state_event_table}")
+        self.log(f"Parallel State event table: {updated_state_event_table}")
         self.log(f"Parallel State table: {parallel_state_table}")
-        return state_event_table, parallel_state_table
+        return updated_state_event_table, parallel_state_table
