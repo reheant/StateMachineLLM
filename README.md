@@ -47,10 +47,34 @@ Our solution embeds a state machine within the LLM decision-making process to:
 
 ### Prerequisites
 
-- Python 3.8+
+- Python 3.10+ (required for some dependencies)
 - API Key for the LLM you will use
 
 ### Setup
+
+#### For macOS:
+
+```bash
+# Clone the repository
+git clone https://github.com/reheant/StateMachineLLM.git
+
+# Verify Python is installed
+python3 --version
+
+# Enter the directory
+cd StateMachineLLM
+
+# Download dependencies (use python3 -m pip to ensure correct version)
+python3 -m pip install -r requirements.txt
+
+# If you encounter Pydantic compatibility issues, run:
+python3 -m pip install --upgrade pydantic==2.8.2
+
+# Launch UI
+chainlit run app.py -w
+```
+
+#### For Windows:
 
 ```bash
 # Clone the repository
