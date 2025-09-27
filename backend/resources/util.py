@@ -75,38 +75,20 @@ def call_llm(prompt, max_tokens=1200, temperature=0.7):
     The call_llm function calls the specified LLM with a specified prompt,
     max_tokens, and temperature, and returns the string response of the LLM
     """
-    try:
-        response = client.chat.completions.create(
-            model=llm.current_llm,
-            messages=[
-                {
-                    "role": "system",
-                    "content": "You are an AI assistant specialized in generating state machines using Umple syntax. Based on problem descriptions, you generate detailed analysis and valid Umple code wrapped in <umple_code_solution> tags.",
-                },
-                {"role": "user", "content": prompt},
-            ],
-            temperature=temperature,
-            max_tokens=max_tokens,
-            # Optional: Add extra headers for OpenRouter
-            extra_headers={
-                "HTTP-Referer": "https://github.com/reheant/StateMachineLLM",
-                "X-Title": "State Machine LLM Generator",
-            },
-        )
+    global energy_consumed, carbon_emissions, abiotic_resource_depletion
 
-        # Update impact tracking for OpenAI models (if using EcoLogits)
-        if "openai" in llm.current_llm.lower():
-            try:
-                tracker.update_impacts(response)
-            except Exception as e:
-                print(f"Warning: Could not track environmental impact: {e}")
+    response = client.chat.completions.create(
+        model=llm.current_llm,
+        messages=[{"role": "system", "content": "You are a programming assistant specialized in generating HTML content. Your task is to create a state machine representation using HTML tables."},
+                  {"role": "user", "content": prompt}],
+        temperature=temperature,
+        max_tokens=max_tokens
+    )
+    
+    if llm.current_llm == "qwen/qwq-32b":
+        tracker.update_impacts(response)
 
-        return str(response.choices[0].message.content)
-
-    except Exception as e:
-        print(f"Error calling LLM: {e}")
-        raise
-
+    return str (response.choices[0].message.content)
 
 # **************** HTML TABLE UTILITY FUNCTIONS ****************
 
