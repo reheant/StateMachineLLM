@@ -14,43 +14,61 @@ import mermaid as md
 from mermaid.graph import Graph
 from sherpa_ai.memory.state_machine import SherpaStateMachine
 from getpass import getpass
-import aisuite as ai
 from ecologits import EcoLogits
 from .environmental_impact.impact_tracker import tracker
 from .llm_tracker import llm
+from dotenv import load_dotenv
 
-openai.api_key = os.environ.get("OPENAI_API_KEY")
-groq.api_key = os.environ.get("GROQ_API_KEY")
-anthropic.api_key = os.environ.get("ANTHROPIC_API_KEY")
+# Load environment variables from .env file
+load_dotenv()
 
-EcoLogits.init(providers="openai")
-client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+# OpenRouter configuration
+client = OpenAI(
+    base_url="https://openrouter.ai/api/v1",
+    api_key=os.environ.get("OPENROUTER_API_KEY"),
+)
 
-client = ai.Client()
 
 def choose_model():
-    ''' Function that inquires the user for the model '''
+    """Function that inquires the user for the model"""
     print("Please pick the model you want to use to power your assistant:")
-    print("1. GPT-4o")
-    print("2. Claude 3.5 Sonnet")
-    print("3. Llama 3.2 3b Preview")
-    print("4. Gemini 1.5 Pro 001")
+    print("1. QwQ-32B (Qwen - Reasoning focused) [DEFAULT]")
+    print("2. Qwen2.5-72B (Qwen - General purpose)")
+    print("3. GPT-4o (OpenAI)")
+    print("4. Claude 3.5 Sonnet (Anthropic)")
+    print("5. Llama 3.2 3B (Meta)")
+    print("6. Gemini Pro 1.5 (Google)")
+    print("7. GPT-4o Mini (OpenAI)")
+    print("8. Claude 3 Haiku (Anthropic)")
 
     while True:
         try:
-            choice = int(input("Enter the number corresponding to your model (1, 2, 3, 4): "))
-            if choice == 1:
-                return "openai:gpt-4o"
-            elif choice == 2:
-                return  "anthropic:claude-3-5-sonnet-20241022"
-            elif choice == 3:
-                return "groq:llama-3.2-3b-preview"
-            elif choice == 4:
-                return "google:gemini-1.5-pro-001"
+            choice = input(
+                "Enter the number corresponding to your model (1-8, or press Enter for default): "
+            ).strip()
+            if choice == "" or choice == "1":
+                return "qwen/qwq-32b"
+            elif choice == "2":
+                return "qwen/qwen-2.5-72b-instruct"
+            elif choice == "3":
+                return "openai/gpt-4o"
+            elif choice == "4":
+                return "anthropic/claude-3.5-sonnet"
+            elif choice == "5":
+                return "meta-llama/llama-3.2-3b-instruct"
+            elif choice == "6":
+                return "google/gemini-pro-1.5"
+            elif choice == "7":
+                return "openai/gpt-4o-mini"
+            elif choice == "8":
+                return "anthropic/claude-3-haiku"
             else:
-                print("Invalid choice. Please enter 1, 2, 3 or 4.")
+                print("Invalid choice. Please enter 1-8 or press Enter for default.")
         except ValueError:
-            print("Invalid input. Please enter a number (1, 2, 3, or 4).")
+            print(
+                "Invalid input. Please enter a number (1-8) or press Enter for default."
+            )
+
 
 def call_llm(prompt, max_tokens=1200, temperature=0.7):
     """
@@ -58,7 +76,7 @@ def call_llm(prompt, max_tokens=1200, temperature=0.7):
     max_tokens, and temperature, and returns the string response of the LLM
     """
     global energy_consumed, carbon_emissions, abiotic_resource_depletion
-    
+
     response = client.chat.completions.create(
         model=llm.current_llm,
         messages=[{"role": "system", "content": "You are a programming assistant specialized in generating HTML content. Your task is to create a state machine representation using HTML tables."},
@@ -66,15 +84,16 @@ def call_llm(prompt, max_tokens=1200, temperature=0.7):
         temperature=temperature,
         max_tokens=max_tokens
     )
-
-    if llm.current_llm == "openai:gpt-4o":
+    
+    if llm.current_llm == "qwen/qwq-32b":
         tracker.update_impacts(response)
 
     return str (response.choices[0].message.content)
 
-#**************** HTML TABLE UTILITY FUNCTIONS ****************
+# **************** HTML TABLE UTILITY FUNCTIONS ****************
 
-def extract_html_tables(llm_response : str) -> list[Tag]:
+
+def extract_html_tables(llm_response: str) -> list[Tag]:
     """
     The extract HTML tables function takes in a string representing
     the LLM's response, and extracts all HTML tables in the response.
@@ -82,131 +101,145 @@ def extract_html_tables(llm_response : str) -> list[Tag]:
     processed
     """
     # extract the content within the ```html code blocks using regex
-    code_blocks = re.findall(r'```html(.*?)```', llm_response, re.DOTALL)
-    
+    code_blocks = re.findall(r"```html(.*?)```", llm_response, re.DOTALL)
+
     tables = []
-    
+
     # for each HTML code block, parse and extract the tables
     for block in code_blocks:
         # parse the HTML content
-        soup = BeautifulSoup(block, 'html.parser')
-        
+        soup = BeautifulSoup(block, "html.parser")
+
         # find all <table> elements from parsed elements
-        table_elements = soup.find_all('table')
-        
+        table_elements = soup.find_all("table")
+
         # extract each table's HTML and add to list of tables
         for table in table_elements:
             tables.append(table)
-    
+
     return tables
 
-def extract_table_using_headers(llm_response: str, headers : list[str]) -> Tag:
+
+def extract_table_using_headers(llm_response: str, headers: list[str]) -> Tag:
     """
     The extract_table_using_headers function extracts all tables with the matching list
     of headers from an LLM response, and returns a BeautifulSoup tag containing the table
     """
     # find all tables in the response
     tables = extract_html_tables(llm_response=llm_response)
-    
+
     for table in tables:
-        current_table_headers = [th.get_text().strip() for th in table.find_all('th')]
-        
+        current_table_headers = [th.get_text().strip() for th in table.find_all("th")]
+
         if all(header in current_table_headers for header in headers):
             return table
-    
+
     return None
+
 
 def extract_states_events_table(llm_response):
     """
     Extract the states-events table for Linear SMF responses
     """
     states_events_table_headers = ["Current State", "Event", "Next State(s)"]
-    states_events_table = extract_table_using_headers(llm_response=llm_response,
-                                                      headers=states_events_table_headers)
+    states_events_table = extract_table_using_headers(
+        llm_response=llm_response, headers=states_events_table_headers
+    )
     return states_events_table
+
 
 def extract_parallel_states_table(llm_response):
     """
     Extracts the parallel states table for Linear SMF responses
     """
     parallel_states_table_headers = ["Parallel State", "Parallel Region", "Substate"]
-    parallel_states_table = extract_table_using_headers(llm_response=llm_response,
-                                                        headers=parallel_states_table_headers)
+    parallel_states_table = extract_table_using_headers(
+        llm_response=llm_response, headers=parallel_states_table_headers
+    )
     return parallel_states_table
 
-def extract_transitions_guards_table(llm_response : str, includeHeader : bool) -> Tag:
+
+def extract_transitions_guards_table(llm_response: str, includeHeader: bool) -> Tag:
     """
     Extracts the table of transitions with headers "From State", "To State", "Event",
     and "Guard" for Linear SMF responses
     """
     transitions_guards_table_headers = ["From State", "To State", "Event", "Guard"]
-    transitions_guards_table = extract_table_using_headers(llm_response=llm_response,
-                                                           headers=transitions_guards_table_headers)
+    transitions_guards_table = extract_table_using_headers(
+        llm_response=llm_response, headers=transitions_guards_table_headers
+    )
     if not includeHeader and transitions_guards_table:
-        first_row = transitions_guards_table.find('th')
+        first_row = transitions_guards_table.find("th")
         if first_row:
             first_row.decompose()
     return transitions_guards_table
 
-def extract_history_state_table(llm_response : str, includeHeader: bool = False) -> Tag:
+
+def extract_history_state_table(llm_response: str, includeHeader: bool = False) -> Tag:
     """
     Extracts the table containing history state transitions for History States for
     Linear SMF responses
     """
     history_table_headers = ["From State", "Event", "Guard", "Action"]
-    history_table = extract_table_using_headers(llm_response=llm_response,
-                                                headers=history_table_headers)
+    history_table = extract_table_using_headers(
+        llm_response=llm_response, headers=history_table_headers
+    )
     if history_table and not includeHeader:
-        first_row = history_table.find('tr')
+        first_row = history_table.find("tr")
         if first_row:
             first_row.decompose()
     return history_table
 
-def extract_hierarchical_state_table(llm_response : str) -> Tag:
+
+def extract_hierarchical_state_table(llm_response: str) -> Tag:
     """
     Extracts tables depicting Hierarchical State relationships in
     responses for Event Driven SMF responses
     """
     history_table_headers = ["Superstate", "Substate"]
-    history_table = extract_table_using_headers(llm_response=llm_response,
-                                                headers=history_table_headers)
+    history_table = extract_table_using_headers(
+        llm_response=llm_response, headers=history_table_headers
+    )
     return history_table
 
-def appendTables(table1 : Tag, table2 : Tag) -> Tag:
+
+def appendTables(table1: Tag, table2: Tag) -> Tag:
     """
     The appendTables function merges the rows of two tables together (assuming
     the two tables have the same headers)
     """
-    table1 = BeautifulSoup(str(table1), 'html.parser').find_all('table')[0]
-    table2 = BeautifulSoup(str(table2), 'html.parser').find_all('table')[0]
+    table1 = BeautifulSoup(str(table1), "html.parser").find_all("table")[0]
+    table2 = BeautifulSoup(str(table2), "html.parser").find_all("table")[0]
 
-    for row in table2.find_all('tr'):
+    for row in table2.find_all("tr"):
         table1.append(row)
     return table1
 
-def addColumn(table : Tag, headerName : str, columnIdx : int, placeholderValue : str):
+
+def addColumn(table: Tag, headerName: str, columnIdx: int, placeholderValue: str):
     """
     The addColumn function adds a new column to a given table at the specified index,
     with the header headerName, and a default value placeholderValue
     """
-    soup = BeautifulSoup(str(table), 'html.parser')
+    soup = BeautifulSoup(str(table), "html.parser")
 
     # Add a new header for the new column
     if headerName:
-        new_header = soup.new_tag('th')
+        new_header = soup.new_tag("th")
         new_header.string = headerName
-        header_row = table.find('tr')
+        header_row = table.find("tr")
         header_row.insert(columnIdx, new_header)
 
     # Add new column data to each row
-    for row in table.find_all('tr')[1 if headerName else 0:]:  # Skip the header row
-        new_col = soup.new_tag('td')
+    for row in table.find_all("tr")[1 if headerName else 0 :]:  # Skip the header row
+        new_col = soup.new_tag("td")
         new_col.string = placeholderValue
         row.insert(columnIdx, new_col)
 
     return table
 
-def extractColumn(table, columnIdx : int):
+
+def extractColumn(table, columnIdx: int):
     """
     The extractColumn gets all entries in the column at index
     columnIdx
@@ -217,72 +250,102 @@ def extractColumn(table, columnIdx : int):
 
     # Add new column data to each row
     if table:
-        for row in table.find_all('tr')[1:]:  # Skip the header row=
-            cols = row.find_all('td')
+        for row in table.find_all("tr")[1:]:  # Skip the header row=
+            cols = row.find_all("td")
             column_list.append(cols[columnIdx].get_text())
 
     return column_list
 
-def extract_transitions_guards_actions_table(llm_response : str) -> Tag:
+
+def extract_transitions_guards_actions_table(llm_response: str) -> Tag:
     """
     Extracts transitions tables with headers "From State", "To State", "Event", "Guard", and
     "Action" for Linear SMF and Event Driven SMF responses
     """
-    transitions_guards_table_events_headers = ["From State", "To State", "Event", "Guard", "Action"]
-    transitions_guards_actions_table = extract_table_using_headers(llm_response=llm_response,
-                                                                   headers=transitions_guards_table_events_headers)
+    transitions_guards_table_events_headers = [
+        "From State",
+        "To State",
+        "Event",
+        "Guard",
+        "Action",
+    ]
+    transitions_guards_actions_table = extract_table_using_headers(
+        llm_response=llm_response, headers=transitions_guards_table_events_headers
+    )
     return transitions_guards_actions_table
-    
-def str_to_Tag(table : str):
+
+
+def str_to_Tag(table: str):
     """
     converts the string of an HTML table into a BeautifulSoup Tag
     """
-    tables = BeautifulSoup(str(table), 'html.parser').find_all('table')
+    tables = BeautifulSoup(str(table), "html.parser").find_all("table")
     return tables[0] if tables else None
 
-#******************** HTML to JSON (dict) UTILITIES *********************
+
+# ******************** HTML to JSON (dict) UTILITIES *********************
+
 
 def format_state_name_for_pytransitions(state_name, hierarchical_states_table):
     """
     given a state name and the table of hierarchical states, format the state's name to be the expected
     format for the transitions for pytransitions. The format is ParentState_ChildState
     """
-    child_state_to_parent_state = map_child_state_to_parent_state(hierarchical_state_table=hierarchical_states_table)
-    if child_state_to_parent_state and child_state_to_parent_state.get(state_name, None) is not None:
+    child_state_to_parent_state = map_child_state_to_parent_state(
+        hierarchical_state_table=hierarchical_states_table
+    )
+    if (
+        child_state_to_parent_state
+        and child_state_to_parent_state.get(state_name, None) is not None
+    ):
         return f"{child_state_to_parent_state.get(state_name)}_{state_name}"
     else:
         return state_name
 
-def format_state_name_for_pytransitions_arbitrarily_nested(state_name, hierarchical_states_table):
+
+def format_state_name_for_pytransitions_arbitrarily_nested(
+    state_name, hierarchical_states_table
+):
     """
     given a state name and the table of hierarchical states, format the state's name to be the expected
     format for the transitions for pytransitions. The format is ParentState_ChildState
     """
-    child_state_to_parent_state = map_state_to_pytransitions_name(hierarchical_state_table=hierarchical_states_table)
+    child_state_to_parent_state = map_state_to_pytransitions_name(
+        hierarchical_state_table=hierarchical_states_table
+    )
     return child_state_to_parent_state[state_name]
 
+
 def nest_hierarchical_states(state_to_nest, list_states):
-    '''The function assumes that the state to nest is a superstate'''
+    """The function assumes that the state to nest is a superstate"""
     for state in list_states:
-        if isinstance(state, str) and state_to_nest['name'] == state:
+        if isinstance(state, str) and state_to_nest["name"] == state:
             state_idx = list_states.index(state)
             list_states[state_idx] = state_to_nest
             return True
-        elif isinstance(state, dict) and 'children' in state.keys():
-            if nest_hierarchical_states(state_to_nest, state['children']):
+        elif isinstance(state, dict) and "children" in state.keys():
+            if nest_hierarchical_states(state_to_nest, state["children"]):
                 return True
-        elif isinstance(state, dict) and 'parallel' in state.keys():
-            if nest_hierarchical_states(state_to_nest, state['parallel']):
+        elif isinstance(state, dict) and "parallel" in state.keys():
+            if nest_hierarchical_states(state_to_nest, state["parallel"]):
                 return True
-    
+
     return False
 
-def gsm_tables_to_dict(hierarchical_states_table : Tag, transitions_table : Tag, parallel_state_table : Tag, nesting : bool = True):
+
+def gsm_tables_to_dict(
+    hierarchical_states_table: Tag,
+    transitions_table: Tag,
+    parallel_state_table: Tag,
+    nesting: bool = True,
+):
     """
     Extracts the states, transitions, and parallel regions of a Generated State Machine (GSM) and returns
     them in a list
     """
-    hierarchical_states_table = table_remove_spaces(str_to_Tag(hierarchical_states_table))
+    hierarchical_states_table = table_remove_spaces(
+        str_to_Tag(hierarchical_states_table)
+    )
     transitions_table = table_remove_spaces(str_to_Tag(transitions_table))
     parallel_state_table = table_remove_spaces(str_to_Tag(parallel_state_table))
     states = []
@@ -290,89 +353,126 @@ def gsm_tables_to_dict(hierarchical_states_table : Tag, transitions_table : Tag,
     parallel_states = []
 
     # Add states to state list
-    states += list(set(extractColumn(hierarchical_states_table, 0) + extractColumn(hierarchical_states_table, 1) + extractColumn(transitions_table, 0) + extractColumn(transitions_table, 1) + extractColumn(parallel_state_table, 0) + extractColumn(parallel_state_table, 2)))
+    states += list(
+        set(
+            extractColumn(hierarchical_states_table, 0)
+            + extractColumn(hierarchical_states_table, 1)
+            + extractColumn(transitions_table, 0)
+            + extractColumn(transitions_table, 1)
+            + extractColumn(parallel_state_table, 0)
+            + extractColumn(parallel_state_table, 2)
+        )
+    )
 
     if transitions_table:
-        for row in transitions_table.find_all('tr')[1:]:  # Skip the header row=
-            cols = row.find_all('td')
+        for row in transitions_table.find_all("tr")[1:]:  # Skip the header row=
+            cols = row.find_all("td")
             transition = {
                 "trigger": cols[2].get_text(),
-                "source": format_state_name_for_pytransitions_arbitrarily_nested(state_name=cols[0].get_text(), hierarchical_states_table=hierarchical_states_table),
-                "dest": format_state_name_for_pytransitions_arbitrarily_nested(state_name=cols[1].get_text(), hierarchical_states_table=hierarchical_states_table),
+                "source": format_state_name_for_pytransitions_arbitrarily_nested(
+                    state_name=cols[0].get_text(),
+                    hierarchical_states_table=hierarchical_states_table,
+                ),
+                "dest": format_state_name_for_pytransitions_arbitrarily_nested(
+                    state_name=cols[1].get_text(),
+                    hierarchical_states_table=hierarchical_states_table,
+                ),
             }
-            if (len(cols) == 5 and cols[4].get_text() != "NONE"):
+            if len(cols) == 5 and cols[4].get_text() != "NONE":
                 transition["before"] = cols[4].get_text()
-            if (len(cols) == 5 and cols[3].get_text() != "NONE"):
+            if len(cols) == 5 and cols[3].get_text() != "NONE":
                 transition["conditions"] = cols[3].get_text()
 
             transitions.append(transition)
-    
+
     if hierarchical_states_table:
-        for row in hierarchical_states_table.find_all('tr')[1:]:  # Skip the header row=
-            cols = row.find_all('td')
+        for row in hierarchical_states_table.find_all("tr")[1:]:  # Skip the header row=
+            cols = row.find_all("td")
 
             try:
                 stateIdx = states.index(cols[0].get_text())
             except ValueError:
-                stateIdx = [states.index(dic) for dic in states if isinstance(dic, dict) and dic['name'] == cols[0].get_text()][0]
+                stateIdx = [
+                    states.index(dic)
+                    for dic in states
+                    if isinstance(dic, dict) and dic["name"] == cols[0].get_text()
+                ][0]
 
             if not isinstance(states[stateIdx], dict):
                 hierarchical_state = {
                     "name": cols[0].get_text(),
-                    "children": [cols[1].get_text()]
+                    "children": [cols[1].get_text()],
                 }
                 states[stateIdx] = hierarchical_state
             else:
-                states[stateIdx]['children'].append(cols[1].get_text())
-    
+                states[stateIdx]["children"].append(cols[1].get_text())
+
     if parallel_state_table:
-        for row in parallel_state_table.find_all('tr')[1:]:  # Skip the header row=
-            cols = row.find_all('td')
+        for row in parallel_state_table.find_all("tr")[1:]:  # Skip the header row=
+            cols = row.find_all("td")
 
             try:
-                parallel_state_idx = [parallel_states.index(dic) for dic in parallel_states if isinstance(dic, dict) and dic['name'] == cols[0].get_text()][0]
+                parallel_state_idx = [
+                    parallel_states.index(dic)
+                    for dic in parallel_states
+                    if isinstance(dic, dict) and dic["name"] == cols[0].get_text()
+                ][0]
             except IndexError:
                 parallel_state_idx = -1
 
             if parallel_state_idx < 0:
                 parallel_state = {
                     "name": cols[0].get_text(),
-                    "parallel": [{'name': cols[1].get_text(), 'children': cols[2].get_text()}]
+                    "parallel": [
+                        {"name": cols[1].get_text(), "children": cols[2].get_text()}
+                    ],
                 }
                 parallel_states.append(parallel_state)
             else:
                 parallel_state = parallel_states[parallel_state_idx]
                 # Check if the parallel region is already added
                 try:
-                    parallel_region_idx = [parallel_state['parallel'].index(dic) for dic in parallel_state['parallel'] if isinstance(dic, dict) and dic['name'] == cols[1].get_text()][0]
+                    parallel_region_idx = [
+                        parallel_state["parallel"].index(dic)
+                        for dic in parallel_state["parallel"]
+                        if isinstance(dic, dict) and dic["name"] == cols[1].get_text()
+                    ][0]
                 except IndexError:
                     parallel_region_idx = -1
-                
+
                 if parallel_region_idx < 0:
-                    parallel_state['parallel'].append({
-                        'name' : cols[1].get_text(),
-                        'children' : cols[2].get_text()
-                    })
+                    parallel_state["parallel"].append(
+                        {"name": cols[1].get_text(), "children": cols[2].get_text()}
+                    )
                 else:
-                    parallel_state['parallel'][parallel_region_idx]['children'].append(cols[2].get_text())
+                    parallel_state["parallel"][parallel_region_idx]["children"].append(
+                        cols[2].get_text()
+                    )
 
     # Add the parallel states to the pool of states
     states.extend(parallel_states)
 
     # States under '-' really don't have a superstate
-    non_composite_state = [state for state in states if isinstance(state, dict) and state['name'] == '-']
+    non_composite_state = [
+        state for state in states if isinstance(state, dict) and state["name"] == "-"
+    ]
     if non_composite_state:
-        for child in non_composite_state[0]['children']:
+        for child in non_composite_state[0]["children"]:
             if child not in states:
                 states.append(child)
         states.remove(non_composite_state[0])
 
     # remove states which are already encompassed by a parent state
-    states = [state for state in states if (non_composite_state and state in non_composite_state[0]["children"]) or isinstance(state, dict)]
+    states = [
+        state
+        for state in states
+        if (non_composite_state and state in non_composite_state[0]["children"])
+        or isinstance(state, dict)
+    ]
 
     if nesting:
         # Nesting hierarchical states
-        for i in range(len(states)-1, -1, -1):
+        for i in range(len(states) - 1, -1, -1):
             if nest_hierarchical_states(states[i], states):
                 states.pop(i)
 
@@ -383,7 +483,10 @@ def gsm_tables_to_dict(hierarchical_states_table : Tag, transitions_table : Tag,
 
     return states, transitions, parallel_states
 
-def add_initial_hierarchical_states(gsm_states : list, hierarchical_initial_states : dict):
+
+def add_initial_hierarchical_states(
+    gsm_states: list, hierarchical_initial_states: dict
+):
     """
     the add_initial_hierarchical_states sets the "initial" key of the hierarchical states in the gsm_states
     list to map to the name of the hierarchical state's initial state, as required by pytransitions. note
@@ -391,25 +494,44 @@ def add_initial_hierarchical_states(gsm_states : list, hierarchical_initial_stat
     """
 
     # iterate over each hierarchical state and its initial state
-    for hierarchical_state_name, initial_state_name in hierarchical_initial_states.items():
+    for (
+        hierarchical_state_name,
+        initial_state_name,
+    ) in hierarchical_initial_states.items():
         if initial_state_name is not None:
             # locate the hierarchical state in the list of initial states
             for gsm_state in gsm_states:
                 # check to see if the current state is the hierarchical state and set the initial state if it is one of the child states
-                if isinstance(gsm_state, dict) and gsm_state.get("name") == hierarchical_state_name.replace(" ", "") and initial_state_name.replace(" ", "") in gsm_state.get("children"):
+                if (
+                    isinstance(gsm_state, dict)
+                    and gsm_state.get("name")
+                    == hierarchical_state_name.replace(" ", "")
+                    and initial_state_name.replace(" ", "") in gsm_state.get("children")
+                ):
                     gsm_state["initial"] = initial_state_name.replace(" ", "")
                     break
 
     return gsm_states
 
-def create_event_based_gsm_diagram(hierarchical_states_table : Tag, transitions_table : Tag, parallel_state_table : Tag, initial_state : str, hierarchical_initial_states : dict, diagram_file_path : str):
-    gsm_states, gsm_transitions, gsm_parallel_regions = gsm_tables_to_dict(hierarchical_states_table=hierarchical_states_table,
-                                                                           transitions_table=transitions_table,
-                                                                           parallel_state_table=parallel_state_table)
-    
+
+def create_event_based_gsm_diagram(
+    hierarchical_states_table: Tag,
+    transitions_table: Tag,
+    parallel_state_table: Tag,
+    initial_state: str,
+    hierarchical_initial_states: dict,
+    diagram_file_path: str,
+):
+    gsm_states, gsm_transitions, gsm_parallel_regions = gsm_tables_to_dict(
+        hierarchical_states_table=hierarchical_states_table,
+        transitions_table=transitions_table,
+        parallel_state_table=parallel_state_table,
+    )
+
     # update the states so each hierarchical state contains their initial state
-    gsm_states = add_initial_hierarchical_states(gsm_states=gsm_states,
-                                                 hierarchical_initial_states=hierarchical_initial_states)
+    gsm_states = add_initial_hierarchical_states(
+        gsm_states=gsm_states, hierarchical_initial_states=hierarchical_initial_states
+    )
     print(f"States: {gsm_states}")
     print(f"Transitions: {gsm_transitions}")
     print(f"Parallel Regions: {gsm_parallel_regions}")
@@ -418,29 +540,43 @@ def create_event_based_gsm_diagram(hierarchical_states_table : Tag, transitions_
     gsm = SherpaStateMachine(
         states=gsm_states,
         transitions=gsm_transitions,
-        initial=format_state_name_for_pytransitions(initial_state, hierarchical_states_table=hierarchical_states_table).replace(" ", ""),
-        sm_cls=HierarchicalGraphMachine
+        initial=format_state_name_for_pytransitions(
+            initial_state, hierarchical_states_table=hierarchical_states_table
+        ).replace(" ", ""),
+        sm_cls=HierarchicalGraphMachine,
     )
-    
+
     print(gsm.sm.get_graph().draw(None))
 
     # Generate and render a sequence diagram
-    sequence = Graph('Sequence-diagram', gsm.sm.get_graph().draw(None))
+    sequence = Graph("Sequence-diagram", gsm.sm.get_graph().draw(None))
     render = md.Mermaid(sequence)
     render.to_png(diagram_file_path)
+
 
 def get_top_level_state(state, hierarchical_states_table):
     pytransitions_mapping = map_state_to_pytransitions_name(hierarchical_states_table)
-    return pytransitions_mapping[state].split('_')[0]
+    return pytransitions_mapping[state].split("_")[0]
 
-def create_simple_linear_gsm_diagram(hierarchical_states_table : Tag, transitions_table : Tag, parallel_state_table : Tag, initial_state : str, hierarchical_initial_states : dict, diagram_file_path : str):
-    gsm_states, gsm_transitions, gsm_parallel_regions = gsm_tables_to_dict(hierarchical_states_table=hierarchical_states_table,
-                                                                           transitions_table=transitions_table,
-                                                                           parallel_state_table=parallel_state_table)
-    
+
+def create_simple_linear_gsm_diagram(
+    hierarchical_states_table: Tag,
+    transitions_table: Tag,
+    parallel_state_table: Tag,
+    initial_state: str,
+    hierarchical_initial_states: dict,
+    diagram_file_path: str,
+):
+    gsm_states, gsm_transitions, gsm_parallel_regions = gsm_tables_to_dict(
+        hierarchical_states_table=hierarchical_states_table,
+        transitions_table=transitions_table,
+        parallel_state_table=parallel_state_table,
+    )
+
     # update the states so each hierarchical state contains their initial state
-    gsm_states = add_initial_hierarchical_states(gsm_states=gsm_states,
-                                                 hierarchical_initial_states=hierarchical_initial_states)
+    gsm_states = add_initial_hierarchical_states(
+        gsm_states=gsm_states, hierarchical_initial_states=hierarchical_initial_states
+    )
     print(f"States: {gsm_states}")
     print(f"Transitions: {gsm_transitions}")
     print(f"Parallel Regions: {gsm_parallel_regions}")
@@ -449,33 +585,37 @@ def create_simple_linear_gsm_diagram(hierarchical_states_table : Tag, transition
     gsm = SherpaStateMachine(
         states=gsm_states,
         transitions=gsm_transitions,
-        initial=get_top_level_state(initial_state, hierarchical_states_table=hierarchical_states_table).replace(" ", ""),
-        sm_cls=HierarchicalGraphMachine
+        initial=get_top_level_state(
+            initial_state, hierarchical_states_table=hierarchical_states_table
+        ).replace(" ", ""),
+        sm_cls=HierarchicalGraphMachine,
     )
-    
+
     print(gsm.sm.get_graph().draw(None))
 
     # Generate and render a sequence diagram
-    sequence = Graph('Sequence-diagram', gsm.sm.get_graph().draw(None))
+    sequence = Graph("Sequence-diagram", gsm.sm.get_graph().draw(None))
     render = md.Mermaid(sequence)
     render.to_png(diagram_file_path)
 
-#********************** FUNCTIONS TO REMOVE SPACES ******************
+
+# ********************** FUNCTIONS TO REMOVE SPACES ******************
 def table_remove_spaces(table):
     """
     Removes white space from table entries
     """
     if not table:
         return None
-    
+
     # Find all table cells
-    cells = table.find_all('td')
+    cells = table.find_all("td")
 
     # Iterate through each cell and remove spaces
     for cell in cells:
-        cell.string = cell.get_text().replace(' ','')
+        cell.string = cell.get_text().replace(" ", "")
 
     return table
+
 
 def state_remove_spaces(state):
     """
@@ -484,45 +624,51 @@ def state_remove_spaces(state):
 
     # the state is a hierarchical state
     if isinstance(state, dict):
-        state['name'] = state['name'].replace(' ', '')
-        state['children'] = [s.replace(' ', '') for s in state['children']]
+        state["name"] = state["name"].replace(" ", "")
+        state["children"] = [s.replace(" ", "") for s in state["children"]]
     else:
         # the state is not a hierarchical state
-        state = state.replace(' ', '')
+        state = state.replace(" ", "")
     return state
+
 
 def transitions_remove_spaces(transition):
     """
     Removes white space from state names in a transition dictionary
     """
-    transition['source'] = transition['source'].replace(' ', '')
-    transition['dest'] = transition['dest'].replace(' ', '')
+    transition["source"] = transition["source"].replace(" ", "")
+    transition["dest"] = transition["dest"].replace(" ", "")
     return transition
+
 
 def regions_remove_spaces(region):
     """
     Removes the white space from parallel region and region child states in a region dictionary
     """
-    region['name'] = region['name'].replace(' ', '')
-    region['regionChildren'] = [s.replace(' ', '') for s in region['regionChildren']]
+    region["name"] = region["name"].replace(" ", "")
+    region["regionChildren"] = [s.replace(" ", "") for s in region["regionChildren"]]
     return region
 
-def extract_event_driven_states_table(llm_response : str) -> Tag:
+
+def extract_event_driven_states_table(llm_response: str) -> Tag:
     """
     Extracts the table containing all states of a UML State Machine for Event Driven SMF responses
     """
     event_driven_states_table_headers = ["StateName"]
-    event_driven_states_table = extract_table_using_headers(llm_response=llm_response,
-                                                            headers=event_driven_states_table_headers)
+    event_driven_states_table = extract_table_using_headers(
+        llm_response=llm_response, headers=event_driven_states_table_headers
+    )
     return event_driven_states_table
 
-def extract_event_driven_events_table(llm_response : str) -> Tag:
+
+def extract_event_driven_events_table(llm_response: str) -> Tag:
     """
     Extracts the table containing all events of a UML State Machine for Event Driven SMF responses
     """
     event_driven_events_table_headers = ["EventName"]
-    event_driven_events_table = extract_table_using_headers(llm_response=llm_response,
-                                                            headers=event_driven_events_table_headers)
+    event_driven_events_table = extract_table_using_headers(
+        llm_response=llm_response, headers=event_driven_events_table_headers
+    )
     return event_driven_events_table
 
 
@@ -536,39 +682,43 @@ def extract_table_entries(table: Tag):
     entries = [td.get_text(strip=True) for td in table.find_all("td")]
     return entries
 
+
 def merge_tables(html_tables_list) -> Tag:
     """
     Appends a list of HTML tables together, assuming all tables in the list
     have the exact same headers and columns
     """
     # Assume the first table contains the header, so extract it
-    header_cells = [th.get_text() for th in html_tables_list[0].find_all('th')]
+    header_cells = [th.get_text() for th in html_tables_list[0].find_all("th")]
 
     # Create a new BeautifulSoup object with an empty table for merging
-    merged_table_soup = BeautifulSoup("<table border='1'><tr></tr></table>", 'html.parser')
-    merged_table = merged_table_soup.find('table')
+    merged_table_soup = BeautifulSoup(
+        "<table border='1'><tr></tr></table>", "html.parser"
+    )
+    merged_table = merged_table_soup.find("table")
 
     # Create header row in the merged table
-    header_row = merged_table.find('tr')
+    header_row = merged_table.find("tr")
     for header in header_cells:
-        th = merged_table_soup.new_tag('th')
+        th = merged_table_soup.new_tag("th")
         th.string = header
         header_row.append(th)
 
     # Collect all rows from each table and add them to the merged table
     for table_tag in html_tables_list:
-        rows = table_tag.find_all('tr')[1:]  # Skip the header row
+        rows = table_tag.find_all("tr")[1:]  # Skip the header row
 
         for row in rows:
-            new_row = merged_table_soup.new_tag('tr')
-            for cell in row.find_all('td'):
-                new_cell = merged_table_soup.new_tag('td')
+            new_row = merged_table_soup.new_tag("tr")
+            for cell in row.find_all("td"):
+                new_cell = merged_table_soup.new_tag("td")
                 new_cell.string = cell.get_text()
                 new_row.append(new_cell)
             merged_table.append(new_row)
 
     # Return the <table> Tag object directly
     return merged_table
+
 
 def create_exit_transitions_table(transitions_table, from_state):
     """
@@ -584,7 +734,9 @@ def create_exit_transitions_table(transitions_table, from_state):
     rows = transitions_table.find_all("tr")
 
     # Create a new table for filtered transitions
-    from_state_transitions_table = BeautifulSoup("<table border='1'></table>", "html.parser")
+    from_state_transitions_table = BeautifulSoup(
+        "<table border='1'></table>", "html.parser"
+    )
     from_state_transitions_table_table = from_state_transitions_table.table
 
     # Add a new "Transition ID" column to the header row
@@ -608,6 +760,7 @@ def create_exit_transitions_table(transitions_table, from_state):
 
     return from_state_transitions_table
 
+
 def remove_transitions_from_exit_transition_table(transitions_table, ids_to_remove):
     """
     Given a list of transition IDs ids_to_remove, the remove_transitions_from_exit_transition_table
@@ -630,13 +783,13 @@ def remove_transitions_from_exit_transition_table(transitions_table, ids_to_remo
     if header_row:
         header_cells = header_row.find_all("th")
         header_cells[5].decompose()
-    
+
     rows = transitions_table.find_all("tr")
     for row in rows[1:]:
         columns = row.find_all("td")
         id_column = columns[5]
         id_column.decompose()
-    
+
     return transitions_table
 
 
@@ -658,7 +811,7 @@ def group_parent_child_states(hierarchical_state_table):
         cells = row.find_all("td")
         parent_state = cells[0].get_text(strip=True)
         child_state = cells[1].get_text(strip=True)
-        
+
         # we're only concerned about hierarchical states
         if parent_state != "-":
             if parent_state not in hierarchical_state_dict:
@@ -666,8 +819,9 @@ def group_parent_child_states(hierarchical_state_table):
 
             # add the current child state to the list of child states in the dict
             hierarchical_state_dict[parent_state].append(child_state)
-    
+
     return hierarchical_state_dict
+
 
 def map_child_state_to_parent_state(hierarchical_state_table):
     """
@@ -690,8 +844,9 @@ def map_child_state_to_parent_state(hierarchical_state_table):
             # only create mappings for states that actually have a parent in the hierarchy
             if parent_state != "-":
                 child_to_parent_dict[child_state] = parent_state
-    
+
     return child_to_parent_dict
+
 
 def map_state_to_pytransitions_name(hierarchical_state_table):
     state_to_pytransitions_name = {}
@@ -704,31 +859,41 @@ def map_state_to_pytransitions_name(hierarchical_state_table):
     for child in child_to_parent_dict.keys():
         # Form the child pytransition name
         parent_name = child_to_parent_dict[child]
-        parent_pytransitions_name = state_to_pytransitions_name[parent_name] if parent_name in state_to_pytransitions_name.keys() else parent_name
-        child_pytransitions_name = '_'.join([parent_pytransitions_name, child])
+        parent_pytransitions_name = (
+            state_to_pytransitions_name[parent_name]
+            if parent_name in state_to_pytransitions_name.keys()
+            else parent_name
+        )
+        child_pytransitions_name = "_".join([parent_pytransitions_name, child])
 
         # Rectify any name of children of child already in state_to_pytransitions_name
         for state in state_to_pytransitions_name.keys():
-            if state_to_pytransitions_name[state].split('_')[0] == child:
-                state_to_pytransitions_name[state] = '_'.join(child_pytransitions_name, state_to_pytransitions_name[state])
-        
+            if state_to_pytransitions_name[state].split("_")[0] == child:
+                state_to_pytransitions_name[state] = "_".join(
+                    child_pytransitions_name, state_to_pytransitions_name[state]
+                )
+
         # Finally update the child name itself in state_to_pytransitions_name
         state_to_pytransitions_name[child] = child_pytransitions_name
-    
+
     # Add a mapping for the top level parents
     for state in top_level_parents:
         state_to_pytransitions_name[state] = state
-    
+
     return state_to_pytransitions_name
 
 
-def refactor_transition_table_with_parent_states(transitions_table, hierarchical_state_table):
+def refactor_transition_table_with_parent_states(
+    transitions_table, hierarchical_state_table
+):
     """
     Replaces the "From State" and "To State" columns with states named in the format ParentState.ChildState
     """
 
     # map each child state to its parent, if it has one
-    child_to_parent_dict = map_child_state_to_parent_state(hierarchical_state_table=hierarchical_state_table)
+    child_to_parent_dict = map_child_state_to_parent_state(
+        hierarchical_state_table=hierarchical_state_table
+    )
 
     # convert to beautiful soup if input is a string
     transitions_table = str(transitions_table)
@@ -763,6 +928,7 @@ def refactor_transition_table_with_parent_states(transitions_table, hierarchical
 
     return transitions_table
 
+
 def find_events_for_transitions_table(transitions_table):
     """
     Extracts all the events that occur in a given HTML transitions table
@@ -782,27 +948,28 @@ def find_events_for_transitions_table(transitions_table):
         event = cells[2].get_text(strip=True)
         events.add(event)
 
-    return list(events) 
+    return list(events)
+
 
 def parse_html_table(html_table):
-    soup = BeautifulSoup(html_table, 'html.parser')
-    table = soup.find('table')
+    soup = BeautifulSoup(html_table, "html.parser")
+    table = soup.find("table")
 
     headers = []
-    header_row = table.find('tr')
+    header_row = table.find("tr")
     if header_row:
-        for th in header_row.find_all('th'):
+        for th in header_row.find_all("th"):
             header = th.get_text(strip=True)
             headers.append(header)
     else:
-        first_row = table.find('tr')
-        num_columns = len(first_row.find_all(['th', 'td']))
-        headers = ['Column {}'.format(i+1) for i in range(num_columns)]
+        first_row = table.find("tr")
+        num_columns = len(first_row.find_all(["th", "td"]))
+        headers = ["Column {}".format(i + 1) for i in range(num_columns)]
 
     data = []
 
-    for row in table.find_all('tr')[1:]:
-        cols = row.find_all('td')
+    for row in table.find_all("tr")[1:]:
+        cols = row.find_all("td")
         if len(cols) != len(headers):
             continue
         row_data = {}
@@ -813,14 +980,15 @@ def parse_html_table(html_table):
 
     return data
 
+
 def dict_to_html_table(data):
     if not data:
         return "<table></table>"
 
     headers = data[0].keys()
-    
+
     html = "<table border='1'>\n"
-    
+
     html += "  <tr>\n"
     for header in headers:
         html += f"    <th>{header}</th>\n"
@@ -831,31 +999,35 @@ def dict_to_html_table(data):
         for header in headers:
             html += f"    <td>{row.get(header, '')}</td>\n"
         html += "  </tr>\n"
-    
+
     html += "</table>"
     return html
+
 
 def getStateHierarchyDictFromList(state_hierarchy_list):
     hierarchy = {}
     for entry in state_hierarchy_list:
-        superstate = entry['Superstate']
-        substate = entry['Substate']
-        if superstate != '-':
+        superstate = entry["Superstate"]
+        substate = entry["Substate"]
+        if superstate != "-":
             if superstate not in hierarchy:
                 hierarchy[superstate] = []
             hierarchy[superstate].append(substate)
-    
+
     return hierarchy
 
+
 def umpleCodeSearch(llm_response: str, generated_umple_code_path: str, writeFile=True):
-    ''' Function that extracts umple code from an LLM response
+    """Function that extracts umple code from an LLM response
     params:
     llm_response is the string response from the LLM
-    generated_umple_code_path is the path of the file in which to write the extracted umple code. The file path must have the extension ".ump" 
-    
+    generated_umple_code_path is the path of the file in which to write the extracted umple code. The file path must have the extension ".ump"
+
     raises:
-    Exception if no umple code is found in the extracted code'''
-    generated_umple_code_search = re.search(r"<umple_code_solution>(.*?)</umple_code_solution>", llm_response, re.DOTALL)
+    Exception if no umple code is found in the extracted code"""
+    generated_umple_code_search = re.search(
+        r"<umple_code_solution>(.*?)</umple_code_solution>", llm_response, re.DOTALL
+    )
 
     if generated_umple_code_search:
         generated_umple_code = generated_umple_code_search.group(1)
@@ -863,11 +1035,12 @@ def umpleCodeSearch(llm_response: str, generated_umple_code_path: str, writeFile
         raise Exception
 
     if writeFile:
-        #Create a file to store generated code
-        with open(generated_umple_code_path, 'w') as file:
+        # Create a file to store generated code
+        with open(generated_umple_code_path, "w") as file:
             file.write(generated_umple_code)
-    
+
     return generated_umple_code
+
 
 def setup_file_paths(base_dir: str, file_type: str = "single_prompt") -> dict:
     """
@@ -878,56 +1051,78 @@ def setup_file_paths(base_dir: str, file_type: str = "single_prompt") -> dict:
     Returns:
         dict: Dictionary containing all necessary file paths
     """
-    
+
     # Setup directories
     log_base_dir = os.path.join(base_dir, "resources", f"{file_type}_log")
     diagram_base_dir = os.path.join(base_dir, "resources", f"{file_type}_diagrams")
-    
+
     # Create directories
     os.makedirs(log_base_dir, exist_ok=True)
     os.makedirs(diagram_base_dir, exist_ok=True)
-    
+
     # Generate file names
     file_prefix = f'output_{file_type}_{time.strftime("%Y_%m_%d_%H_%M_%S")}'
     log_file_name = f"{file_prefix}.txt"
-    
+
     return {
-        'log_base_dir': log_base_dir,
-        'log_file_path': os.path.join(log_base_dir, log_file_name),
-        'generated_umple_code_path': os.path.join(log_base_dir, f"{file_prefix}.ump"),
-        'umple_jar_path': os.path.join(base_dir, "resources", 'umple.jar'),
-        'diagram_base_dir': diagram_base_dir,
-        'diagram_file_path': os.path.join(diagram_base_dir, file_prefix)
+        "log_base_dir": log_base_dir,
+        "log_file_path": os.path.join(log_base_dir, log_file_name),
+        "generated_umple_code_path": os.path.join(log_base_dir, f"{file_prefix}.ump"),
+        "umple_jar_path": os.path.join(base_dir, "resources", "umple.jar"),
+        "diagram_base_dir": diagram_base_dir,
+        "diagram_file_path": os.path.join(diagram_base_dir, file_prefix),
     }
 
-def umpleCodeProcessing(umple_jar_path: str, generated_umple_code_path: str, log_base_dir:str):
-    ''' Function to compile umple code and generate graphviz file
+
+def umpleCodeProcessing(
+    umple_jar_path: str, generated_umple_code_path: str, log_base_dir: str
+):
+    """Function to compile umple code and generate graphviz file
     params:
     umple_jar_path is the path to the jar executable that compiles umple code
     generated_umple_code_path is the path the umple file containing the code to compile
     log_base_dir is the directory under which to output the compiled code (the file containing the compiled code is named the same as the umple file with a different extension)
-    
+
     returns:
     the path of the generated graphviz file
-    
-    raises:
-    subprocess.CalledProcessError if the umple code is contains errors'''
-    subprocess.run(['java', '-jar', umple_jar_path, generated_umple_code_path, '-g', 'GvStateDiagram', '--path', log_base_dir], capture_output=True, check=True, text=True)
 
-    return os.path.join(log_base_dir, f"{os.path.splitext(os.path.basename(generated_umple_code_path))[0]}.gv")
+    raises:
+    subprocess.CalledProcessError if the umple code is contains errors"""
+    subprocess.run(
+        [
+            "java",
+            "-jar",
+            umple_jar_path,
+            generated_umple_code_path,
+            "-g",
+            "GvStateDiagram",
+            "--path",
+            log_base_dir,
+        ],
+        capture_output=True,
+        check=True,
+        text=True,
+    )
+
+    return os.path.join(
+        log_base_dir,
+        f"{os.path.splitext(os.path.basename(generated_umple_code_path))[0]}.gv",
+    )
+
 
 def graphVizGeneration(generated_umple_gv_path, diagram_file_path: str):
-    ''' Function that interprets GraphViz file (.gv) to produce GraphViz diagram image
+    """Function that interprets GraphViz file (.gv) to produce GraphViz diagram image
     params:
     generated_umple_gv_path is the file that contains the graphviz code (it is returned by the umpleCodeProcessing function)
     diagram_file_path is the path where to output the .png diagram
-    '''
-    with open(generated_umple_gv_path, 'r') as file:
+    """
+    with open(generated_umple_gv_path, "r") as file:
         dot_code = file.read()
 
     # Render the DOT file using Graphviz
     graph = graphviz.Source(dot_code)
-    graph.render(diagram_file_path, format='png')
+    graph.render(diagram_file_path, format="png")
+
 
 def process_umple_attempt(i: int, prompt: str, paths: dict) -> str:
     """
@@ -941,13 +1136,15 @@ def process_umple_attempt(i: int, prompt: str, paths: dict) -> str:
     """
     try:
         answer = call_llm(prompt)
-        
+
         # Extract Umple code
         try:
-            generated_umple_code = umpleCodeSearch(answer, paths['generated_umple_code_path'])
+            generated_umple_code = umpleCodeSearch(
+                answer, paths["generated_umple_code_path"]
+            )
         except Exception as e:
             error = f"Attempt {i} at extracting umple code failed\n\n"
-            with open(paths['log_file_path'], 'a') as file:
+            with open(paths["log_file_path"], "a") as file:
                 file.write(error)
             print(error)
             return "False"
@@ -956,29 +1153,29 @@ def process_umple_attempt(i: int, prompt: str, paths: dict) -> str:
         print(generated_umple_code)
 
         # Log generated code
-        with open(paths['log_file_path'], 'a') as file:
+        with open(paths["log_file_path"], "a") as file:
             file.write(generated_umple_code)
-        
+
         # Process Umple code
         try:
             generated_umple_gv_path = umpleCodeProcessing(
-                paths['umple_jar_path'], 
-                paths['generated_umple_code_path'], 
-                paths['log_base_dir']
+                paths["umple_jar_path"],
+                paths["generated_umple_code_path"],
+                paths["log_base_dir"],
             )
         except subprocess.CalledProcessError as e:
             error = f"Attempt {i} at processing umple code failed\n\n"
-            with open(paths['log_file_path'], 'a') as file:
+            with open(paths["log_file_path"], "a") as file:
                 file.write(error)
                 file.write(f"{e.stderr}\n\n")
             print(error)
             print(f"{e.stderr}\n\n")
             return "False"
-        
+
         print(f"Attempt {i} at processing umple code successful")
 
         # Generate GraphViz diagram
-        graphVizGeneration(generated_umple_gv_path, paths['diagram_file_path'])
+        graphVizGeneration(generated_umple_gv_path, paths["diagram_file_path"])
         return generated_umple_code
 
     except Exception as e:
@@ -986,11 +1183,10 @@ def process_umple_attempt(i: int, prompt: str, paths: dict) -> str:
         return "False"
 
 
-
-
 if __name__ == "__main__":
-    prompt = "Hi, I need help answering a question about states machines. What are events?"
-    model="google:gemini-1.5-pro-001"
+    prompt = (
+        "Hi, I need help answering a question about states machines. What are events?"
+    )
+    model = "qwen/qwq-32b"
     llm_response = call_llm(prompt)
     print(llm_response)
-    

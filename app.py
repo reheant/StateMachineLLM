@@ -6,37 +6,59 @@ import asyncio
 
 import backend.resources.state_machine_descriptions
 from backend.resources.llm_tracker import llm
-from backend.event_driven_smf.event_driven_smf import run_event_driven_smf
+from backend.single_prompt import run_single_prompt
 from backend.simple_linear_smf.simple_linear_smf import run_simple_linear_smf
+
 
 @cl.set_chat_profiles
 async def chat_profile():
     return [
         cl.ChatProfile(
-            name="openai:gpt-4o",
-            markdown_description="The underlying LLM model is OpenAI's **gpt-4o**.",
-            icon="https://picsum.photos/200"
+            name="qwen/qwq-32b",
+            markdown_description="The underlying LLM model is Qwen's **QwQ-32B** (reasoning-focused) via OpenRouter.",
+            icon="https://picsum.photos/200",
         ),
         cl.ChatProfile(
-            name="anthropic:claude-3-5-sonnet-20241022",
-            markdown_description="The underlying LLM model is Anthropic's **claude-3-5-sonnet**.",
-            icon="https://picsum.photos/201"
+            name="qwen/qwen-2.5-72b-instruct",
+            markdown_description="The underlying LLM model is Qwen's **Qwen2.5-72B** (large general purpose) via OpenRouter.",
+            icon="https://picsum.photos/201",
         ),
         cl.ChatProfile(
-            name="groq:llama-3.2-3b-preview",
-            markdown_description="The underlying LLM model is Meta's **llama-3.2-3b-preview**.",
-            icon="https://picsum.photos/202"
-        ),        cl.ChatProfile(
-            name="google:gemini-1.5-pro-001",
-            markdown_description="The underlying LLM model is Google's **gemini-1.5-pro**.",
-            icon="https://picsum.photos/203"
-        )
+            name="openai/gpt-4o",
+            markdown_description="The underlying LLM model is OpenAI's **gpt-4o** via OpenRouter.",
+            icon="https://picsum.photos/202",
+        ),
+        cl.ChatProfile(
+            name="anthropic/claude-3.5-sonnet",
+            markdown_description="The underlying LLM model is Anthropic's **claude-3.5-sonnet** via OpenRouter.",
+            icon="https://picsum.photos/203",
+        ),
+        cl.ChatProfile(
+            name="meta-llama/llama-3.2-3b-instruct",
+            markdown_description="The underlying LLM model is Meta's **llama-3.2-3b-instruct** via OpenRouter.",
+            icon="https://picsum.photos/204",
+        ),
+        cl.ChatProfile(
+            name="google/gemini-pro-1.5",
+            markdown_description="The underlying LLM model is Google's **gemini-pro-1.5** via OpenRouter.",
+            icon="https://picsum.photos/205",
+        ),
+        cl.ChatProfile(
+            name="openai/gpt-4o-mini",
+            markdown_description="The underlying LLM model is OpenAI's **gpt-4o-mini** via OpenRouter.",
+            icon="https://picsum.photos/206",
+        ),
+        cl.ChatProfile(
+            name="anthropic/claude-3-haiku",
+            markdown_description="The underlying LLM model is Anthropic's **claude-3-haiku** via OpenRouter.",
+            icon="https://picsum.photos/207",
+        ),
     ]
 
 
 @cl.on_message
 async def run_conversation(message: cl.Message):
-    await message.send() # Print the problem description as is
+    await message.send()  # Print the problem description as is
     final_answer = cl.Message(content="", author="Sherpa Output")
     await final_answer.send()
 
@@ -46,7 +68,7 @@ async def run_conversation(message: cl.Message):
 
     async def run_and_capture():
         with contextlib.redirect_stdout(stdout_capture):
-            await asyncio.to_thread(run_event_driven_smf, message.content)
+            await asyncio.to_thread(run_single_prompt, message.content)
 
     task = asyncio.create_task(run_and_capture())
 
@@ -55,7 +77,7 @@ async def run_conversation(message: cl.Message):
 
         stdout_capture.seek(0)
         current_output = stdout_capture.read()
-        
+
         if current_output:
             lines = current_output.splitlines()
             for line in lines:
@@ -65,8 +87,12 @@ async def run_conversation(message: cl.Message):
                         current_step.output = step_content
                         await current_step.update()
                         await current_step.__aexit__(None, None, None)
-                    
-                    step_name = line[8:].replace("...", "").replace("start_", "") + " action" if line.startswith("Running ") else line
+
+                    step_name = (
+                        line[8:].replace("...", "").replace("start_", "") + " action"
+                        if line.startswith("Running ")
+                        else line
+                    )
                     current_step = cl.Step(name=step_name)
                     await current_step.__aenter__()
                     current_step_content = [line]
@@ -82,8 +108,8 @@ async def run_conversation(message: cl.Message):
         await current_step.update()
         await current_step.__aexit__(None, None, None)
 
-    await task 
-    
+    await task
+
     step_outputs = []
     for line in final_answer.content.splitlines():
         if line.strip():
@@ -100,7 +126,9 @@ async def display_image():
     The display_image() function displays the state machine diagram after it has been translated into
     mermaid syntax and converted into an image
     """
-    image_directory = os.path.join(os.path.dirname(__file__), "backend", "resources", "simple_linear_diagrams")
+    image_directory = os.path.join(
+        os.path.dirname(__file__), "backend", "resources", "single_prompt_diagrams"
+    )
 
     # Get the path of the most recently created diagram
     try:
@@ -114,8 +142,10 @@ async def display_image():
         return
 
     # Attach the most recent file to the message
-    image = cl.Image(path=latest_file, name="State Machine Image", display="inline", size='large')
-    
+    image = cl.Image(
+        path=latest_file, name="State Machine Image", display="inline", size="large"
+    )
+
     await cl.Message(
         content="State Machine Image Rendered",
         elements=[image],
@@ -135,8 +165,12 @@ async def start():
         \n 🤖 2. Try one of our examples
         \nWhat would you like to explore?""",
         actions=[
-            cl.Action(name="custom", value="custom", label="✍️ Describe Your Own System"),
-            cl.Action(name="example", value="example", label="🤖 Use One Of Our Examples"),
+            cl.Action(
+                name="custom", value="custom", label="✍️ Describe Your Own System"
+            ),
+            cl.Action(
+                name="example", value="example", label="🤖 Use One Of Our Examples"
+            ),
         ],
     ).send()
 
@@ -153,20 +187,50 @@ async def start():
             \n 7. 🚆 <b>Train Automation System</b>: An advanced system managing driverless trains across a rail network with traffic signals and stations
             """,
             actions=[
-                cl.Action(name="printer", value="printer_winter_2017", label="🖨️ Printer System"),
-                cl.Action(name="spa", value="spa_manager_winter_2018", label="🧖‍♂️ Spa Manager"),
-                cl.Action(name="dishwasher", value="dishwasher_winter_2019", label="✨ Smart Dishwasher"),
-                cl.Action(name="chess", value="chess_clock_fall_2019", label="🕰️ Digital Chess Clock"),
-                cl.Action(name="bread", value="automatic_bread_maker_fall_2020", label="🥖 Automatic Bread Maker"),
-                cl.Action(name="thermomix", value="thermomix_fall_2021", label="🔪 Thermomix TM6"),
-                cl.Action(name="train", value="ATAS_fall_2022", label="🚆 Train Automation System"),
+                cl.Action(
+                    name="printer",
+                    value="printer_winter_2017",
+                    label="🖨️ Printer System",
+                ),
+                cl.Action(
+                    name="spa", value="spa_manager_winter_2018", label="🧖‍♂️ Spa Manager"
+                ),
+                cl.Action(
+                    name="dishwasher",
+                    value="dishwasher_winter_2019",
+                    label="✨ Smart Dishwasher",
+                ),
+                cl.Action(
+                    name="chess",
+                    value="chess_clock_fall_2019",
+                    label="🕰️ Digital Chess Clock",
+                ),
+                cl.Action(
+                    name="bread",
+                    value="automatic_bread_maker_fall_2020",
+                    label="🥖 Automatic Bread Maker",
+                ),
+                cl.Action(
+                    name="thermomix",
+                    value="thermomix_fall_2021",
+                    label="🔪 Thermomix TM6",
+                ),
+                cl.Action(
+                    name="train",
+                    value="ATAS_fall_2022",
+                    label="🚆 Train Automation System",
+                ),
             ],
         ).send()
 
         if step2:
             system_preset = step2.get("value")
-            system_description = getattr(backend.resources.state_machine_descriptions, system_preset)
+            system_description = getattr(
+                backend.resources.state_machine_descriptions, system_preset
+            )
 
             await run_conversation(cl.Message(content=system_description))
     else:
-        await cl.Message(content="""Tell me about any process, workflow, or behavior you'd like to model. It could be anything from a coffee maker's operations to a complex authentication flow!""").send()
+        await cl.Message(
+            content="""Tell me about any process, workflow, or behavior you'd like to model. It could be anything from a coffee maker's operations to a complex authentication flow!"""
+        ).send()
