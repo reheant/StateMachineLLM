@@ -16,10 +16,13 @@ def convert_to_openrouter_model(chat_profile):
         return "anthropic/claude-3.5-sonnet"  # default
     
     profile_to_openrouter = {
+        "qwen:qwq-32b": "qwen/qwq-32b",
+        "qwen:qwen-2-5-72b-instruct": "qwen/qwen-2.5-72b-instruct",
         "openai:gpt-4o": "openai/gpt-4o",
         "anthropic:claude-3-5-sonnet-20241022": "anthropic/claude-3.5-sonnet", 
         "groq:llama-3.2-3b-preview": "meta-llama/llama-3.2-3b-instruct",
         "google:gemini-1.5-pro-001": "google/gemini-pro-1.5"
+        
     }
     
     return profile_to_openrouter.get(chat_profile, "anthropic/claude-3.5-sonnet")
@@ -28,23 +31,33 @@ def convert_to_openrouter_model(chat_profile):
 async def chat_profile():
     return [
         cl.ChatProfile(
+            name="qwen:qwq-32b",
+            markdown_description="The underlying LLM model is Qwen's **qwq-32b**.",
+            icon="https://picsum.photos/200"
+        ),
+        cl.ChatProfile(
+            name="qwen:qwen-2-5-72b-instruct",
+            markdown_description="The underlying LLM model is Qwen's **qwen-2-5-72b-instruct**.",
+            icon="https://picsum.photos/201"
+        ),
+        cl.ChatProfile(
             name="openai:gpt-4o",
             markdown_description="The underlying LLM model is OpenAI's **gpt-4o**.",
-            icon="https://picsum.photos/200"
+            icon="https://picsum.photos/202"
         ),
         cl.ChatProfile(
             name="anthropic:claude-3-5-sonnet-20241022",
             markdown_description="The underlying LLM model is Anthropic's **claude-3-5-sonnet**.",
-            icon="https://picsum.photos/201"
+            icon="https://picsum.photos/203"
         ),
         cl.ChatProfile(
             name="groq:llama-3.2-3b-preview",
             markdown_description="The underlying LLM model is Meta's **llama-3.2-3b-preview**.",
-            icon="https://picsum.photos/202"
+            icon="https://picsum.photos/204"
         ),        cl.ChatProfile(
             name="google:gemini-1.5-pro-001",
             markdown_description="The underlying LLM model is Google's **gemini-1.5-pro**.",
-            icon="https://picsum.photos/203"
+            icon="https://picsum.photos/205"
         )
     ]
 
