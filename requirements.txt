@@ -11,3 +11,4 @@ vertexai
 ecologits
 iPython
 graphviz
+requests
