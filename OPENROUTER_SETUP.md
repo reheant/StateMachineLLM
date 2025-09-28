@@ -4,11 +4,38 @@ The single prompt technique now uses OpenRouter instead of direct OpenAI/Claude 
 
 ## Setup Instructions
 
-1. **Get an OpenRouter API Key:**
+1. **Install GraphViz (Required for Diagram Generation):**
+   
+   **macOS:**
+   ```bash
+   brew install graphviz
+   ```
+   
+   **Ubuntu/Debian:**
+   ```bash
+   sudo apt install graphviz
+   ```
+   
+   **Windows:**
+   - Download from [GraphViz website](https://graphviz.org/download/)
+   - Or use chocolatey: `choco install graphviz`
+   
+   **Verify installation:**
+   ```bash
+   which dot
+   dot -V
+   ```
+
+2. **Install Python Dependencies:**
+   ```bash
+   pip3 install requests
+   ```
+
+3. **Get an OpenRouter API Key:**
    - Go to [OpenRouter](https://openrouter.ai/)
    - Sign up and get your API key
 
-2. **Set Environment Variable:**
+4. **Set Environment Variable:**
    ```bash
    export OPENROUTER_API_KEY="your_api_key_here"
    ```
@@ -18,7 +45,7 @@ The single prompt technique now uses OpenRouter instead of direct OpenAI/Claude 
    OPENROUTER_API_KEY=your_api_key_here
    ```
 
-3. **Available Models:**
+5. **Available Models:**
    The default model is `anthropic/claude-3.5-sonnet`, but you can modify the model parameter in the `process_umple_attempt_openrouter` function in `single_prompt.py`.
 
    Popular models available through OpenRouter:
@@ -28,7 +55,7 @@ The single prompt technique now uses OpenRouter instead of direct OpenAI/Claude 
    - `meta-llama/llama-3.2-3b-instruct`
    - `google/gemini-pro-1.5`
 
-4. **Usage:**
+6. **Usage:**
    ```bash
    cd backend
    python single_prompt.py
