@@ -22,6 +22,7 @@ from .llm_tracker import llm
 openai.api_key = os.environ.get("OPENAI_API_KEY")
 groq.api_key = os.environ.get("GROQ_API_KEY")
 anthropic.api_key = os.environ.get("ANTHROPIC_API_KEY")
+openrouter_api_key = os.environ.get("OPENROUTER_API_KEY")
 
 EcoLogits.init(providers="openai")
 client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
@@ -71,6 +72,45 @@ def call_llm(prompt, max_tokens=1200, temperature=0.7):
         tracker.update_impacts(response)
 
     return str (response.choices[0].message.content)
+
+def call_openrouter_llm(prompt, max_tokens=1500, temperature=0.7, model="anthropic/claude-3.5-sonnet"):
+    """
+    Call OpenRouter API for LLM requests specifically for single prompt technique
+    """
+    import requests
+    
+    url = "https://openrouter.ai/api/v1/chat/completions"
+    
+    headers = {
+        "Authorization": f"Bearer {openrouter_api_key}",
+        "Content-Type": "application/json",
+        "HTTP-Referer": "https://github.com/ECSE458-Multi-Agent-LLM/StateMachineLLM",
+        "X-Title": "StateMachineLLM Single Prompt"
+    }
+    
+    data = {
+        "model": model,
+        "messages": [
+            {
+                "role": "system", 
+                "content": "You are an AI assistant specialized in generating state machines using Umple syntax. Your task is to analyze problem descriptions and generate complete UML state machines with states, transitions, guards, actions, hierarchical states, parallel regions, and history states."
+            },
+            {
+                "role": "user", 
+                "content": prompt
+            }
+        ],
+        "temperature": temperature,
+        "max_tokens": max_tokens
+    }
+    
+    response = requests.post(url, headers=headers, json=data)
+    
+    if response.status_code == 200:
+        result = response.json()
+        return result["choices"][0]["message"]["content"]
+    else:
+        raise Exception(f"OpenRouter API call failed with status {response.status_code}: {response.text}")
 
 #**************** HTML TABLE UTILITY FUNCTIONS ****************
 
