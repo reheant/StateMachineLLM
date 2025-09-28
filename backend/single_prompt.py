@@ -40,9 +40,9 @@ def choose_openrouter_model():
         except ValueError:
             print("Invalid input. Please enter a number (1-5).")
 
-def run_single_prompt(system_prompt):
+def run_single_prompt(system_prompt, model="anthropic/claude-3.5-sonnet"):
     """
-    the run_event_driven_smf initiates the Simple Linear State Machine Framework
+    the run_single_prompt initiates the Single Prompt State Machine Framework
     """
     # Setup file paths
     paths = setup_file_paths(os.path.dirname(__file__))
@@ -82,13 +82,11 @@ def run_single_prompt(system_prompt):
 
     '''
 
-    # Choose model for OpenRouter
-    selected_model = choose_openrouter_model()
-    print(f"Using model: {selected_model}")
+    print(f"Using OpenRouter model: {model}")
     
     # Replace original loop with OpenRouter implementation:
     for i in range(5):
-        if process_umple_attempt_openrouter(i, prompt, paths, selected_model) != "False":
+        if process_umple_attempt_openrouter(i, prompt, paths, model) != "False":
             break
 
 def process_umple_attempt_openrouter(i: int, prompt: str, paths: dict, model: str = "anthropic/claude-3.5-sonnet") -> str:
@@ -149,4 +147,6 @@ def process_umple_attempt_openrouter(i: int, prompt: str, paths: dict, model: st
         return "False"
 
 if __name__ == "__main__":
-    run_single_prompt(description)
+    # When run standalone, use interactive model selection
+    selected_model = choose_openrouter_model()
+    run_single_prompt(description, selected_model)

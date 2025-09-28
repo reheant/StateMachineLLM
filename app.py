@@ -8,6 +8,21 @@ import backend.resources.state_machine_descriptions
 from backend.resources.llm_tracker import llm
 from backend.event_driven_smf.event_driven_smf import run_event_driven_smf
 from backend.simple_linear_smf.simple_linear_smf import run_simple_linear_smf
+from backend.single_prompt import run_single_prompt
+
+def convert_to_openrouter_model(chat_profile):
+    """Convert Chainlit chat profile to OpenRouter model name"""
+    if not chat_profile:
+        return "anthropic/claude-3.5-sonnet"  # default
+    
+    profile_to_openrouter = {
+        "openai:gpt-4o": "openai/gpt-4o",
+        "anthropic:claude-3-5-sonnet-20241022": "anthropic/claude-3.5-sonnet", 
+        "groq:llama-3.2-3b-preview": "meta-llama/llama-3.2-3b-instruct",
+        "google:gemini-1.5-pro-001": "google/gemini-pro-1.5"
+    }
+    
+    return profile_to_openrouter.get(chat_profile, "anthropic/claude-3.5-sonnet")
 
 @cl.set_chat_profiles
 async def chat_profile():
@@ -40,13 +55,24 @@ async def run_conversation(message: cl.Message):
     final_answer = cl.Message(content="", author="Sherpa Output")
     await final_answer.send()
 
+    # Get the chosen generation strategy
+    strategy = cl.user_session.get("generation_strategy", "event_driven")
+
     stdout_capture = io.StringIO()
     current_step = None
     current_step_content = []
 
     async def run_and_capture():
         with contextlib.redirect_stdout(stdout_capture):
-            await asyncio.to_thread(run_event_driven_smf, message.content)
+            if strategy == "single_prompt":
+                # Convert chat profile to OpenRouter model
+                chat_profile = cl.user_session.get("chat_profile")
+                openrouter_model = convert_to_openrouter_model(chat_profile)
+                await asyncio.to_thread(run_single_prompt, message.content, openrouter_model)
+            elif strategy == "structure_driven":
+                await asyncio.to_thread(run_simple_linear_smf, message.content)
+            else:  # default to event_driven
+                await asyncio.to_thread(run_event_driven_smf, message.content)
 
     task = asyncio.create_task(run_and_capture())
 
@@ -100,14 +126,34 @@ async def display_image():
     The display_image() function displays the state machine diagram after it has been translated into
     mermaid syntax and converted into an image
     """
-    image_directory = os.path.join(os.path.dirname(__file__), "backend", "resources", "simple_linear_diagrams")
+    # Choose the appropriate directory based on strategy
+    strategy = cl.user_session.get("generation_strategy", "event_driven")
+    
+    if strategy == "single_prompt":
+        image_directory = os.path.join(os.path.dirname(__file__), "backend", "resources", "single_prompt_diagrams")
+    elif strategy == "structure_driven":
+        image_directory = os.path.join(os.path.dirname(__file__), "backend", "resources", "simple_linear_diagrams")
+    else:  # event_driven
+        image_directory = os.path.join(os.path.dirname(__file__), "backend", "resources", "event_driven_diagrams")
 
     # Get the path of the most recently created diagram
     try:
-        latest_file = max(
-            (os.path.join(image_directory, f) for f in os.listdir(image_directory)),
-            key=os.path.getmtime,
-        )
+        # For single prompt, look specifically for .png files
+        if strategy == "single_prompt":
+            png_files = [f for f in os.listdir(image_directory) if f.endswith('.png')]
+            if not png_files:
+                await cl.Message(content="No PNG images found in the directory.").send()
+                return
+            latest_file = max(
+                (os.path.join(image_directory, f) for f in png_files),
+                key=os.path.getmtime,
+            )
+        else:
+            # For other strategies, use all files
+            latest_file = max(
+                (os.path.join(image_directory, f) for f in os.listdir(image_directory)),
+                key=os.path.getmtime,
+            )
     except ValueError:
         # Handle the case where the directory is empty
         await cl.Message(content="No images found in the directory.").send()
@@ -126,11 +172,30 @@ async def display_image():
 async def start():
     llm.update_llm(cl.user_session.get("chat_profile"))
 
-    step1 = await cl.AskActionMessage(
+    # First, choose generation strategy
+    strategy_step = await cl.AskActionMessage(
         content="""
         <b>Hi there!</b> 
         \nLet's create a state machine diagram!
-        \nYou can either: 
+        \nFirst, choose your generation strategy:
+        \n 🚀 <b>Single Prompt (OpenRouter)</b>: Fast, direct generation using OpenRouter API
+        \n 🔄 <b>Event-Driven SMF</b>: Multi-step process focusing on events
+        \n 📊 <b>Structure-Driven SMF</b>: Multi-step process focusing on structure
+        """,
+        actions=[
+            cl.Action(name="single_prompt", value="single_prompt", label="🚀 Single Prompt (OpenRouter)"),
+            cl.Action(name="event_driven", value="event_driven", label="🔄 Event-Driven SMF"),
+            cl.Action(name="structure_driven", value="structure_driven", label="📊 Structure-Driven SMF"),
+        ],
+    ).send()
+    
+    # Store the chosen strategy in user session
+    if strategy_step:
+        cl.user_session.set("generation_strategy", strategy_step.get("value"))
+
+    step1 = await cl.AskActionMessage(
+        content="""
+        Now choose your input:
         \n ✍️ 1. Describe your own system
         \n 🤖 2. Try one of our examples
         \nWhat would you like to explore?""",
