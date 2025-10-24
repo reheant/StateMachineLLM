@@ -12,3 +12,4 @@ ecologits
 iPython
 graphviz
 requests
+pydantic==2.8.2

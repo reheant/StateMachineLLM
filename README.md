@@ -47,7 +47,7 @@ Our solution embeds a state machine within the LLM decision-making process to:
 
 ### Prerequisites
 
-- Python 3.10+ (required for some dependencies)
+- Python 3.11 (required for some dependencies)
 - API Key for the LLM you will use
 
 ### Setup
