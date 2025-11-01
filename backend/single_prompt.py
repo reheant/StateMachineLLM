@@ -14,9 +14,11 @@ from resources.util import (
     umpleCodeProcessing,
     umpleCodeSearch,
     graphVizGeneration,
+    mermaidCodeSearch,
+    mermaidDiagramGeneration,
 )
 from resources.state_machine_descriptions import *
-from resources.n_shot_examples_single_prompt import get_n_shot_examples, n_shot_examples
+from resources.n_shot_examples_single_prompt_mermaid import get_n_shot_examples, n_shot_examples
 
 # Default description if not ran with Chainlit
 description = chess_clock_fall_2019
@@ -77,7 +79,7 @@ def run_single_prompt(system_prompt, model="anthropic/claude-3.5-sonnet"):
             n_shot_examples_single_prompt.remove(n_shot_example)
             break
 
-    prompt = f"""You are an AI assistant specialized in generating state machines using Umple syntax. Based on the problem description provided, your task is to:
+    prompt = f"""You are an AI assistant specialized in generating state machines using Mermaid state diagram syntax. Based on the problem description provided, your task is to:
 
 	1.	Derive implicit knowledge from each sentence
 	2.	Explain how you parse the problem description to extract states for state machine
@@ -85,18 +87,25 @@ def run_single_prompt(system_prompt, model="anthropic/claude-3.5-sonnet"):
 	4.	Explain how you parse the problem description to extract hierarchical states for the state machine
 	5.	Explain how you parse the problem description to extract concurrent regions for the state machine
 	6.	Explain how you parse the problem description to extract history states for the state machine
-	7.	Assemble the state machine in umple code using information from steps 1. through 6. and encapsulate the code between brackets like the following: <umple_code_solution>code</umple_code_solution>
+	7.	Assemble the state machine in Mermaid syntax using information from steps 1. through 6. and encapsulate the code between brackets like the following: <mermaid_code_solution>code</mermaid_code_solution>
 
-    Use Umple documentation as a guide and ensure the state machines generated comply with Umple syntax standards. Additionally, ensure that there are no warnings or errors generated from the Umple code you provide.
+    IMPORTANT: Use Mermaid stateDiagram-v2 syntax with the following patterns:
+    - Guards: event [condition]
+    - Actions: event / action
+    - Both: event [guard] / action
+    - Parallel regions: Use -- separator
+    - Hierarchical states: Use state Name {{ ... }} syntax ONLY for composite states (states with substates)
+    - History states: Add a note indicating transition to history state
+    - Entry/Exit actions: Use note right of State with entry/exit labels
 
-    The following are examples.
+    The following are examples demonstrating proper Mermaid syntax:
 
-    {get_n_shot_examples(n_shot_examples_single_prompt, ["system_description", "umple_code_solution"])}
+    {get_n_shot_examples(n_shot_examples_single_prompt, ["system_description", "mermaid_code_solution"])}
 
-    Now your Problem Description: 
+    Now your Problem Description:
     {system_prompt}
 
-    Provide your answer:
+    Provide your answer following the exact Mermaid syntax patterns shown in the examples:
 
     """
 
@@ -112,60 +121,63 @@ def process_umple_attempt_openrouter(
     i: int, prompt: str, paths: dict, model: str = "anthropic/claude-3.5-sonnet"
 ) -> str:
     """
-    Process a single attempt at generating and processing Umple code using OpenRouter
+    Process a single attempt at generating and processing Mermaid code using OpenRouter
     Args:
         i: Attempt number
         prompt: LLM prompt
         paths: Dictionary containing file paths
         model: OpenRouter model to use
     Returns:
-        str: Generated Umple code if successful, "False" otherwise
+        str: Generated Mermaid code if successful, "False" otherwise
     """
     try:
         answer = call_openrouter_llm(
-            prompt, max_tokens=1500, temperature=0.01, model=model
+            prompt, max_tokens=2500, temperature=0.01, model=model
         )
 
-        # Extract Umple code
+        # Extract Mermaid code
         try:
-            generated_umple_code = umpleCodeSearch(
-                answer, paths["generated_umple_code_path"]
+            generated_mermaid_code = mermaidCodeSearch(
+                answer, paths["generated_mermaid_code_path"]
             )
         except Exception as e:
-            error = f"Attempt {i} at extracting umple code failed\n\n"
+            error = f"Attempt {i} at extracting mermaid code failed\n\n"
             with open(paths["log_file_path"], "a") as file:
                 file.write(error)
+                file.write(f"Error: {str(e)}\n\n")
             print(error)
+            print(f"Error: {str(e)}")
             return "False"
 
-        print(f"Attempt {i} at extracting umple code successful\nGenerated umple code:")
-        print(generated_umple_code)
+        print(f"Attempt {i} at extracting mermaid code successful\nGenerated mermaid code:")
+        print(generated_mermaid_code)
 
         # Log generated code
         with open(paths["log_file_path"], "a") as file:
-            file.write(generated_umple_code)
+            file.write(generated_mermaid_code)
+            file.write("\n\n")
 
-        # Process Umple code
+        # Render Mermaid diagram directly
         try:
-            generated_umple_gv_path = umpleCodeProcessing(
-                paths["umple_jar_path"],
-                paths["generated_umple_code_path"],
-                paths["log_base_dir"],
+            print(f"Rendering diagram from: {paths['generated_mermaid_code_path']}")
+            print(f"Output diagram to: {paths['diagram_file_path']}")
+            mermaidDiagramGeneration(
+                paths["generated_mermaid_code_path"],
+                paths["diagram_file_path"]
             )
-        except subprocess.CalledProcessError as e:
-            error = f"Attempt {i} at processing umple code failed\n\n"
+        except Exception as e:
+            error = f"Attempt {i} at rendering mermaid diagram failed\n\n"
             with open(paths["log_file_path"], "a") as file:
                 file.write(error)
-                file.write(f"{e.stderr}\n\n")
+                file.write(f"Error: {str(e)}\n\n")
             print(error)
-            print(f"{e.stderr}\n\n")
+            print(f"Error: {str(e)}\n\n")
             return "False"
 
-        print(f"Attempt {i} at processing umple code successful")
+        print(f"Attempt {i} at rendering mermaid diagram successful")
+        print(f"Diagram saved to: {paths['diagram_file_path']}.png")
 
-        # Generate GraphViz diagram
-        graphVizGeneration(generated_umple_gv_path, paths["diagram_file_path"])
-        return generated_umple_code
+        return generated_mermaid_code
 
     except Exception as e:
         print(f"Unexpected error in attempt {i}: {str(e)}")
