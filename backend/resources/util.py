@@ -92,8 +92,8 @@ def call_openrouter_llm(prompt, max_tokens=1500, temperature=0.7, model="anthrop
         "model": model,
         "messages": [
             {
-                "role": "system", 
-                "content": "You are an AI assistant specialized in generating state machines using Umple syntax. Your task is to analyze problem descriptions and generate complete UML state machines with states, transitions, guards, actions, hierarchical states, parallel regions, and history states."
+                "role": "system",
+                "content": "You are an AI assistant specialized in generating state machines using Mermaid stateDiagram-v2 syntax. Analyze problem descriptions and generate complete UML state machines with states, transitions, guards, actions, hierarchical states, parallel regions, and history states."
             },
             {
                 "role": "user", 
@@ -909,9 +909,62 @@ def umpleCodeSearch(llm_response: str, generated_umple_code_path: str, writeFile
     
     return generated_umple_code
 
+def mermaidCodeSearch(llm_response: str, generated_mermaid_code_path: str, writeFile=True):
+    ''' Function that extracts mermaid code from an LLM response
+    params:
+    llm_response is the string response from the LLM
+    generated_mermaid_code_path is the path of the file in which to write the extracted mermaid code. The file path must have the extension ".mmd"
+
+    raises:
+    Exception if no mermaid code is found in the extracted code'''
+
+    # Try to find code wrapped in XML-style tags first
+    generated_mermaid_code_search = re.search(r"<mermaid_code_solution>\s*(.*?)\s*</mermaid_code_solution>", llm_response, re.DOTALL)
+
+    if generated_mermaid_code_search:
+        generated_mermaid_code = generated_mermaid_code_search.group(1).strip()
+    else:
+        # Try to find code in markdown code blocks with mermaid language tag
+        mermaid_block_search = re.search(r"```mermaid\s*(.*?)```", llm_response, re.DOTALL)
+        if mermaid_block_search:
+            generated_mermaid_code = mermaid_block_search.group(1).strip()
+        else:
+            # Try to find stateDiagram-v2 directly (last resort)
+            # Look for stateDiagram-v2 and capture everything after it
+            if 'stateDiagram-v2' in llm_response:
+                start_idx = llm_response.find('stateDiagram-v2')
+                generated_mermaid_code = llm_response[start_idx:]
+            else:
+                raise Exception("No mermaid code found in LLM response")
+
+    # ALWAYS clean up - find stateDiagram-v2 and take ONLY from that point forward
+    if 'stateDiagram-v2' in generated_mermaid_code:
+        start_idx = generated_mermaid_code.find('stateDiagram-v2')
+        generated_mermaid_code = generated_mermaid_code[start_idx:]
+
+    # Remove any trailing closing tags or extra text after the diagram
+    # Find the last closing brace at the root level (end of state machine)
+    lines = generated_mermaid_code.split('\n')
+    # Keep lines until we find a line that's just a closing tag or starts with <
+    cleaned_lines = []
+    for line in lines:
+        stripped = line.strip()
+        if stripped.startswith('</') or stripped.startswith('<mermaid') or stripped == '```':
+            break
+        cleaned_lines.append(line)
+
+    generated_mermaid_code = '\n'.join(cleaned_lines).strip()
+
+    if writeFile:
+        #Create a file to store generated code
+        with open(generated_mermaid_code_path, 'w') as file:
+            file.write(generated_mermaid_code)
+
+    return generated_mermaid_code
+
 def setup_file_paths(base_dir: str, file_type: str = "single_prompt") -> dict:
     """
-    Setup file paths for logs, Umple code, and diagrams
+    Setup file paths for logs, Umple code, Mermaid code, and diagrams
     Args:
         base_dir: Base directory path
         file_type: Type of file (default: "single_prompt")
@@ -935,6 +988,7 @@ def setup_file_paths(base_dir: str, file_type: str = "single_prompt") -> dict:
         'log_base_dir': log_base_dir,
         'log_file_path': os.path.join(log_base_dir, log_file_name),
         'generated_umple_code_path': os.path.join(log_base_dir, f"{file_prefix}.ump"),
+        'generated_mermaid_code_path': os.path.join(log_base_dir, f"{file_prefix}.mmd"),
         'umple_jar_path': os.path.join(base_dir, "resources", 'umple.jar'),
         'diagram_base_dir': diagram_base_dir,
         'diagram_file_path': os.path.join(diagram_base_dir, file_prefix)
@@ -968,6 +1022,31 @@ def graphVizGeneration(generated_umple_gv_path, diagram_file_path: str):
     # Render the DOT file using Graphviz
     graph = graphviz.Source(dot_code)
     graph.render(diagram_file_path, format='png')
+
+def mermaidDiagramGeneration(mermaid_code_path: str, diagram_file_path: str):
+    ''' Function that renders a Mermaid diagram to PNG
+    params:
+    mermaid_code_path is the path to the file containing the mermaid code (.mmd file)
+    diagram_file_path is the path where to output the .png diagram (without .png extension)
+    '''
+    with open(mermaid_code_path, 'r') as file:
+        mermaid_code = file.read()
+
+    # Ensure the diagram path has .png extension
+    if not diagram_file_path.endswith('.png'):
+        png_file_path = f"{diagram_file_path}.png"
+    else:
+        png_file_path = diagram_file_path
+
+    # Create a mermaid graph and render to PNG
+    try:
+        sequence = Graph('State-Machine-Diagram', mermaid_code)
+        render = md.Mermaid(sequence)
+        render.to_png(png_file_path)
+        print(f"Mermaid diagram saved to: {png_file_path}")
+    except Exception as e:
+        print(f"Error rendering Mermaid diagram: {str(e)}")
+        raise
 
 def process_umple_attempt(i: int, prompt: str, paths: dict) -> str:
     """
