@@ -18,6 +18,7 @@ import aisuite as ai
 from ecologits import EcoLogits
 from .environmental_impact.impact_tracker import tracker
 from .llm_tracker import llm
+from .mermaid_to_sherpa_parser import parse_mermaid_with_library
 
 openai.api_key = os.environ.get("OPENAI_API_KEY")
 groq.api_key = os.environ.get("GROQ_API_KEY")
@@ -1168,8 +1169,8 @@ def create_single_prompt_gsm_diagram_with_sherpa(mermaid_code: str, diagram_file
     mermaid_code: The Mermaid stateDiagram-v2 code as a string
     diagram_file_path: Path where to save the PNG diagram
     """
-    # Parse Mermaid code
-    states_list, transitions_list, hierarchical_dict, initial_state, parallel_regions = parse_mermaid_to_sherpa_format(mermaid_code)
+    # Parse Mermaid code using mermaid-parser-py library
+    states_list, transitions_list, hierarchical_dict, initial_state, parallel_regions = parse_mermaid_with_library(mermaid_code)
 
     print(f"Parsed States: {states_list}")
     print(f"Parsed Transitions: {transitions_list}")
