@@ -16,6 +16,7 @@ from resources.util import (
     graphVizGeneration,
     mermaidCodeSearch,
     mermaidDiagramGeneration,
+    create_single_prompt_gsm_diagram_with_sherpa,
 )
 from resources.state_machine_descriptions import *
 from resources.n_shot_examples_single_prompt_mermaid import get_n_shot_examples, n_shot_examples
@@ -157,16 +158,18 @@ def process_umple_attempt_openrouter(
             file.write(generated_mermaid_code)
             file.write("\n\n")
 
-        # Render Mermaid diagram directly
+        # Render diagram using Sherpa
         try:
-            print(f"Rendering diagram from: {paths['generated_mermaid_code_path']}")
+            print(f"Rendering diagram with Sherpa from generated Mermaid code")
             print(f"Output diagram to: {paths['diagram_file_path']}")
-            mermaidDiagramGeneration(
-                paths["generated_mermaid_code_path"],
+            success = create_single_prompt_gsm_diagram_with_sherpa(
+                generated_mermaid_code,
                 paths["diagram_file_path"]
             )
+            if not success:
+                raise Exception("Sherpa rendering returned False")
         except Exception as e:
-            error = f"Attempt {i} at rendering mermaid diagram failed\n\n"
+            error = f"Attempt {i} at rendering diagram with Sherpa failed\n\n"
             with open(paths["log_file_path"], "a") as file:
                 file.write(error)
                 file.write(f"Error: {str(e)}\n\n")
@@ -174,7 +177,7 @@ def process_umple_attempt_openrouter(
             print(f"Error: {str(e)}\n\n")
             return "False"
 
-        print(f"Attempt {i} at rendering mermaid diagram successful")
+        print(f"Attempt {i} at rendering diagram with Sherpa successful")
         print(f"Diagram saved to: {paths['diagram_file_path']}.png")
 
         return generated_mermaid_code
