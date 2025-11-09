@@ -24,26 +24,69 @@ def parse_mermaid_with_library(mermaid_code: str):
     hierarchical_states = {}  # parent -> [children]
     initial_state = None
     transitions = []
-    parallel_regions = []
+    parallel_regions = []  # Format: [{'name': 'ParentState', 'parallel': [{'name': 'Region1', 'children': [...]}, ...]}]
     state_parents = {}  # state -> parent mapping
+    divider_count = graph_data.get('dividerCnt', 0)
 
-    # Step 1: Build parent-child relationships using parentId from nodes
+    # Step 1: Detect parallel regions from dividers
+    # When mermaid-parser-py sees parallel regions (separated by --), it creates:
+    # - A composite state named "divider-id-X" for the first region
+    # - Auto-generated composite states for subsequent regions
+    # All these region containers are children of the parent composite state
+    parallel_state_regions = {}  # parent_state -> [{'name': region_container, 'children': [states]}, ...]
+    divider_containers = set()  # Track which states are parallel region containers
+
+    if divider_count > 0:
+        # Find all divider containers and auto-generated region containers
+        for node in nodes:
+            node_id = node['id']
+            parent_id = node.get('parentId')
+
+            # Check if this is a divider container or auto-generated region container
+            if (node_id.startswith('divider-id-') or
+                (node.get('isGroup', False) and parent_id and
+                 any(n['id'].startswith('divider-id-') and n.get('parentId') == parent_id for n in nodes))):
+
+                if parent_id:
+                    divider_containers.add(node_id)
+
+                    # This container is a parallel region
+                    if parent_id not in parallel_state_regions:
+                        parallel_state_regions[parent_id] = []
+
+                    # Collect children of this region container
+                    region_children = []
+                    for child_node in nodes:
+                        if (child_node.get('parentId') == node_id and
+                            not child_node['id'].endswith('_start') and
+                            not child_node['id'].endswith('_end')):
+                            region_children.append(child_node['id'])
+
+                    if region_children:
+                        parallel_state_regions[parent_id].append({
+                            'name': node_id,
+                            'children': region_children
+                        })
+
+    # Step 2: Build parent-child relationships using parentId from nodes
     # TODO: Currently mermaid-parser-py has a bug where parentId is set for states
     # referenced in transitions even if they're siblings. This will be fixed in the future.
     for node in nodes:
         node_id = node['id']
 
-        # Skip start/end nodes and note nodes
+        # Skip start/end nodes, note nodes, dividers, and parallel region containers
         if (node_id.endswith('_start') or
             node_id.endswith('_end') or
             '----note-' in node_id or
-            '----parent' in node_id):
+            '----parent' in node_id or
+            node_id in divider_containers):
             continue
 
-        # Add to all states
-        all_states.add(node_id)
+        # Add to all states (but skip history state markers like StateName.H)
+        if not (node_id.endswith('.H') or node_id.endswith('_H')):
+            all_states.add(node_id)
 
-        # Check if this is a composite state
+        # Check if this is a composite state (but not a parallel region container)
         if node.get('isGroup', False):
             if node_id not in hierarchical_states:
                 hierarchical_states[node_id] = []
@@ -51,13 +94,24 @@ def parse_mermaid_with_library(mermaid_code: str):
         # Track parent relationship using parentId
         parent_id = node.get('parentId')
         if parent_id and parent_id != node_id:
-            state_parents[node_id] = parent_id
+            # If parent is a divider container, skip up to the grandparent
+            if parent_id in divider_containers:
+                # Find the actual parent (grandparent of this state)
+                for p_node in nodes:
+                    if p_node['id'] == parent_id:
+                        actual_parent = p_node.get('parentId')
+                        if actual_parent:
+                            state_parents[node_id] = actual_parent
+                        break
+            else:
+                state_parents[node_id] = parent_id
 
-            # Add to parent's children list
-            if parent_id not in hierarchical_states:
-                hierarchical_states[parent_id] = []
-            if node_id not in hierarchical_states[parent_id]:
-                hierarchical_states[parent_id].append(node_id)
+                # Add to parent's children list (only if parent doesn't have parallel regions)
+                if parent_id not in parallel_state_regions:
+                    if parent_id not in hierarchical_states:
+                        hierarchical_states[parent_id] = []
+                    if node_id not in hierarchical_states[parent_id]:
+                        hierarchical_states[parent_id].append(node_id)
 
     for edge in edges:
         start = edge['start']
@@ -126,12 +180,33 @@ def parse_mermaid_with_library(mermaid_code: str):
 
         transitions.append(transition)
 
-    # Build states list in Sherpa format
-    # Only include states that are either composite or not children of any other state
+    # Step 3: Build states list in Sherpa format
+    # Handle both hierarchical and parallel states
     states_list = []
+
     for state in all_states:
-        if state in hierarchical_states and hierarchical_states[state]:
-            # This is a composite state with children
+        # Check if this state has parallel regions
+        if state in parallel_state_regions and parallel_state_regions[state]:
+            # This is a parallel state - format with 'parallel' field
+            regions = []
+            for idx, region_data in enumerate(parallel_state_regions[state]):
+                # Use Region1, Region2, etc. as names (ignore the divider-id container names)
+                regions.append({
+                    'name': f'Region{idx+1}',
+                    'children': region_data['children']
+                })
+
+            parallel_regions.append({
+                'name': state,
+                'parallel': regions
+            })
+
+            states_list.append({
+                'name': state,
+                'parallel': regions
+            })
+        elif state in hierarchical_states and hierarchical_states[state]:
+            # This is a regular composite state with children
             states_list.append({
                 'name': state,
                 'children': hierarchical_states[state]
@@ -139,6 +214,17 @@ def parse_mermaid_with_library(mermaid_code: str):
         elif state not in state_parents:
             # This is a root-level simple state (not a child of any parent)
             states_list.append(state)
+
+    # Step 4: Detect history states in transitions
+    # History states are transitions where the destination ends with .H
+    # Example: "StateA --> StateB.H" means transition to history state of StateB
+    for transition in transitions:
+        dest = transition['dest']
+        # Check if destination is a history state (ends with .H or _H)
+        if dest.endswith('.H') or dest.endswith('_H'):
+            # Keep the .H format for pytransitions
+            # pytransitions recognizes StateName.H as history state transition
+            pass  # Already correctly formatted
 
     return states_list, transitions, hierarchical_states, initial_state, parallel_regions
 
