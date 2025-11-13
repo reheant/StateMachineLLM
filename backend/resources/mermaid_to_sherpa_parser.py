@@ -184,6 +184,16 @@ def parse_mermaid_with_library(mermaid_code: str):
     # Handle both hierarchical and parallel states
     states_list = []
 
+    # Collect ALL child states from hierarchical_states to ensure we don't add them separately
+    all_child_states = set()
+    for parent, children in hierarchical_states.items():
+        all_child_states.update(children)
+
+    # Also collect children from parallel regions
+    for parent, regions in parallel_state_regions.items():
+        for region_data in regions:
+            all_child_states.update(region_data['children'])
+
     for state in all_states:
         # Check if this state has parallel regions
         if state in parallel_state_regions and parallel_state_regions[state]:
@@ -211,7 +221,7 @@ def parse_mermaid_with_library(mermaid_code: str):
                 'name': state,
                 'children': hierarchical_states[state]
             })
-        elif state not in state_parents:
+        elif state not in all_child_states:
             # This is a root-level simple state (not a child of any parent)
             states_list.append(state)
 
