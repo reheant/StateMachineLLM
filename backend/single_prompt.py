@@ -32,6 +32,8 @@ def choose_openrouter_model():
     print("5. GPT-4o Mini (openai/gpt-4o-mini)")
     print("6. Llama 3.2 3B (meta-llama/llama-3.2-3b-instruct)")
     print("7. Gemini Pro 1.5 (google/gemini-pro-1.5)")
+    print("8. Claude Sonnet 4 (anthropic/claude-sonnet-4)")
+    print("9. GPT-5.1 (openai/gpt-5.1)")
 
     model_map = {
         1: "qwen/qwq-32b",
@@ -41,17 +43,19 @@ def choose_openrouter_model():
         5: "openai/gpt-4o-mini",
         6: "meta-llama/llama-3.2-3b-instruct",
         7: "google/gemini-pro-1.5",
+        8: "anthropic/claude-sonnet-4",
+        9: "openai/gpt-5.1",
     }
 
     while True:
         try:
-            choice = int(input("Enter your choice (1-7): "))
+            choice = int(input("Enter your choice (1-9): "))
             if choice in model_map:
                 return model_map[choice]
             else:
-                print("Invalid choice. Please enter 1-7.")
+                print("Invalid choice. Please enter 1-9.")
         except ValueError:
-            print("Invalid input. Please enter a number (1-7).")
+            print("Invalid input. Please enter a number (1-9).")
 
 
 def run_single_prompt(system_prompt, model="anthropic/claude-3.5-sonnet"):
