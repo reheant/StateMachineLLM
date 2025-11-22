@@ -1,133 +1,106 @@
 """
-Convert mermaid-parser-py JSON output to Sherpa state machine format
+Convert mermaid-parser-py StateDiagramConverter output to Sherpa state machine format.
+
+This is the UPDATED version that uses StateDiagramConverter instead of raw MermaidParser,
+which gives us the correct parent_id relationships and nearest common ancestor logic.
 """
 import re
-from mermaid_parser import MermaidParser
+from mermaid_parser.converters.state_diagram import StateDiagramConverter
 
 
 def parse_mermaid_with_library(mermaid_code: str):
     """
-    Parse Mermaid stateDiagram-v2 using mermaid-parser-py library
+    Parse Mermaid stateDiagram-v2 using mermaid-parser-py StateDiagramConverter
     and convert to Sherpa-compatible format.
 
     Returns: (states_list, transitions_list, hierarchical_dict, initial_state, parallel_regions)
     """
-    parser = MermaidParser()
-    parsed = parser.parse(mermaid_code)
-
-    graph_data = parsed.get('graph_data', {})
-    nodes = graph_data.get('nodes', [])
-    edges = graph_data.get('edges', [])
+    # Use StateDiagramConverter instead of raw MermaidParser
+    converter = StateDiagramConverter()
+    result = converter.convert(mermaid_code)
 
     # Track states and their hierarchical relationships
-    all_states = set()
+    all_states = {}  # id -> state object
     hierarchical_states = {}  # parent -> [children]
     initial_state = None
     transitions = []
-    parallel_regions = []  # Format: [{'name': 'ParentState', 'parallel': [{'name': 'Region1', 'children': [...]}, ...]}]
+    parallel_regions = []
     state_parents = {}  # state -> parent mapping
-    divider_count = graph_data.get('dividerCnt', 0)
 
-    # Step 1: Detect parallel regions from dividers
-    # When mermaid-parser-py sees parallel regions (separated by --), it creates:
-    # - A composite state named "divider-id-X" for the first region
-    # - Auto-generated composite states for subsequent regions
-    # All these region containers are children of the parent composite state
-    parallel_state_regions = {}  # parent_state -> [{'name': region_container, 'children': [states]}, ...]
-    divider_containers = set()  # Track which states are parallel region containers
+    # Step 1: Build state mappings from converter output
+    for state in result.states:
+        state_id = getattr(state, 'id_', None)
+        parent_id = getattr(state, 'parent_id', None)
 
-    if divider_count > 0:
-        # Find all divider containers and auto-generated region containers
-        for node in nodes:
-            node_id = node['id']
-            parent_id = node.get('parentId')
-
-            # Check if this is a divider container or auto-generated region container
-            if (node_id.startswith('divider-id-') or
-                (node.get('isGroup', False) and parent_id and
-                 any(n['id'].startswith('divider-id-') and n.get('parentId') == parent_id for n in nodes))):
-
-                if parent_id:
-                    divider_containers.add(node_id)
-
-                    # This container is a parallel region
-                    if parent_id not in parallel_state_regions:
-                        parallel_state_regions[parent_id] = []
-
-                    # Collect children of this region container
-                    region_children = []
-                    for child_node in nodes:
-                        if (child_node.get('parentId') == node_id and
-                            not child_node['id'].endswith('_start') and
-                            not child_node['id'].endswith('_end')):
-                            region_children.append(child_node['id'])
-
-                    if region_children:
-                        parallel_state_regions[parent_id].append({
-                            'name': node_id,
-                            'children': region_children
-                        })
-
-    # Step 2: Build parent-child relationships using parentId from nodes
-    # TODO: Currently mermaid-parser-py has a bug where parentId is set for states
-    # referenced in transitions even if they're siblings. This will be fixed in the future.
-    for node in nodes:
-        node_id = node['id']
-
-        # Skip start/end nodes, note nodes, dividers, and parallel region containers
-        if (node_id.endswith('_start') or
-            node_id.endswith('_end') or
-            '----note-' in node_id or
-            '----parent' in node_id or
-            node_id in divider_containers):
+        if not state_id:
             continue
 
-        # Add to all states (but skip history state markers like StateName.H)
-        if not (node_id.endswith('.H') or node_id.endswith('_H')):
-            all_states.add(node_id)
-
-        # Check if this is a composite state (but not a parallel region container)
-        if node.get('isGroup', False):
-            if node_id not in hierarchical_states:
-                hierarchical_states[node_id] = []
-
-        # Track parent relationship using parentId
-        parent_id = node.get('parentId')
-        if parent_id and parent_id != node_id:
-            # If parent is a divider container, skip up to the grandparent
-            if parent_id in divider_containers:
-                # Find the actual parent (grandparent of this state)
-                for p_node in nodes:
-                    if p_node['id'] == parent_id:
-                        actual_parent = p_node.get('parentId')
-                        if actual_parent:
-                            state_parents[node_id] = actual_parent
-                        break
-            else:
-                state_parents[node_id] = parent_id
-
-                # Add to parent's children list (only if parent doesn't have parallel regions)
-                if parent_id not in parallel_state_regions:
-                    if parent_id not in hierarchical_states:
-                        hierarchical_states[parent_id] = []
-                    if node_id not in hierarchical_states[parent_id]:
-                        hierarchical_states[parent_id].append(node_id)
-
-    for edge in edges:
-        start = edge['start']
-        end = edge['end']
-        label = edge.get('label', '').strip()
-
-        # Handle initial state (from root_start or <State>_start)
-        if start == 'root_start':
-            initial_state = end
-            continue
-        elif start.endswith('_start'):
-            # This is a child state's initial transition
+        # Skip start/end markers and internal markers
+        if (state_id.endswith('_start') or
+            state_id.endswith('_end') or
+            state_id == '[*]' or
+            '----note-' in state_id or
+            '----parent' in state_id):
             continue
 
-        # Skip if start or end is a start node
-        if start.endswith('_start') or end.endswith('_start'):
+        all_states[state_id] = state
+
+        # Track parent relationship
+        if parent_id:
+            state_parents[state_id] = parent_id
+
+            # Add to parent's children list
+            if parent_id not in hierarchical_states:
+                hierarchical_states[parent_id] = []
+            if state_id not in hierarchical_states[parent_id]:
+                hierarchical_states[parent_id].append(state_id)
+
+        # Initialize children list for composite states
+        state_type = type(state).__name__
+        if state_type in ['Composite', 'Concurrent']:
+            if state_id not in hierarchical_states:
+                hierarchical_states[state_id] = []
+
+    # Step 2: Find initial state from transitions
+    for transition in result.transitions:
+        from_state = getattr(transition, 'from_state', None)
+        to_state = getattr(transition, 'to_state', None)
+
+        if not from_state or not to_state:
+            continue
+
+        from_id = getattr(from_state, 'id_', None)
+        to_id = getattr(to_state, 'id_', None)
+
+        # Handle initial state (from root_start or [*])
+        if from_id in ['root_start', '[*]']:
+            if not initial_state:
+                initial_state = to_id
+            continue
+
+        # Skip transitions from/to start markers
+        if (from_id and (from_id.endswith('_start') or from_id == '[*]')) or \
+           (to_id and (to_id.endswith('_start') or to_id == '[*]')):
+            continue
+
+    # Step 3: Convert transitions to Sherpa format
+    for transition in result.transitions:
+        from_state = getattr(transition, 'from_state', None)
+        to_state = getattr(transition, 'to_state', None)
+        label = getattr(transition, 'label', '')
+
+        if not from_state or not to_state:
+            continue
+
+        from_id = getattr(from_state, 'id_', None)
+        to_id = getattr(to_state, 'id_', None)
+
+        # Skip start/end markers
+        if not from_id or not to_id:
+            continue
+        if from_id in ['root_start', '[*]'] or from_id.endswith('_start'):
+            continue
+        if to_id.endswith('_start') or to_id == '[*]':
             continue
 
         # Parse transition label for trigger, guard, and action
@@ -148,11 +121,10 @@ def parse_mermaid_with_library(mermaid_code: str):
                 guard = guard_match.group(1)
                 label = re.sub(r'\[.+?\]', '', label).strip()
 
-            # What remains is the trigger/event (might include function call like "login(cardID)")
+            # What remains is the trigger/event
             trigger = label.strip() if label.strip() else None
 
-        # Format state names with full parent path for pytransitions
-        # Build full parent path for nested states
+        # Build full hierarchical path for nested states
         def get_full_state_path(state_id):
             """Build full hierarchical path for a state (e.g., 'On_Playing_WhiteTurn')"""
             path = [state_id]
@@ -164,77 +136,61 @@ def parse_mermaid_with_library(mermaid_code: str):
             return '_'.join(path)
 
         # Format source and destination with full parent paths
-        start_formatted = get_full_state_path(start)
-        end_formatted = get_full_state_path(end)
+        start_formatted = get_full_state_path(from_id)
+        end_formatted = get_full_state_path(to_id)
 
-        transition = {
+        trans = {
             'trigger': trigger if trigger else 'auto',
             'source': start_formatted,
             'dest': end_formatted
         }
 
         if guard:
-            transition['conditions'] = guard
+            trans['conditions'] = guard
         if action:
-            transition['before'] = action
+            trans['before'] = action
 
-        transitions.append(transition)
+        transitions.append(trans)
 
-    # Step 3: Build states list in Sherpa format
-    # Handle both hierarchical and parallel states
+    # Step 4: Build states list in Sherpa NESTED format (not flat!)
+    # Sherpa needs a nested structure where children are objects within their parent's children array
+
+    def build_nested_state(state_id):
+        """Recursively build nested state structure"""
+        if state_id in hierarchical_states and hierarchical_states[state_id]:
+            # This is a composite state - build it with nested children
+            nested_children = []
+            for child_id in hierarchical_states[state_id]:
+                # Recursively build each child (might also be composite)
+                nested_child = build_nested_state(child_id)
+                nested_children.append(nested_child)
+
+            return {
+                'name': state_id,
+                'children': nested_children
+            }
+        else:
+            # Simple state (leaf node)
+            return state_id
+
+    # Build the states list with only ROOT-level states (not nested ones)
     states_list = []
-
-    # Collect ALL child states from hierarchical_states to ensure we don't add them separately
     all_child_states = set()
     for parent, children in hierarchical_states.items():
         all_child_states.update(children)
 
-    # Also collect children from parallel regions
-    for parent, regions in parallel_state_regions.items():
-        for region_data in regions:
-            all_child_states.update(region_data['children'])
+    # Only add states that have no parent (root-level)
+    for state_id in all_states.keys():
+        if state_id not in all_child_states:
+            # This is a root-level state
+            nested_state = build_nested_state(state_id)
+            states_list.append(nested_state)
 
-    for state in all_states:
-        # Check if this state has parallel regions
-        if state in parallel_state_regions and parallel_state_regions[state]:
-            # This is a parallel state - format with 'parallel' field
-            regions = []
-            for idx, region_data in enumerate(parallel_state_regions[state]):
-                # Use Region1, Region2, etc. as names (ignore the divider-id container names)
-                regions.append({
-                    'name': f'Region{idx+1}',
-                    'children': region_data['children']
-                })
-
-            parallel_regions.append({
-                'name': state,
-                'parallel': regions
-            })
-
-            states_list.append({
-                'name': state,
-                'parallel': regions
-            })
-        elif state in hierarchical_states and hierarchical_states[state]:
-            # This is a regular composite state with children
-            states_list.append({
-                'name': state,
-                'children': hierarchical_states[state]
-            })
-        elif state not in all_child_states:
-            # This is a root-level simple state (not a child of any parent)
-            states_list.append(state)
-
-    # Step 4: Detect history states in transitions
-    # History states are transitions where the destination ends with .H
-    # Example: "StateA --> StateB.H" means transition to history state of StateB
-    for transition in transitions:
-        dest = transition['dest']
-        # Check if destination is a history state (ends with .H or _H)
-        if dest.endswith('.H') or dest.endswith('_H'):
-            # Keep the .H format for pytransitions
-            # pytransitions recognizes StateName.H as history state transition
-            pass  # Already correctly formatted
+    # Step 5: Set initial state if not found
+    if not initial_state and states_list:
+        # Use first state
+        first_state = states_list[0]
+        initial_state = first_state if isinstance(first_state, str) else first_state['name']
 
     return states_list, transitions, hierarchical_states, initial_state, parallel_regions
 
@@ -259,7 +215,7 @@ if __name__ == "__main__":
     states, transitions, hierarchical, initial, parallel = parse_mermaid_with_library(test_mermaid)
 
     print("States:", states)
-    print("Transitions:", transitions)
-    print("Hierarchical:", hierarchical)
-    print("Initial:", initial)
-    print("Parallel:", parallel)
+    print("\nTransitions:", transitions)
+    print("\nHierarchical:", hierarchical)
+    print("\nInitial:", initial)
+    print("\nParallel:", parallel)
