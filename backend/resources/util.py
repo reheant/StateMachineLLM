@@ -92,8 +92,8 @@ def call_openrouter_llm(prompt, max_tokens=1500, temperature=0.7, model="anthrop
         "model": model,
         "messages": [
             {
-                "role": "system", 
-                "content": "You are an AI assistant specialized in generating state machines using Umple syntax. Your task is to analyze problem descriptions and generate complete UML state machines with states, transitions, guards, actions, hierarchical states, parallel regions, and history states."
+                "role": "system",
+                "content": "You are an AI assistant specialized in generating state machines using Mermaid stateDiagram-v2 syntax. Analyze problem descriptions and generate complete UML state machines with states, transitions, guards, actions, hierarchical states, parallel regions, and history states."
             },
             {
                 "role": "user", 
@@ -909,9 +909,62 @@ def umpleCodeSearch(llm_response: str, generated_umple_code_path: str, writeFile
     
     return generated_umple_code
 
+def mermaidCodeSearch(llm_response: str, generated_mermaid_code_path: str, writeFile=True):
+    ''' Function that extracts mermaid code from an LLM response
+    params:
+    llm_response is the string response from the LLM
+    generated_mermaid_code_path is the path of the file in which to write the extracted mermaid code. The file path must have the extension ".mmd"
+
+    raises:
+    Exception if no mermaid code is found in the extracted code'''
+
+    # Try to find code wrapped in XML-style tags first
+    generated_mermaid_code_search = re.search(r"<mermaid_code_solution>\s*(.*?)\s*</mermaid_code_solution>", llm_response, re.DOTALL)
+
+    if generated_mermaid_code_search:
+        generated_mermaid_code = generated_mermaid_code_search.group(1).strip()
+    else:
+        # Try to find code in markdown code blocks with mermaid language tag
+        mermaid_block_search = re.search(r"```mermaid\s*(.*?)```", llm_response, re.DOTALL)
+        if mermaid_block_search:
+            generated_mermaid_code = mermaid_block_search.group(1).strip()
+        else:
+            # Try to find stateDiagram-v2 directly (last resort)
+            # Look for stateDiagram-v2 and capture everything after it
+            if 'stateDiagram-v2' in llm_response:
+                start_idx = llm_response.find('stateDiagram-v2')
+                generated_mermaid_code = llm_response[start_idx:]
+            else:
+                raise Exception("No mermaid code found in LLM response")
+
+    # ALWAYS clean up - find stateDiagram-v2 and take ONLY from that point forward
+    if 'stateDiagram-v2' in generated_mermaid_code:
+        start_idx = generated_mermaid_code.find('stateDiagram-v2')
+        generated_mermaid_code = generated_mermaid_code[start_idx:]
+
+    # Remove any trailing closing tags or extra text after the diagram
+    # Find the last closing brace at the root level (end of state machine)
+    lines = generated_mermaid_code.split('\n')
+    # Keep lines until we find a line that's just a closing tag or starts with <
+    cleaned_lines = []
+    for line in lines:
+        stripped = line.strip()
+        if stripped.startswith('</') or stripped.startswith('<mermaid') or stripped == '```':
+            break
+        cleaned_lines.append(line)
+
+    generated_mermaid_code = '\n'.join(cleaned_lines).strip()
+
+    if writeFile:
+        #Create a file to store generated code
+        with open(generated_mermaid_code_path, 'w') as file:
+            file.write(generated_mermaid_code)
+
+    return generated_mermaid_code
+
 def setup_file_paths(base_dir: str, file_type: str = "single_prompt") -> dict:
     """
-    Setup file paths for logs, Umple code, and diagrams
+    Setup file paths for logs, Umple code, Mermaid code, and diagrams
     Args:
         base_dir: Base directory path
         file_type: Type of file (default: "single_prompt")
@@ -935,6 +988,7 @@ def setup_file_paths(base_dir: str, file_type: str = "single_prompt") -> dict:
         'log_base_dir': log_base_dir,
         'log_file_path': os.path.join(log_base_dir, log_file_name),
         'generated_umple_code_path': os.path.join(log_base_dir, f"{file_prefix}.ump"),
+        'generated_mermaid_code_path': os.path.join(log_base_dir, f"{file_prefix}.mmd"),
         'umple_jar_path': os.path.join(base_dir, "resources", 'umple.jar'),
         'diagram_base_dir': diagram_base_dir,
         'diagram_file_path': os.path.join(diagram_base_dir, file_prefix)
@@ -968,6 +1022,221 @@ def graphVizGeneration(generated_umple_gv_path, diagram_file_path: str):
     # Render the DOT file using Graphviz
     graph = graphviz.Source(dot_code)
     graph.render(diagram_file_path, format='png')
+
+#TODO: sherpa parser might be able to do the below
+def parse_mermaid_to_sherpa_format(mermaid_code: str):
+    """
+    Parse Mermaid stateDiagram-v2 syntax and extract states, transitions, and hierarchical relationships
+    Returns: (states_list, transitions_list, hierarchical_dict, initial_state, parallel_regions)
+    """
+    lines = mermaid_code.strip().split('\n')
+    states = set()
+    transitions = []
+    hierarchical_states = {}  # parent -> [children]
+    parallel_regions = []
+    initial_state = None
+    current_parent_stack = []  # Track nested hierarchy
+
+    for line in lines:
+        line = line.strip()
+
+        # Skip empty lines, comments, and the header
+        if not line or line.startswith('stateDiagram') or line.startswith('note'):
+            continue
+
+        # Handle state block opening: "state StateName {"
+        if re.match(r'state\s+(\w+)\s*\{', line):
+            state_name_match = re.search(r'state\s+(\w+)\s*\{', line)
+            if state_name_match:
+                parent_state = state_name_match.group(1)
+                states.add(parent_state)
+                current_parent_stack.append(parent_state)
+                if parent_state not in hierarchical_states:
+                    hierarchical_states[parent_state] = []
+            continue
+
+        # Handle closing braces (end of state block)
+        if line == '}':
+            if current_parent_stack:
+                current_parent_stack.pop()
+            continue
+
+        # Handle parallel region separator
+        if line == '--':
+            continue
+
+        # Handle initial state: "[*] --> StateName"
+        initial_match = re.match(r'\[\*\]\s*-->\s*(\w+)', line)
+        if initial_match:
+            target_state = initial_match.group(1)
+            states.add(target_state)
+
+            # If we're inside a parent state, this is the child's initial state
+            if current_parent_stack:
+                parent = current_parent_stack[-1]
+                if parent not in hierarchical_states:
+                    hierarchical_states[parent] = []
+                if target_state not in hierarchical_states[parent]:
+                    hierarchical_states[parent].append(target_state)
+            else:
+                # Top-level initial state
+                initial_state = target_state
+            continue
+
+        # Handle transitions: "StateA --> StateB : event [guard] / action"
+        transition_match = re.match(r'(\w+)\s*-->\s*(\w+)(?:\s*:\s*(.+))?', line)
+        if transition_match:
+            from_state = transition_match.group(1)
+            to_state = transition_match.group(2)
+            label = transition_match.group(3) if transition_match.group(3) else None
+
+            states.add(from_state)
+            states.add(to_state)
+
+            # Add to hierarchical states if inside a parent
+            if current_parent_stack:
+                parent = current_parent_stack[-1]
+                if parent not in hierarchical_states:
+                    hierarchical_states[parent] = []
+                for state in [from_state, to_state]:
+                    if state not in hierarchical_states[parent]:
+                        hierarchical_states[parent].append(state)
+
+            # Parse transition label for event, guard, and action
+            trigger = None
+            guard = None
+            action = None
+
+            if label:
+                # Extract action: / {action}
+                action_match = re.search(r'/\s*\{(.+?)\}', label)
+                if action_match:
+                    action = action_match.group(1)
+                    label = re.sub(r'/\s*\{.+?\}', '', label).strip()
+
+                # Extract guard: [condition]
+                guard_match = re.search(r'\[(.+?)\]', label)
+                if guard_match:
+                    guard = guard_match.group(1)
+                    label = re.sub(r'\[.+?\]', '', label).strip()
+
+                # What remains is the trigger/event
+                trigger = label.strip() if label.strip() else None
+
+            # Format state names with parent prefix for pytransitions
+            if current_parent_stack:
+                from_formatted = '_'.join(current_parent_stack + [from_state])
+                to_formatted = '_'.join(current_parent_stack + [to_state])
+            else:
+                from_formatted = from_state
+                to_formatted = to_state
+
+            transition = {
+                'trigger': trigger if trigger else 'auto',
+                'source': from_formatted,
+                'dest': to_formatted
+            }
+
+            if guard:
+                transition['conditions'] = guard
+            if action:
+                transition['before'] = action
+
+            transitions.append(transition)
+
+    # Convert hierarchical_states to the format needed for Sherpa
+    states_list = []
+    for state in states:
+        if state in hierarchical_states:
+            # This is a composite state
+            states_list.append({
+                'name': state,
+                'children': hierarchical_states[state]
+            })
+        elif not any(state in children for children in hierarchical_states.values()):
+            # This is a simple state (not a child of any parent)
+            states_list.append(state)
+
+    return states_list, transitions, hierarchical_states, initial_state, parallel_regions
+
+
+def create_single_prompt_gsm_diagram_with_sherpa(mermaid_code: str, diagram_file_path: str):
+    """
+    Create a state machine diagram from Mermaid code using Sherpa
+
+    params:
+    mermaid_code: The Mermaid stateDiagram-v2 code as a string
+    diagram_file_path: Path where to save the PNG diagram
+    """
+    # Lazy import to avoid pythonmonkey segfault in async context
+    from .mermaid_to_sherpa_parser import parse_mermaid_with_library
+
+    # Parse Mermaid code using mermaid-parser-py library
+    states_list, transitions_list, hierarchical_dict, initial_state, parallel_regions = parse_mermaid_with_library(mermaid_code)
+
+    print(f"Parsed States: {states_list}")
+    print(f"Parsed Transitions: {transitions_list}")
+    print(f"Initial State: {initial_state}")
+
+    if not initial_state:
+        print("Warning: No initial state found, using first state")
+        if states_list:
+            initial_state = states_list[0] if isinstance(states_list[0], str) else states_list[0]['name']
+        else:
+            raise ValueError("No states found in Mermaid diagram")
+
+    # Create the Sherpa state machine
+    try:
+        gsm = SherpaStateMachine(
+            states=states_list,
+            transitions=transitions_list,
+            initial=initial_state,
+            sm_cls=HierarchicalGraphMachine
+        )
+
+        # Ensure the diagram path has .png extension
+        if not diagram_file_path.endswith('.png'):
+            png_file_path = f"{diagram_file_path}.png"
+        else:
+            png_file_path = diagram_file_path
+
+        # Generate and render the diagram directly to PNG using graphviz
+        gsm.sm.get_graph().draw(png_file_path, prog='dot', format='png')
+
+        print(f"Sherpa diagram saved to: {png_file_path}")
+        return True
+
+    except Exception as e:
+        print(f"Error creating Sherpa state machine: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return False
+
+
+def mermaidDiagramGeneration(mermaid_code_path: str, diagram_file_path: str):
+    ''' Function that renders a Mermaid diagram to PNG
+    params:
+    mermaid_code_path is the path to the file containing the mermaid code (.mmd file)
+    diagram_file_path is the path where to output the .png diagram (without .png extension)
+    '''
+    with open(mermaid_code_path, 'r') as file:
+        mermaid_code = file.read()
+
+    # Ensure the diagram path has .png extension
+    if not diagram_file_path.endswith('.png'):
+        png_file_path = f"{diagram_file_path}.png"
+    else:
+        png_file_path = diagram_file_path
+
+    # Create a mermaid graph and render to PNG
+    try:
+        sequence = Graph('State-Machine-Diagram', mermaid_code)
+        render = md.Mermaid(sequence)
+        render.to_png(png_file_path)
+        print(f"Mermaid diagram saved to: {png_file_path}")
+    except Exception as e:
+        print(f"Error rendering Mermaid diagram: {str(e)}")
+        raise
 
 def process_umple_attempt(i: int, prompt: str, paths: dict) -> str:
     """

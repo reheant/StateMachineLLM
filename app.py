@@ -196,15 +196,17 @@ async def start():
         \n 📊 <b>Structure-Driven SMF</b>: Multi-step process focusing on structure
         """,
         actions=[
-            cl.Action(name="single_prompt", value="single_prompt", label="🚀 Single Prompt (OpenRouter)"),
-            cl.Action(name="event_driven", value="event_driven", label="🔄 Event-Driven SMF"),
-            cl.Action(name="structure_driven", value="structure_driven", label="📊 Structure-Driven SMF"),
+            cl.Action(name="single_prompt", payload={"value": "single_prompt"}, label="🚀 Single Prompt (OpenRouter)"),
+            cl.Action(name="event_driven", payload={"value": "event_driven"}, label="🔄 Event-Driven SMF"),
+            cl.Action(name="structure_driven", payload={"value": "structure_driven"}, label="📊 Structure-Driven SMF"),
         ],
     ).send()
     
     # Store the chosen strategy in user session
     if strategy_step:
-        cl.user_session.set("generation_strategy", strategy_step.get("value"))
+        payload = strategy_step.get("payload", {})
+        strategy_value = payload.get("value") if isinstance(payload, dict) else strategy_step.get("value")
+        cl.user_session.set("generation_strategy", strategy_value)
 
     step1 = await cl.AskActionMessage(
         content="""
@@ -213,12 +215,16 @@ async def start():
         \n 🤖 2. Try one of our examples
         \nWhat would you like to explore?""",
         actions=[
-            cl.Action(name="custom", value="custom", label="✍️ Describe Your Own System"),
-            cl.Action(name="example", value="example", label="🤖 Use One Of Our Examples"),
+            cl.Action(name="custom", payload={"value": "custom"}, label="✍️ Describe Your Own System"),
+            cl.Action(name="example", payload={"value": "example"}, label="🤖 Use One Of Our Examples"),
         ],
     ).send()
 
-    if step1 and step1.get("value") == "example":
+    # Extract value from payload (new Chainlit format)
+    step1_payload = step1.get("payload", {}) if step1 else {}
+    step1_value = step1_payload.get("value") if isinstance(step1_payload, dict) else step1.get("value") if step1 else None
+
+    if step1_value == "example":
         step2 = await cl.AskActionMessage(
             content="""
             Choose one of these interesting examples:
@@ -231,18 +237,20 @@ async def start():
             \n 7. 🚆 <b>Train Automation System</b>: An advanced system managing driverless trains across a rail network with traffic signals and stations
             """,
             actions=[
-                cl.Action(name="printer", value="printer_winter_2017", label="🖨️ Printer System"),
-                cl.Action(name="spa", value="spa_manager_winter_2018", label="🧖‍♂️ Spa Manager"),
-                cl.Action(name="dishwasher", value="dishwasher_winter_2019", label="✨ Smart Dishwasher"),
-                cl.Action(name="chess", value="chess_clock_fall_2019", label="🕰️ Digital Chess Clock"),
-                cl.Action(name="bread", value="automatic_bread_maker_fall_2020", label="🥖 Automatic Bread Maker"),
-                cl.Action(name="thermomix", value="thermomix_fall_2021", label="🔪 Thermomix TM6"),
-                cl.Action(name="train", value="ATAS_fall_2022", label="🚆 Train Automation System"),
+                cl.Action(name="printer", payload={"value": "printer_winter_2017"}, label="🖨️ Printer System"),
+                cl.Action(name="spa", payload={"value": "spa_manager_winter_2018"}, label="🧖‍♂️ Spa Manager"),
+                cl.Action(name="dishwasher", payload={"value": "dishwasher_winter_2019"}, label="✨ Smart Dishwasher"),
+                cl.Action(name="chess", payload={"value": "chess_clock_fall_2019"}, label="🕰️ Digital Chess Clock"),
+                cl.Action(name="bread", payload={"value": "automatic_bread_maker_fall_2020"}, label="🥖 Automatic Bread Maker"),
+                cl.Action(name="thermomix", payload={"value": "thermomix_fall_2021"}, label="🔪 Thermomix TM6"),
+                cl.Action(name="train", payload={"value": "ATAS_fall_2022"}, label="🚆 Train Automation System"),
             ],
         ).send()
 
         if step2:
-            system_preset = step2.get("value")
+            # Extract value from payload (new Chainlit format)
+            step2_payload = step2.get("payload", {})
+            system_preset = step2_payload.get("value") if isinstance(step2_payload, dict) else step2.get("value")
             system_description = getattr(backend.resources.state_machine_descriptions, system_preset)
 
             await run_conversation(cl.Message(content=system_description))
