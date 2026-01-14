@@ -114,12 +114,17 @@ def run_single_prompt(system_prompt, model="anthropic/claude-3.5-sonnet"):
 
     """
 
+    print(f"Running Single Prompt Generation...")
     print(f"Using OpenRouter model: {model}")
 
     # Replace original loop with OpenRouter implementation:
     for i in range(5):
-        if process_umple_attempt_openrouter(i, prompt, paths, model) != "False":
+        result = process_umple_attempt_openrouter(i, prompt, paths, model)
+        if result != "False":
+            print(f"Generation completed successfully!")
             break
+        else:
+            print(f"Attempt {i+1}/5 failed, retrying..." if i < 4 else "All attempts failed.")
 
 
 def process_umple_attempt_openrouter(
