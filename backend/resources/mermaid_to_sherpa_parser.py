@@ -20,17 +20,21 @@ def parse_mermaid_with_library(mermaid_code: str):
     result = converter.convert(mermaid_code)
 
     # Track states and their hierarchical relationships
-    all_states = {}  # id -> state object
-    hierarchical_states = {}  # parent -> [children]
+    # Use scoped_id as the unique key to handle same-named states in different scopes
+    all_states = {}  # scoped_id -> state object
+    hierarchical_states = {}  # parent_id -> [children_ids] (for display names)
     initial_state = None
     transitions = []
     parallel_regions = []
-    state_parents = {}  # state -> parent mapping
+    state_parents = {}  # scoped_id -> parent_id mapping
+    scoped_to_bare = {}  # scoped_id -> bare id_ mapping
 
     # Step 1: Build state mappings from converter output
     for state in result.states:
         state_id = getattr(state, 'id_', None)
         parent_id = getattr(state, 'parent_id', None)
+        # Use scoped_id if available, otherwise fall back to state_id
+        scoped_id = getattr(state, 'scoped_id', state_id)
 
         if not state_id:
             continue
@@ -43,13 +47,15 @@ def parse_mermaid_with_library(mermaid_code: str):
             '----parent' in state_id):
             continue
 
-        all_states[state_id] = state
+        # Use scoped_id as the unique key
+        all_states[scoped_id] = state
+        scoped_to_bare[scoped_id] = state_id
 
-        # Track parent relationship
+        # Track parent relationship using scoped_id as key
         if parent_id:
-            state_parents[state_id] = parent_id
+            state_parents[scoped_id] = parent_id
 
-            # Add to parent's children list
+            # Add to parent's children list (using bare id for display)
             if parent_id not in hierarchical_states:
                 hierarchical_states[parent_id] = []
             if state_id not in hierarchical_states[parent_id]:
@@ -101,6 +107,10 @@ def parse_mermaid_with_library(mermaid_code: str):
 
         from_id = getattr(from_state, 'id_', None)
         to_id = getattr(to_state, 'id_', None)
+        # Use scoped_id which already contains the full hierarchical path
+        # This correctly handles same-named states in different scopes (e.g., parallel regions)
+        from_scoped = getattr(from_state, 'scoped_id', from_id)
+        to_scoped = getattr(to_state, 'scoped_id', to_id)
 
         # Skip start/end markers
         if not from_id or not to_id:
@@ -131,20 +141,20 @@ def parse_mermaid_with_library(mermaid_code: str):
             # What remains is the trigger/event
             trigger = label.strip() if label.strip() else None
 
-        # Build full hierarchical path for nested states
-        def get_full_state_path(state_id):
-            """Build full hierarchical path for a state (e.g., 'On_Playing_WhiteTurn')"""
-            path = [state_id]
-            current = state_id
-            while current in state_parents:
-                parent = state_parents[current]
-                path.insert(0, parent)
-                current = parent
-            return '_'.join(path)
+        # Helper to build full path from scoped_id by walking up the hierarchy
+        # The scoped_id might be region-prefixed (e.g., SpaManager_region_0_Sauna_Off)
+        # We need to convert it to proper hierarchical format (SpaManager_Sauna_Off)
+        def normalize_scoped_path(scoped_id, bare_id):
+            """Convert scoped_id to hierarchical path, removing region prefixes."""
+            if not scoped_id:
+                return bare_id
+            # Remove region markers (e.g., _region_0_, _region_1_)
+            normalized = re.sub(r'_region_\d+', '', scoped_id)
+            return normalized
 
-        # Format source and destination with full parent paths
-        start_formatted = get_full_state_path(from_id)
-        end_formatted = get_full_state_path(to_id)
+        # Format source and destination using scoped_id (already contains full path)
+        start_formatted = normalize_scoped_path(from_scoped, from_id)
+        end_formatted = normalize_scoped_path(to_scoped, to_id)
 
         trans = {
             'trigger': trigger if trigger else 'auto',
@@ -173,12 +183,10 @@ def parse_mermaid_with_library(mermaid_code: str):
 
             # Collect all children from all regions (excluding start states)
             nested_children = []
-            initial_states = []
+            parallel_region_children = []  # Track the composite children that form parallel regions
 
             for region in regions:
                 region_initial = region.get('initial')
-                if region_initial:
-                    initial_states.append(region_initial)
 
                 for child_id, child_state in region['states'].items():
                     # Skip start states (they have generated IDs like "divider-id-1_start")
@@ -195,6 +203,9 @@ def parse_mermaid_with_library(mermaid_code: str):
                     nested_child = build_nested_state(child_id)
                     if nested_child not in nested_children:
                         nested_children.append(nested_child)
+                        # If this child is a composite state (dict), track it as a parallel region child
+                        if isinstance(nested_child, dict):
+                            parallel_region_children.append(nested_child['name'])
 
             # Return state with parallel structure
             # When 'initial' is a LIST, transitions library renders parallel regions
@@ -203,8 +214,10 @@ def parse_mermaid_with_library(mermaid_code: str):
                 'children': nested_children
             }
 
-            if initial_states:
-                result['initial'] = initial_states  # LIST triggers parallel rendering
+            # For parallel regions, the initial should be the composite children (e.g., ['Sauna', 'Jacuzzi'])
+            # Each composite child should have its own internal initial state
+            if parallel_region_children:
+                result['initial'] = parallel_region_children  # LIST triggers parallel rendering
 
             return result
 
@@ -216,10 +229,22 @@ def parse_mermaid_with_library(mermaid_code: str):
                 nested_child = build_nested_state(child_id)
                 nested_children.append(nested_child)
 
-            return {
+            result = {
                 'name': state_id,
                 'children': nested_children
             }
+
+            # Try to find initial state for this composite from parallel regions info
+            # The initial state is typically the first child or specified in region info
+            for p in parallel_regions:
+                for region in p['regions']:
+                    if state_id in region.get('states', {}):
+                        region_initial = region.get('initial')
+                        if region_initial and region_initial in hierarchical_states.get(state_id, []):
+                            result['initial'] = region_initial
+                            break
+
+            return result
         else:
             # Simple state (leaf node)
             return state_id
@@ -231,11 +256,20 @@ def parse_mermaid_with_library(mermaid_code: str):
         all_child_states.update(children)
 
     # Only add states that have no parent (root-level)
-    for state_id in all_states.keys():
-        if state_id not in all_child_states:
-            # This is a root-level state
-            nested_state = build_nested_state(state_id)
-            states_list.append(nested_state)
+    # We need to check the BARE id (not scoped_id) against all_child_states
+    added_bare_ids = set()  # Track which bare IDs we've already added
+    for scoped_id, state in all_states.items():
+        bare_id = scoped_to_bare.get(scoped_id, scoped_id)
+        # Skip if this bare ID is a child of another state
+        if bare_id in all_child_states:
+            continue
+        # Skip if we've already added this bare ID (avoid duplicates)
+        if bare_id in added_bare_ids:
+            continue
+        # This is a root-level state
+        nested_state = build_nested_state(bare_id)
+        states_list.append(nested_state)
+        added_bare_ids.add(bare_id)
 
     # Step 5: Set initial state if not found
     if not initial_state and states_list:
