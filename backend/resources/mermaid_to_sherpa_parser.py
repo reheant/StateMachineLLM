@@ -61,6 +61,13 @@ def parse_mermaid_with_library(mermaid_code: str):
             if state_id not in hierarchical_states:
                 hierarchical_states[state_id] = []
 
+        # Check for parallel regions
+        if hasattr(state, 'parallel_regions') and state.parallel_regions:
+            parallel_regions.append({
+                'parent': state_id,
+                'regions': state.parallel_regions
+            })
+
     # Step 2: Find initial state from transitions
     for transition in result.transitions:
         from_state = getattr(transition, 'from_state', None)
@@ -155,10 +162,54 @@ def parse_mermaid_with_library(mermaid_code: str):
     # Step 4: Build states list in Sherpa NESTED format (not flat!)
     # Sherpa needs a nested structure where children are objects within their parent's children array
 
+    # Create a lookup for parallel region info by parent state
+    parallel_info_by_state = {p['parent']: p['regions'] for p in parallel_regions}
+
     def build_nested_state(state_id):
         """Recursively build nested state structure"""
-        if state_id in hierarchical_states and hierarchical_states[state_id]:
-            # This is a composite state - build it with nested children
+        # Check if this state has parallel regions
+        if state_id in parallel_info_by_state:
+            regions = parallel_info_by_state[state_id]
+
+            # Collect all children from all regions (excluding start states)
+            nested_children = []
+            initial_states = []
+
+            for region in regions:
+                region_initial = region.get('initial')
+                if region_initial:
+                    initial_states.append(region_initial)
+
+                for child_id, child_state in region['states'].items():
+                    # Skip start states (they have generated IDs like "divider-id-1_start")
+                    if child_id.endswith('_start') or child_id == '[*]':
+                        continue
+
+                    # Only add states whose parent is the current state (state_id)
+                    # This prevents adding nested children at the wrong level
+                    child_parent = getattr(child_state, 'parent_id', None)
+                    if child_parent != state_id:
+                        continue
+
+                    # Recursively build each child
+                    nested_child = build_nested_state(child_id)
+                    if nested_child not in nested_children:
+                        nested_children.append(nested_child)
+
+            # Return state with parallel structure
+            # When 'initial' is a LIST, transitions library renders parallel regions
+            result = {
+                'name': state_id,
+                'children': nested_children
+            }
+
+            if initial_states:
+                result['initial'] = initial_states  # LIST triggers parallel rendering
+
+            return result
+
+        elif state_id in hierarchical_states and hierarchical_states[state_id]:
+            # This is a regular composite state - build it with nested children
             nested_children = []
             for child_id in hierarchical_states[state_id]:
                 # Recursively build each child (might also be composite)
