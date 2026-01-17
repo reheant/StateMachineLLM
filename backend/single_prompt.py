@@ -106,7 +106,8 @@ def run_single_prompt(system_prompt, model="anthropic/claude-3.5-sonnet"):
       3. IMPORTANT: The state name in the note MUST match an actual composite state (one with substates defined using "state Name {{ ... }}")
       4. Do NOT use generic terms like "operation", "task", or "previous" - use the actual state name
     - Entry/Exit actions: Use note right of State with entry/exit labels
-
+    - NEVER combine multiple composite states in a single note.
+    - NEVER use phrasing like: “Print or Scan history state”
     History State Example (CORRECT pattern):
     ```
     state Busy {{
