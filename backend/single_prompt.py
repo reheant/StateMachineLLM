@@ -100,8 +100,27 @@ def run_single_prompt(system_prompt, model="anthropic/claude-3.5-sonnet"):
     - Both: event [guard] / action
     - Parallel regions: Use -- separator
     - Hierarchical states: Use state Name {{ ... }} syntax ONLY for composite states (states with substates)
-    - History states: Add a note indicating transition to history state
+    - History states: When a transition should return to the last active substate of a composite state, use this pattern:
+      1. The transition MUST go TO the composite state name (e.g., "Suspended --> Busy : resume")
+      2. Add a note referencing the EXACT composite state name: "note right of Suspended\\n    resume returns to Busy history state\\nend note"
+      3. IMPORTANT: The state name in the note MUST match an actual composite state (one with substates defined using "state Name {{ ... }}")
+      4. Do NOT use generic terms like "operation", "task", or "previous" - use the actual state name
     - Entry/Exit actions: Use note right of State with entry/exit labels
+
+    History State Example (CORRECT pattern):
+    ```
+    state Busy {{
+        [*] --> Processing
+        state Processing
+        Busy --> Paused : pause
+    }}
+    state Paused
+    Paused --> Busy : resume
+    note right of Paused
+        resume returns to Busy history state
+    end note
+    ```
+    In this example: "Busy" is a composite state (has substates), the transition goes TO "Busy", and the note references "Busy" exactly.
 
     The following are examples demonstrating proper Mermaid syntax:
 
