@@ -36,7 +36,8 @@ def choose_openrouter_model():
     print("6. Llama 3.2 3B (meta-llama/llama-3.2-3b-instruct)")
     print("7. Gemini Pro 1.5 (google/gemini-pro-1.5)")
     print("8. Claude Sonnet 4 (anthropic/claude-sonnet-4)")
-    print("9. GPT-5.1 (openai/gpt-5.1)")
+    print("9. Claude Sonnet 4.5 (anthropic/claude-sonnet-4.5)")
+    print("10. GPT-5.1 (openai/gpt-5.1)")
 
     model_map = {
         1: "qwen/qwq-32b",
@@ -47,12 +48,13 @@ def choose_openrouter_model():
         6: "meta-llama/llama-3.2-3b-instruct",
         7: "google/gemini-pro-1.5",
         8: "anthropic/claude-sonnet-4",
-        9: "openai/gpt-5.1",
+        9: "anthropic/claude-sonnet-4.5",
+        10: "openai/gpt-5.1",
     }
 
     while True:
         try:
-            choice = int(input("Enter your choice (1-9): "))
+            choice = int(input("Enter your choice (1-10): "))
             if choice in model_map:
                 return model_map[choice]
             else:

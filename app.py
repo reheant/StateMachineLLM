@@ -20,9 +20,9 @@ def convert_to_openrouter_model(chat_profile):
         "qwen:qwen-2-5-72b-instruct": "qwen/qwen-2.5-72b-instruct",
         "openai:gpt-4o": "openai/gpt-4o",
         "anthropic:claude-3-5-sonnet-20241022": "anthropic/claude-3.5-sonnet", 
+        "anthropic:claude-sonnet-4-5": "anthropic/claude-sonnet-4.5",
         "groq:llama-3.2-3b-preview": "meta-llama/llama-3.2-3b-instruct",
         "google:gemini-1.5-pro-001": "google/gemini-pro-1.5"
-        
     }
     
     return profile_to_openrouter.get(chat_profile, "anthropic/claude-3.5-sonnet")
@@ -54,11 +54,17 @@ async def chat_profile():
             name="groq:llama-3.2-3b-preview",
             markdown_description="The underlying LLM model is Meta's **llama-3.2-3b-preview**.",
             icon="https://picsum.photos/204"
-        ),        cl.ChatProfile(
+        ),
+        cl.ChatProfile(
             name="google:gemini-1.5-pro-001",
             markdown_description="The underlying LLM model is Google's **gemini-1.5-pro**.",
             icon="https://picsum.photos/205"
-        )
+    ),
+        cl.ChatProfile(
+            name="anthropic:claude-sonnet-4-5",
+            markdown_description="The underlying LLM model is Anthropic's **Claude Sonnet 4.5**.",
+            icon="https://picsum.photos/206"
+        ),
     ]
 
 
