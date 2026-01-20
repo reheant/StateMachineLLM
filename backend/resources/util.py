@@ -1,33 +1,18 @@
 import os
-import anthropic
-import groq
-import openai
-from openai import OpenAI
 import graphviz
 import re
 import subprocess
-import re
 import time
+import requests
 from bs4 import BeautifulSoup, Tag
 from transitions.extensions import HierarchicalGraphMachine
 import mermaid as md
 from mermaid.graph import Graph
 from sherpa_ai.memory.state_machine import SherpaStateMachine
-from getpass import getpass
-import aisuite as ai
-from ecologits import EcoLogits
-from .environmental_impact.impact_tracker import tracker
 from .llm_tracker import llm
 
-openai.api_key = os.environ.get("OPENAI_API_KEY")
-groq.api_key = os.environ.get("GROQ_API_KEY")
-anthropic.api_key = os.environ.get("ANTHROPIC_API_KEY")
+# OpenRouter API key for single prompt
 openrouter_api_key = os.environ.get("OPENROUTER_API_KEY")
-
-EcoLogits.init(providers="openai")
-client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
-
-client = ai.Client()
 
 def choose_model():
     ''' Function that inquires the user for the model '''
@@ -57,21 +42,14 @@ def call_llm(prompt, max_tokens=1200, temperature=0.7):
     """
     The call_llm function calls the specified LLM with a specified prompt,
     max_tokens, and temperature, and returns the string response of the LLM
+
+    NOTE: This function requires additional dependencies (aisuite, openai, anthropic, groq).
+    For single prompt approach, use call_openrouter_llm instead.
     """
-    global energy_consumed, carbon_emissions, abiotic_resource_depletion
-    
-    response = client.chat.completions.create(
-        model=llm.current_llm,
-        messages=[{"role": "system", "content": "You are a programming assistant specialized in generating HTML content. Your task is to create a state machine representation using HTML tables."},
-                  {"role": "user", "content": prompt}],
-        temperature=temperature,
-        max_tokens=max_tokens
+    raise NotImplementedError(
+        "call_llm requires additional dependencies (aisuite, openai, anthropic, groq). "
+        "Please use the single prompt approach with call_openrouter_llm, or install the full dependencies."
     )
-
-    if llm.current_llm == "openai:gpt-4o":
-        tracker.update_impacts(response)
-
-    return str (response.choices[0].message.content)
 
 def call_openrouter_llm(prompt, max_tokens=1500, temperature=0.7, model="anthropic/claude-3.5-sonnet"):
     """
