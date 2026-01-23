@@ -216,6 +216,84 @@ def process_umple_attempt_openrouter(
         return "False"
 
 
+def run_test_entry_exit_annotations():
+    """
+    [DEV TEST] Verify entry/exit annotation rendering.
+
+    Bypasses LLM and uses hardcoded mermaid with entry/exit notes.
+    Tests that notes containing "entry / action" or "exit / action"
+    are parsed and displayed as annotations at the bottom of the diagram.
+
+    Expected output annotations:
+    - WashCycle.entry: lockDoor
+    - WashCycle.exit: unlockDoor
+    - Drying.entry: setDryingTime
+    """
+    # Hardcoded mermaid with entry/exit notes (like the dishwasher example)
+    test_mermaid = """stateDiagram-v2
+    [*] --> Idle
+
+    Idle --> ProgramSelection : selectProgram
+    ProgramSelection --> ProgramSelection : adjustDryingTime
+    ProgramSelection --> WashCycle : start [doorClosed]
+
+    state WashCycle {
+        [*] --> WaterIntake
+        WaterIntake --> Washing : tankFull
+        Washing --> Draining : after(10min)
+        Draining --> WaterIntake : [cyclesRemaining]
+        Draining --> Drying : [cyclesComplete]
+    }
+
+    state Drying {
+        [*] --> DryingActive
+        DryingActive --> DryingActive : adjustDryingTime [time < 40min]
+    }
+
+    Drying --> DryingSuspended : doorOpen
+    DryingSuspended --> Drying : doorClose [timeOpen < 5min]
+    DryingSuspended --> Complete : [timeOpen >= 5min]
+    Drying --> Complete : dryingComplete
+
+    note right of DryingSuspended
+        doorClose returns to Drying history state
+    end note
+
+    Complete --> Idle : doorOpen
+
+    note right of WashCycle
+        entry / lockDoor
+        exit / unlockDoor
+    end note
+
+    note right of Drying
+        entry / setDryingTime
+    end note
+"""
+
+    paths = setup_file_paths(os.path.dirname(__file__))
+
+    print("Running TEST: Entry/Exit Annotation Rendering")
+    print("=" * 50)
+    print("Test Mermaid Code:")
+    print(test_mermaid)
+    print("=" * 50)
+
+    try:
+        success = create_single_prompt_gsm_diagram_with_sherpa(
+            test_mermaid,
+            paths["diagram_file_path"]
+        )
+        if success:
+            print(f"TEST PASSED: Diagram saved to {paths['diagram_file_path']}.png")
+        else:
+            print("TEST FAILED: Rendering returned False")
+    except Exception as e:
+        print(f"TEST FAILED: {str(e)}")
+        import traceback
+        traceback.print_exc()
+
+
 if __name__ == "__main__":
     # When run standalone, use interactive model selection
     selected_model = choose_openrouter_model()

@@ -8,7 +8,7 @@ import backend.resources.state_machine_descriptions
 from backend.resources.llm_tracker import llm
 from backend.event_driven_smf.event_driven_smf import run_event_driven_smf
 from backend.simple_linear_smf.simple_linear_smf import run_simple_linear_smf
-from backend.single_prompt import run_single_prompt
+from backend.single_prompt import run_single_prompt, run_test_entry_exit_annotations
 
 def convert_to_openrouter_model(chat_profile):
     """Convert Chainlit chat profile to OpenRouter model name"""
@@ -212,17 +212,48 @@ async def start():
         Now choose your input:
         \n ✍️ 1. Describe your own system
         \n 🤖 2. Try one of our examples
+        \n 🧪 3. Developer tests (for verifying parser features)
         \nWhat would you like to explore?""",
         actions=[
             cl.Action(name="custom", value="custom", payload={}, label="✍️ Describe Your Own System"),
             cl.Action(name="example", value="example", payload={}, label="🤖 Use One Of Our Examples"),
+            cl.Action(name="dev_tests", value="dev_tests", payload={}, label="🧪 Developer Tests"),
         ],
     ).send()
 
     # Extract action name from result
     step1_value = step1.get("name") if step1 else None
 
-    if step1_value == "example":
+    if step1_value == "dev_tests":
+        # Show available developer tests
+        test_choice = await cl.AskActionMessage(
+            content="""
+            🧪 <b>Developer Tests</b>
+            \nThese tests verify specific parser features using hardcoded mermaid (bypasses LLM):
+            \n 1. <b>Entry/Exit Annotations</b>: Tests rendering of entry/exit/do actions from notes
+            """,
+            actions=[
+                cl.Action(name="test_entry_exit", value="test_entry_exit", payload={}, label="🧪 Entry/Exit Annotations"),
+            ],
+        ).send()
+
+        if test_choice:
+            test_name = test_choice.get("name")
+            cl.user_session.set("generation_strategy", "single_prompt")  # Use single_prompt directory
+
+            if test_name == "test_entry_exit":
+                await cl.Message(content="🧪 Running Test: Entry/Exit Annotations...").send()
+
+                async with cl.Step(name="Running Test") as test_step:
+                    stdout_capture = io.StringIO()
+                    with contextlib.redirect_stdout(stdout_capture):
+                        await asyncio.to_thread(run_test_entry_exit_annotations)
+                    test_step.output = stdout_capture.getvalue()
+
+                async with cl.Step(name="Rendering Diagram") as diagram_step:
+                    await display_image()
+
+    elif step1_value == "example":
         step2 = await cl.AskActionMessage(
             content="""
             Choose one of these interesting examples:
