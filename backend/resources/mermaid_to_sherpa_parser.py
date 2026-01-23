@@ -150,11 +150,18 @@ def parse_mermaid_with_library(mermaid_code: str):
         action = None
 
         if label:
-            # Extract action: / {action}
+            # Extract action: supports both "/ {action}" and "/ action" formats
+            # First try with curly braces: / {action}
             action_match = re.search(r'/\s*\{(.+?)\}', label)
             if action_match:
                 action = action_match.group(1)
                 label = re.sub(r'/\s*\{.+?\}', '', label).strip()
+            else:
+                # Try without curly braces: / action (captures until end of string or next special char)
+                action_match = re.search(r'/\s*([^\[\]]+)$', label)
+                if action_match:
+                    action = action_match.group(1).strip()
+                    label = re.sub(r'/\s*[^\[\]]+$', '', label).strip()
 
             # Extract guard: [condition]
             guard_match = re.search(r'\[(.+?)\]', label)
@@ -212,6 +219,15 @@ def parse_mermaid_with_library(mermaid_code: str):
             trans['conditions'] = guard
         if action:
             trans['before'] = action
+
+        # Build label for display on diagram: "trigger [guard] / action"
+        display_label = trigger if trigger else ''
+        if guard:
+            display_label += f' [{guard}]' if display_label else f'[{guard}]'
+        if action:
+            display_label += f' / {action}' if display_label else f'/ {action}'
+        if display_label:
+            trans['label'] = display_label
 
         transitions.append(trans)
 
