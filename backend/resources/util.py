@@ -1153,11 +1153,12 @@ def create_single_prompt_gsm_diagram_with_sherpa(mermaid_code: str, diagram_file
     from .mermaid_to_sherpa_parser import parse_mermaid_with_library
 
     # Parse Mermaid code using mermaid-parser-py library
-    states_list, transitions_list, hierarchical_dict, initial_state, parallel_regions = parse_mermaid_with_library(mermaid_code)
+    states_list, transitions_list, hierarchical_dict, initial_state, parallel_regions, state_annotations = parse_mermaid_with_library(mermaid_code)
 
     print(f"Parsed States: {states_list}")
     print(f"Parsed Transitions: {transitions_list}")
     print(f"Initial State: {initial_state}")
+    print(f"State Annotations: {state_annotations}")
 
     if not initial_state:
         print("Warning: No initial state found, using first state")
@@ -1181,8 +1182,19 @@ def create_single_prompt_gsm_diagram_with_sherpa(mermaid_code: str, diagram_file
         else:
             png_file_path = diagram_file_path
 
+        # Get the graph and add entry/exit annotations as a label
+        graph = gsm.sm.get_graph()
+
+        if state_annotations:
+            # Format annotations as a left-aligned label at the bottom of the diagram
+            annotation_text = "\\l".join(state_annotations) + "\\l"  # \l = left-align in graphviz
+            graph.graph_attr['label'] = annotation_text
+            graph.graph_attr['labelloc'] = 'b'  # bottom
+            graph.graph_attr['labeljust'] = 'l'  # left-justify
+            graph.graph_attr['fontsize'] = '10'
+
         # Generate and render the diagram directly to PNG using graphviz
-        gsm.sm.get_graph().draw(png_file_path, prog='dot', format='png')
+        graph.draw(png_file_path, prog='dot', format='png')
 
         print(f"Sherpa diagram saved to: {png_file_path}")
         return True

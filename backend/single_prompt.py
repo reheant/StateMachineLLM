@@ -105,7 +105,17 @@ def run_single_prompt(system_prompt, model="anthropic/claude-3.5-sonnet"):
       2. Add a note referencing the EXACT composite state name: "note right of Suspended\\n    resume returns to Busy history state\\nend note"
       3. IMPORTANT: The state name in the note MUST match an actual composite state (one with substates defined using "state Name {{ ... }}")
       4. Do NOT use generic terms like "operation", "task", or "previous" - use the actual state name
-    - Entry/Exit actions: Use note right of State with entry/exit labels
+    - Entry/Exit actions: Use notes to specify entry/exit/do actions for states:
+      ```
+      note right of WashCycle
+          entry / lockDoor
+          exit / unlockDoor
+      end note
+
+      note right of Heating
+          do / maintainTemperature
+      end note
+      ```
     - NEVER combine multiple composite states in a single note.
     - NEVER use phrasing like: “Print or Scan history state”
     History State Example (CORRECT pattern):
@@ -295,6 +305,10 @@ def run_test_entry_exit_annotations():
 
 
 if __name__ == "__main__":
-    # When run standalone, use interactive model selection
-    selected_model = choose_openrouter_model()
-    run_single_prompt(description, selected_model)
+    import sys
+    if len(sys.argv) > 1 and sys.argv[1] == "--test-annotations":
+        run_test_entry_exit_annotations()
+    else:
+        # When run standalone, use interactive model selection
+        selected_model = choose_openrouter_model()
+        run_single_prompt(description, selected_model)
