@@ -150,11 +150,18 @@ def parse_mermaid_with_library(mermaid_code: str):
         action = None
 
         if label:
-            # Extract action: / {action}
+            # Extract action: supports both "/ {action}" and "/ action" formats
+            # First try with curly braces: / {action}
             action_match = re.search(r'/\s*\{(.+?)\}', label)
             if action_match:
                 action = action_match.group(1)
                 label = re.sub(r'/\s*\{.+?\}', '', label).strip()
+            else:
+                # Try without curly braces: / action (captures until end of string or next special char)
+                action_match = re.search(r'/\s*([^\[\]]+)$', label)
+                if action_match:
+                    action = action_match.group(1).strip()
+                    label = re.sub(r'/\s*[^\[\]]+$', '', label).strip()
 
             # Extract guard: [condition]
             guard_match = re.search(r'\[(.+?)\]', label)
@@ -212,6 +219,15 @@ def parse_mermaid_with_library(mermaid_code: str):
             trans['conditions'] = guard
         if action:
             trans['before'] = action
+
+        # Build label for display on diagram: "trigger [guard] / action"
+        display_label = trigger if trigger else ''
+        if guard:
+            display_label += f' [{guard}]' if display_label else f'[{guard}]'
+        if action:
+            display_label += f' / {action}' if display_label else f'/ {action}'
+        if display_label:
+            trans['label'] = display_label
 
         transitions.append(trans)
 
@@ -337,7 +353,39 @@ def parse_mermaid_with_library(mermaid_code: str):
         first_state = states_list[0]
         initial_state = first_state if isinstance(first_state, str) else first_state['name']
 
-    return states_list, transitions, hierarchical_states, initial_state, parallel_regions
+    # Step 6: Extract entry/exit annotations from notes
+    # These are notes that contain "entry /" or "exit /" patterns
+    state_annotations = []  # List of "StateName.entry: action" strings
+    for note in result.notes:
+        note_text = note.content
+        target_state = getattr(note.target_state, 'id_', None) if note.target_state else None
+
+        if not target_state:
+            continue
+
+        # Skip history-related notes (already handled)
+        if 'history' in note_text.lower():
+            continue
+
+        # Parse entry actions: "entry / action" or "entry: action"
+        entry_match = re.search(r'entry\s*[:/]\s*(.+?)(?:\n|$)', note_text, re.IGNORECASE)
+        if entry_match:
+            action = entry_match.group(1).strip()
+            state_annotations.append(f"{target_state}.entry: {action}")
+
+        # Parse exit actions: "exit / action" or "exit: action"
+        exit_match = re.search(r'exit\s*[:/]\s*(.+?)(?:\n|$)', note_text, re.IGNORECASE)
+        if exit_match:
+            action = exit_match.group(1).strip()
+            state_annotations.append(f"{target_state}.exit: {action}")
+
+        # Parse do activities: "do / activity" or "do: activity"
+        do_match = re.search(r'do\s*[:/]\s*(.+?)(?:\n|$)', note_text, re.IGNORECASE)
+        if do_match:
+            action = do_match.group(1).strip()
+            state_annotations.append(f"{target_state}.do: {action}")
+
+    return states_list, transitions, hierarchical_states, initial_state, parallel_regions, state_annotations
 
 
 if __name__ == "__main__":
@@ -375,7 +423,7 @@ if __name__ == "__main__":
     print("Testing History State Support")
     print("=" * 50)
 
-    states, transitions, hierarchical, initial, parallel = parse_mermaid_with_library(test_mermaid)
+    states, transitions, hierarchical, initial, parallel, annotations = parse_mermaid_with_library(test_mermaid)
 
     print("\nStates:")
     for s in states:
@@ -386,6 +434,7 @@ if __name__ == "__main__":
     print("\nHierarchical:", hierarchical)
     print("\nInitial:", initial)
     print("\nParallel:", parallel)
+    print("\nAnnotations:", annotations)
 
     # Check if history state was detected
     print("\n" + "=" * 50)
