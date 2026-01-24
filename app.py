@@ -16,13 +16,30 @@ def convert_to_openrouter_model(chat_profile):
         return "anthropic/claude-3.5-sonnet"  # default
     
     profile_to_openrouter = {
+        # Anthropic
+        "anthropic:claude-3-5-sonnet-20241022": "anthropic/claude-3.5-sonnet", 
+        "anthropic:claude-4-5-sonnet": "anthropic/claude-4.5-sonnet",
+        "anthropic:claude-sonnet-4": "anthropic/claude-sonnet-4",
+        # OpenAI
+        "openai:gpt-4o": "openai/gpt-4o",
+        "openai:gpt-4o-mini": "openai/gpt-4o-mini",
+        "openai:gpt-4-turbo": "openai/gpt-4-turbo",
+        "openai:o1": "openai/o1",
+        "openai:o1-mini": "openai/o1-mini",
+        # Google
+        "google:gemini-2-0-flash-exp": "google/gemini-2.0-flash-exp",
+        "google:gemini-1-5-pro-001": "google/gemini-pro-1.5",
+        "google:gemini-1-5-flash": "google/gemini-flash-1.5",
+        # Meta
+        "meta:llama-3-3-70b-instruct": "meta-llama/llama-3.3-70b-instruct",
+        "meta:llama-3-1-405b-instruct": "meta-llama/llama-3.1-405b-instruct",
+        "meta:llama-3-1-70b-instruct": "meta-llama/llama-3.1-70b-instruct",
+        "meta:llama-3-2-3b-instruct": "meta-llama/llama-3.2-3b-instruct",
+        # Qwen
         "qwen:qwq-32b": "qwen/qwq-32b",
         "qwen:qwen-2-5-72b-instruct": "qwen/qwen-2.5-72b-instruct",
-        "openai:gpt-4o": "openai/gpt-4o",
-        "anthropic:claude-3-5-sonnet-20241022": "anthropic/claude-3.5-sonnet", 
+        # Legacy
         "groq:llama-3.2-3b-preview": "meta-llama/llama-3.2-3b-instruct",
-        "google:gemini-1.5-pro-001": "google/gemini-pro-1.5"
-        
     }
     
     return profile_to_openrouter.get(chat_profile, "anthropic/claude-3.5-sonnet")
@@ -30,34 +47,95 @@ def convert_to_openrouter_model(chat_profile):
 @cl.set_chat_profiles
 async def chat_profile():
     return [
+        # Anthropic Models
+        cl.ChatProfile(
+            name="anthropic:claude-3-5-sonnet-20241022",
+            markdown_description="The underlying LLM model is Anthropic's **Claude 3.5 Sonnet**.",
+            icon="https://picsum.photos/203"
+        ),
+        cl.ChatProfile(
+            name="anthropic:claude-4-5-sonnet",
+            markdown_description="The underlying LLM model is Anthropic's **Claude 4.5 Sonnet**.",
+            icon="https://picsum.photos/203"
+        ),
+        cl.ChatProfile(
+            name="anthropic:claude-sonnet-4",
+            markdown_description="The underlying LLM model is Anthropic's **Claude Sonnet 4**.",
+            icon="https://picsum.photos/203"
+        ),
+        # OpenAI Models
+        cl.ChatProfile(
+            name="openai:gpt-4o",
+            markdown_description="The underlying LLM model is OpenAI's **GPT-4o**.",
+            icon="https://picsum.photos/202"
+        ),
+        cl.ChatProfile(
+            name="openai:gpt-4o-mini",
+            markdown_description="The underlying LLM model is OpenAI's **GPT-4o Mini**.",
+            icon="https://picsum.photos/202"
+        ),
+        cl.ChatProfile(
+            name="openai:gpt-4-turbo",
+            markdown_description="The underlying LLM model is OpenAI's **GPT-4 Turbo**.",
+            icon="https://picsum.photos/202"
+        ),
+        cl.ChatProfile(
+            name="openai:o1",
+            markdown_description="The underlying LLM model is OpenAI's **o1** (reasoning model).",
+            icon="https://picsum.photos/202"
+        ),
+        cl.ChatProfile(
+            name="openai:o1-mini",
+            markdown_description="The underlying LLM model is OpenAI's **o1-mini** (reasoning model).",
+            icon="https://picsum.photos/202"
+        ),
+        # Google Models
+        cl.ChatProfile(
+            name="google:gemini-2-0-flash-exp",
+            markdown_description="The underlying LLM model is Google's **Gemini 2.0 Flash** (experimental).",
+            icon="https://picsum.photos/205"
+        ),
+        cl.ChatProfile(
+            name="google:gemini-1-5-pro-001",
+            markdown_description="The underlying LLM model is Google's **Gemini 1.5 Pro**.",
+            icon="https://picsum.photos/205"
+        ),
+        cl.ChatProfile(
+            name="google:gemini-1-5-flash",
+            markdown_description="The underlying LLM model is Google's **Gemini 1.5 Flash**.",
+            icon="https://picsum.photos/205"
+        ),
+        # Meta Models
+        cl.ChatProfile(
+            name="meta:llama-3-3-70b-instruct",
+            markdown_description="The underlying LLM model is Meta's **Llama 3.3 70B Instruct**.",
+            icon="https://picsum.photos/204"
+        ),
+        cl.ChatProfile(
+            name="meta:llama-3-1-405b-instruct",
+            markdown_description="The underlying LLM model is Meta's **Llama 3.1 405B Instruct**.",
+            icon="https://picsum.photos/204"
+        ),
+        cl.ChatProfile(
+            name="meta:llama-3-1-70b-instruct",
+            markdown_description="The underlying LLM model is Meta's **Llama 3.1 70B Instruct**.",
+            icon="https://picsum.photos/204"
+        ),
+        cl.ChatProfile(
+            name="meta:llama-3-2-3b-instruct",
+            markdown_description="The underlying LLM model is Meta's **Llama 3.2 3B Instruct**.",
+            icon="https://picsum.photos/204"
+        ),
+        # Qwen Models
         cl.ChatProfile(
             name="qwen:qwq-32b",
-            markdown_description="The underlying LLM model is Qwen's **qwq-32b**.",
+            markdown_description="The underlying LLM model is Qwen's **QwQ 32B**.",
             icon="https://picsum.photos/200"
         ),
         cl.ChatProfile(
             name="qwen:qwen-2-5-72b-instruct",
-            markdown_description="The underlying LLM model is Qwen's **qwen-2-5-72b-instruct**.",
+            markdown_description="The underlying LLM model is Qwen's **Qwen 2.5 72B Instruct**.",
             icon="https://picsum.photos/201"
-        ),
-        cl.ChatProfile(
-            name="openai:gpt-4o",
-            markdown_description="The underlying LLM model is OpenAI's **gpt-4o**.",
-            icon="https://picsum.photos/202"
-        ),
-        cl.ChatProfile(
-            name="anthropic:claude-3-5-sonnet-20241022",
-            markdown_description="The underlying LLM model is Anthropic's **claude-3-5-sonnet**.",
-            icon="https://picsum.photos/203"
-        ),
-        cl.ChatProfile(
-            name="groq:llama-3.2-3b-preview",
-            markdown_description="The underlying LLM model is Meta's **llama-3.2-3b-preview**.",
-            icon="https://picsum.photos/204"
-        ),        cl.ChatProfile(
-            name="google:gemini-1.5-pro-001",
-            markdown_description="The underlying LLM model is Google's **gemini-1.5-pro**.",
-            icon="https://picsum.photos/205"
         )
     ]
 
