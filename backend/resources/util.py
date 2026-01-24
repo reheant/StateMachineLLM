@@ -1358,6 +1358,7 @@ def create_single_prompt_gsm_diagram_with_sherpa(
         hierarchical_dict,
         initial_state,
         parallel_regions,
+        state_annotations,
     ) = parse_mermaid_with_library(mermaid_code)
 
     

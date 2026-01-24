@@ -432,7 +432,7 @@ if __name__ == "__main__":
     print("Testing History State Support")
     print("=" * 50)
 
-    states, transitions, hierarchical, initial, parallel = parse_mermaid_with_library(
+    states, transitions, hierarchical, initial, parallel, annotations = parse_mermaid_with_library(
         test_mermaid
     )
 
