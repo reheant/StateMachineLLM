@@ -19,7 +19,10 @@ from resources.util import (
     create_single_prompt_gsm_diagram_with_sherpa,
 )
 from resources.state_machine_descriptions import *
-from resources.n_shot_examples_single_prompt_mermaid import get_n_shot_examples, n_shot_examples
+from resources.n_shot_examples_single_prompt_mermaid import (
+    get_n_shot_examples,
+    n_shot_examples,
+)
 
 # Default description if not ran with Chainlit
 description = chess_clock_fall_2019
@@ -28,37 +31,58 @@ description = chess_clock_fall_2019
 def choose_openrouter_model():
     """Function to choose OpenRouter model for single prompt"""
     print("Choose an OpenRouter model for single prompt generation:")
-    print("1. Qwen QwQ 32B (qwen/qwq-32b)")
-    print("2. Qwen 2.5 72B Instruct (qwen/qwen-2.5-72b-instruct)")
-    print("3. Claude 3.5 Sonnet (anthropic/claude-3.5-sonnet)")
+    print("\n=== Anthropic ===")
+    print("1. Claude 3.5 Sonnet (anthropic/claude-3.5-sonnet)")
+    print("2. Claude 4.5 Sonnet (anthropic/claude-4.5-sonnet)")
+    print("3. Claude Sonnet 4 (anthropic/claude-sonnet-4)")
+    print("\n=== OpenAI ===")
     print("4. GPT-4o (openai/gpt-4o)")
     print("5. GPT-4o Mini (openai/gpt-4o-mini)")
-    print("6. Llama 3.2 3B (meta-llama/llama-3.2-3b-instruct)")
-    print("7. Gemini Pro 1.5 (google/gemini-pro-1.5)")
-    print("8. Claude Sonnet 4 (anthropic/claude-sonnet-4)")
-    print("9. GPT-5.1 (openai/gpt-5.1)")
+    print("6. GPT-4 Turbo (openai/gpt-4-turbo)")
+    print("7. o1 (openai/o1)")
+    print("8. o1-mini (openai/o1-mini)")
+    print("\n=== Google ===")
+    print("9. Gemini 2.0 Flash (google/gemini-2.0-flash-exp)")
+    print("10. Gemini 1.5 Pro (google/gemini-pro-1.5)")
+    print("11. Gemini 1.5 Flash (google/gemini-flash-1.5)")
+    print("\n=== Meta ===")
+    print("12. Llama 3.3 70B (meta-llama/llama-3.3-70b-instruct)")
+    print("13. Llama 3.1 405B (meta-llama/llama-3.1-405b-instruct)")
+    print("14. Llama 3.1 70B (meta-llama/llama-3.1-70b-instruct)")
+    print("15. Llama 3.2 3B (meta-llama/llama-3.2-3b-instruct)")
+    print("\n=== Qwen ===")
+    print("16. Qwen QwQ 32B (qwen/qwq-32b)")
+    print("17. Qwen 2.5 72B (qwen/qwen-2.5-72b-instruct)")
 
     model_map = {
-        1: "qwen/qwq-32b",
-        2: "qwen/qwen-2.5-72b-instruct",
-        3: "anthropic/claude-3.5-sonnet",
+        1: "anthropic/claude-3.5-sonnet",
+        2: "anthropic/claude-4.5-sonnet",
+        3: "anthropic/claude-sonnet-4",
         4: "openai/gpt-4o",
         5: "openai/gpt-4o-mini",
-        6: "meta-llama/llama-3.2-3b-instruct",
-        7: "google/gemini-pro-1.5",
-        8: "anthropic/claude-sonnet-4",
-        9: "openai/gpt-5.1",
+        6: "openai/gpt-4-turbo",
+        7: "openai/o1",
+        8: "openai/o1-mini",
+        9: "google/gemini-2.0-flash-exp",
+        10: "google/gemini-pro-1.5",
+        11: "google/gemini-flash-1.5",
+        12: "meta-llama/llama-3.3-70b-instruct",
+        13: "meta-llama/llama-3.1-405b-instruct",
+        14: "meta-llama/llama-3.1-70b-instruct",
+        15: "meta-llama/llama-3.2-3b-instruct",
+        16: "qwen/qwq-32b",
+        17: "qwen/qwen-2.5-72b-instruct",
     }
 
     while True:
         try:
-            choice = int(input("Enter your choice (1-9): "))
+            choice = int(input("Enter your choice (1-17): "))
             if choice in model_map:
                 return model_map[choice]
             else:
-                print("Invalid choice. Please enter 1-9.")
+                print("Invalid choice. Please enter 1-17.")
         except ValueError:
-            print("Invalid input. Please enter a number (1-9).")
+            print("Invalid input. Please enter a number (1-17).")
 
 
 def run_single_prompt(system_prompt, model="anthropic/claude-3.5-sonnet"):
@@ -144,7 +168,11 @@ def run_single_prompt(system_prompt, model="anthropic/claude-3.5-sonnet"):
             print(f"Generation completed successfully!")
             break
         else:
-            print(f"Attempt {i+1}/5 failed, retrying..." if i < 4 else "All attempts failed.")
+            print(
+                f"Attempt {i+1}/5 failed, retrying..."
+                if i < 4
+                else "All attempts failed."
+            )
 
 
 def process_umple_attempt_openrouter(
@@ -179,7 +207,9 @@ def process_umple_attempt_openrouter(
             print(f"Error: {str(e)}")
             return "False"
 
-        print(f"Attempt {i} at extracting mermaid code successful\nGenerated mermaid code:")
+        print(
+            f"Attempt {i} at extracting mermaid code successful\nGenerated mermaid code:"
+        )
         print(generated_mermaid_code)
 
         # Log generated code
@@ -192,8 +222,7 @@ def process_umple_attempt_openrouter(
             print(f"Rendering diagram with Sherpa from generated Mermaid code")
             print(f"Output diagram to: {paths['diagram_file_path']}")
             success = create_single_prompt_gsm_diagram_with_sherpa(
-                generated_mermaid_code,
-                paths["diagram_file_path"]
+                generated_mermaid_code, paths["diagram_file_path"]
             )
             if not success:
                 raise Exception("Sherpa rendering returned False")
