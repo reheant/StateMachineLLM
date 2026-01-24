@@ -220,7 +220,7 @@ def process_umple_attempt_openrouter(
         print(
             f"Attempt {i} at extracting mermaid code successful\nGenerated mermaid code:"
         )
-        print(generated_mermaid_code)
+        print(f"```mermaid\n{generated_mermaid_code}\n```")
 
         # Log generated code
         with open(paths["log_file_path"], "a") as file:
