@@ -129,7 +129,17 @@ def run_single_prompt(system_prompt, model="anthropic/claude-3.5-sonnet"):
       2. Add a note referencing the EXACT composite state name: "note right of Suspended\\n    resume returns to Busy history state\\nend note"
       3. IMPORTANT: The state name in the note MUST match an actual composite state (one with substates defined using "state Name {{ ... }}")
       4. Do NOT use generic terms like "operation", "task", or "previous" - use the actual state name
-    - Entry/Exit actions: Use note right of State with entry/exit labels
+    - Entry/Exit actions: Use notes to specify entry/exit/do actions for states:
+      ```
+      note right of WashCycle
+          entry / lockDoor
+          exit / unlockDoor
+      end note
+
+      note right of Heating
+          do / maintainTemperature
+      end note
+      ```
     - NEVER combine multiple composite states in a single note.
     - NEVER use phrasing like: “Print or Scan history state”
     History State Example (CORRECT pattern):
@@ -245,7 +255,89 @@ def process_umple_attempt_openrouter(
         return "False"
 
 
+def run_test_entry_exit_annotations():
+    """
+    [DEV TEST] Verify entry/exit annotation rendering.
+
+    Bypasses LLM and uses hardcoded mermaid with entry/exit notes.
+    Tests that notes containing "entry / action" or "exit / action"
+    are parsed and displayed as annotations at the bottom of the diagram.
+
+    Expected output annotations:
+    - WashCycle.entry: lockDoor
+    - WashCycle.exit: unlockDoor
+    - Drying.entry: setDryingTime
+    """
+    # Hardcoded mermaid with entry/exit notes (like the dishwasher example)
+    test_mermaid = """stateDiagram-v2
+    [*] --> Idle
+
+    Idle --> ProgramSelection : selectProgram
+    ProgramSelection --> ProgramSelection : adjustDryingTime
+    ProgramSelection --> WashCycle : start [doorClosed]
+
+    state WashCycle {
+        [*] --> WaterIntake
+        WaterIntake --> Washing : tankFull
+        Washing --> Draining : after(10min)
+        Draining --> WaterIntake : [cyclesRemaining]
+        Draining --> Drying : [cyclesComplete]
+    }
+
+    state Drying {
+        [*] --> DryingActive
+        DryingActive --> DryingActive : adjustDryingTime [time < 40min]
+    }
+
+    Drying --> DryingSuspended : doorOpen
+    DryingSuspended --> Drying : doorClose [timeOpen < 5min]
+    DryingSuspended --> Complete : [timeOpen >= 5min]
+    Drying --> Complete : dryingComplete
+
+    note right of DryingSuspended
+        doorClose returns to Drying history state
+    end note
+
+    Complete --> Idle : doorOpen
+
+    note right of WashCycle
+        entry / lockDoor
+        exit / unlockDoor
+    end note
+
+    note right of Drying
+        entry / setDryingTime
+    end note
+"""
+
+    paths = setup_file_paths(os.path.dirname(__file__))
+
+    print("Running TEST: Entry/Exit Annotation Rendering")
+    print("=" * 50)
+    print("Test Mermaid Code:")
+    print(test_mermaid)
+    print("=" * 50)
+
+    try:
+        success = create_single_prompt_gsm_diagram_with_sherpa(
+            test_mermaid,
+            paths["diagram_file_path"]
+        )
+        if success:
+            print(f"TEST PASSED: Diagram saved to {paths['diagram_file_path']}.png")
+        else:
+            print("TEST FAILED: Rendering returned False")
+    except Exception as e:
+        print(f"TEST FAILED: {str(e)}")
+        import traceback
+        traceback.print_exc()
+
+
 if __name__ == "__main__":
-    # When run standalone, use interactive model selection
-    selected_model = choose_openrouter_model()
-    run_single_prompt(description, selected_model)
+    import sys
+    if len(sys.argv) > 1 and sys.argv[1] == "--test-annotations":
+        run_test_entry_exit_annotations()
+    else:
+        # When run standalone, use interactive model selection
+        selected_model = choose_openrouter_model()
+        run_single_prompt(description, selected_model)

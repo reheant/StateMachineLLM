@@ -1198,144 +1198,144 @@ def graphVizGeneration(generated_umple_gv_path, diagram_file_path: str):
     graph.render(diagram_file_path, format="png")
 
 
-# TODO: sherpa parser might be able to do the below
-def parse_mermaid_to_sherpa_format(mermaid_code: str):
-    """
-    Parse Mermaid stateDiagram-v2 syntax and extract states, transitions, and hierarchical relationships
-    Returns: (states_list, transitions_list, hierarchical_dict, initial_state, parallel_regions)
-    """
-    lines = mermaid_code.strip().split("\n")
-    states = set()
-    transitions = []
-    hierarchical_states = {}  # parent -> [children]
-    parallel_regions = []
-    initial_state = None
-    current_parent_stack = []  # Track nested hierarchy
-
-    for line in lines:
-        line = line.strip()
-
-        # Skip empty lines, comments, and the header
-        if not line or line.startswith("stateDiagram") or line.startswith("note"):
-            continue
-
-        # Handle state block opening: "state StateName {"
-        if re.match(r"state\s+(\w+)\s*\{", line):
-            state_name_match = re.search(r"state\s+(\w+)\s*\{", line)
-            if state_name_match:
-                parent_state = state_name_match.group(1)
-                states.add(parent_state)
-                current_parent_stack.append(parent_state)
-                if parent_state not in hierarchical_states:
-                    hierarchical_states[parent_state] = []
-            continue
-
-        # Handle closing braces (end of state block)
-        if line == "}":
-            if current_parent_stack:
-                current_parent_stack.pop()
-            continue
-
-        # Handle parallel region separator
-        if line == "--":
-            continue
-
-        # Handle initial state: "[*] --> StateName"
-        initial_match = re.match(r"\[\*\]\s*-->\s*(\w+)", line)
-        if initial_match:
-            target_state = initial_match.group(1)
-            states.add(target_state)
-
-            # If we're inside a parent state, this is the child's initial state
-            if current_parent_stack:
-                parent = current_parent_stack[-1]
-                if parent not in hierarchical_states:
-                    hierarchical_states[parent] = []
-                if target_state not in hierarchical_states[parent]:
-                    hierarchical_states[parent].append(target_state)
-            else:
-                # Top-level initial state
-                initial_state = target_state
-            continue
-
-        # Handle transitions: "StateA --> StateB : event [guard] / action"
-        transition_match = re.match(r"(\w+)\s*-->\s*(\w+)(?:\s*:\s*(.+))?", line)
-        if transition_match:
-            from_state = transition_match.group(1)
-            to_state = transition_match.group(2)
-            label = transition_match.group(3) if transition_match.group(3) else None
-
-            states.add(from_state)
-            states.add(to_state)
-
-            # Add to hierarchical states if inside a parent
-            if current_parent_stack:
-                parent = current_parent_stack[-1]
-                if parent not in hierarchical_states:
-                    hierarchical_states[parent] = []
-                for state in [from_state, to_state]:
-                    if state not in hierarchical_states[parent]:
-                        hierarchical_states[parent].append(state)
-
-            # Parse transition label for event, guard, and action
-            trigger = None
-            guard = None
-            action = None
-
-            if label:
-                # Extract action: / {action}
-                action_match = re.search(r"/\s*\{(.+?)\}", label)
-                if action_match:
-                    action = action_match.group(1)
-                    label = re.sub(r"/\s*\{.+?\}", "", label).strip()
-
-                # Extract guard: [condition]
-                guard_match = re.search(r"\[(.+?)\]", label)
-                if guard_match:
-                    guard = guard_match.group(1)
-                    label = re.sub(r"\[.+?\]", "", label).strip()
-
-                # What remains is the trigger/event
-                trigger = label.strip() if label.strip() else None
-
-            # Format state names with parent prefix for pytransitions
-            if current_parent_stack:
-                from_formatted = "_".join(current_parent_stack + [from_state])
-                to_formatted = "_".join(current_parent_stack + [to_state])
-            else:
-                from_formatted = from_state
-                to_formatted = to_state
-
-            transition = {
-                "trigger": trigger if trigger else "auto",
-                "source": from_formatted,
-                "dest": to_formatted,
-            }
-
-            if guard:
-                transition["conditions"] = guard
-            if action:
-                transition["before"] = action
-
-            transitions.append(transition)
-
-    # Convert hierarchical_states to the format needed for Sherpa
-    states_list = []
-    for state in states:
-        if state in hierarchical_states:
-            # This is a composite state
-            states_list.append({"name": state, "children": hierarchical_states[state]})
-        elif not any(state in children for children in hierarchical_states.values()):
-            # This is a simple state (not a child of any parent)
-            states_list.append(state)
-
-    return (
-        states_list,
-        transitions,
-        hierarchical_states,
-        initial_state,
-        parallel_regions,
-    )
+# NOTE: parse_mermaid_to_sherpa_format is DEAD CODE NOW.
+# The single prompt flow uses parse_mermaid_with_library from mermaid_to_sherpa_parser.py instead.
+# Commented out for now, the other formnats technically still rely on this. 
+#
+# def parse_mermaid_to_sherpa_format(mermaid_code: str):
+#     """
+#     Parse Mermaid stateDiagram-v2 syntax and extract states, transitions, and hierarchical relationships
+#     Returns: (states_list, transitions_list, hierarchical_dict, initial_state, parallel_regions)
+#     """
+#     lines = mermaid_code.strip().split('\n')
+#     states = set()
+#     transitions = []
+#     hierarchical_states = {}  # parent -> [children]
+#     parallel_regions = []
+#     initial_state = None
+#     current_parent_stack = []  # Track nested hierarchy
+#
+#     for line in lines:
+#         line = line.strip()
+#
+#         # Skip empty lines, comments, and the header
+#         if not line or line.startswith('stateDiagram') or line.startswith('note'):
+#             continue
+#
+#         # Handle state block opening: "state StateName {"
+#         if re.match(r'state\s+(\w+)\s*\{', line):
+#             state_name_match = re.search(r'state\s+(\w+)\s*\{', line)
+#             if state_name_match:
+#                 parent_state = state_name_match.group(1)
+#                 states.add(parent_state)
+#                 current_parent_stack.append(parent_state)
+#                 if parent_state not in hierarchical_states:
+#                     hierarchical_states[parent_state] = []
+#             continue
+#
+#         # Handle closing braces (end of state block)
+#         if line == '}':
+#             if current_parent_stack:
+#                 current_parent_stack.pop()
+#             continue
+#
+#         # Handle parallel region separator
+#         if line == '--':
+#             continue
+#
+#         # Handle initial state: "[*] --> StateName"
+#         initial_match = re.match(r'\[\*\]\s*-->\s*(\w+)', line)
+#         if initial_match:
+#             target_state = initial_match.group(1)
+#             states.add(target_state)
+#
+#             # If we're inside a parent state, this is the child's initial state
+#             if current_parent_stack:
+#                 parent = current_parent_stack[-1]
+#                 if parent not in hierarchical_states:
+#                     hierarchical_states[parent] = []
+#                 if target_state not in hierarchical_states[parent]:
+#                     hierarchical_states[parent].append(target_state)
+#             else:
+#                 # Top-level initial state
+#                 initial_state = target_state
+#             continue
+#
+#         # Handle transitions: "StateA --> StateB : event [guard] / action"
+#         transition_match = re.match(r'(\w+)\s*-->\s*(\w+)(?:\s*:\s*(.+))?', line)
+#         if transition_match:
+#             from_state = transition_match.group(1)
+#             to_state = transition_match.group(2)
+#             label = transition_match.group(3) if transition_match.group(3) else None
+#
+#             states.add(from_state)
+#             states.add(to_state)
+#
+#             # Add to hierarchical states if inside a parent
+#             if current_parent_stack:
+#                 parent = current_parent_stack[-1]
+#                 if parent not in hierarchical_states:
+#                     hierarchical_states[parent] = []
+#                 for state in [from_state, to_state]:
+#                     if state not in hierarchical_states[parent]:
+#                         hierarchical_states[parent].append(state)
+#
+#             # Parse transition label for event, guard, and action
+#             trigger = None
+#             guard = None
+#             action = None
+#
+#             if label:
+#                 # Extract action: / {action}
+#                 action_match = re.search(r'/\s*\{(.+?)\}', label)
+#                 if action_match:
+#                     action = action_match.group(1)
+#                     label = re.sub(r'/\s*\{.+?\}', '', label).strip()
+#
+#                 # Extract guard: [condition]
+#                 guard_match = re.search(r'\[(.+?)\]', label)
+#                 if guard_match:
+#                     guard = guard_match.group(1)
+#                     label = re.sub(r'\[.+?\]', '', label).strip()
+#
+#                 # What remains is the trigger/event
+#                 trigger = label.strip() if label.strip() else None
+#
+#             # Format state names with parent prefix for pytransitions
+#             if current_parent_stack:
+#                 from_formatted = '_'.join(current_parent_stack + [from_state])
+#                 to_formatted = '_'.join(current_parent_stack + [to_state])
+#             else:
+#                 from_formatted = from_state
+#                 to_formatted = to_state
+#
+#             transition = {
+#                 'trigger': trigger if trigger else 'auto',
+#                 'source': from_formatted,
+#                 'dest': to_formatted
+#             }
+#
+#             if guard:
+#                 transition['conditions'] = guard
+#             if action:
+#                 transition['before'] = action
+#
+#             transitions.append(transition)
+#
+#     # Convert hierarchical_states to the format needed for Sherpa
+#     states_list = []
+#     for state in states:
+#         if state in hierarchical_states:
+#             # This is a composite state
+#             states_list.append({
+#                 'name': state,
+#                 'children': hierarchical_states[state]
+#             })
+#         elif not any(state in children for children in hierarchical_states.values()):
+#             # This is a simple state (not a child of any parent)
+#             states_list.append(state)
+#
+#     return states_list, transitions, hierarchical_states, initial_state, parallel_regions
 
 
 def create_single_prompt_gsm_diagram_with_sherpa(
@@ -1364,6 +1364,7 @@ def create_single_prompt_gsm_diagram_with_sherpa(
     print(f"Parsed States: {states_list}")
     print(f"Parsed Transitions: {transitions_list}")
     print(f"Initial State: {initial_state}")
+    print(f"State Annotations: {state_annotations}")
 
     if not initial_state:
         print("Warning: No initial state found, using first state")
@@ -1391,8 +1392,19 @@ def create_single_prompt_gsm_diagram_with_sherpa(
         else:
             png_file_path = diagram_file_path
 
+        # Get the graph and add entry/exit annotations as a label
+        graph = gsm.sm.get_graph()
+
+        if state_annotations:
+            # Format annotations as a left-aligned label at the bottom of the diagram
+            annotation_text = "\\l".join(state_annotations) + "\\l"  # \l = left-align in graphviz
+            graph.graph_attr['label'] = annotation_text
+            graph.graph_attr['labelloc'] = 'b'  # bottom
+            graph.graph_attr['labeljust'] = 'l'  # left-justify
+            graph.graph_attr['fontsize'] = '10'
+
         # Generate and render the diagram directly to PNG using graphviz
-        gsm.sm.get_graph().draw(png_file_path, prog="dot", format="png")
+        graph.draw(png_file_path, prog='dot', format='png')
 
         print(f"Sherpa diagram saved to: {png_file_path}")
         return True
