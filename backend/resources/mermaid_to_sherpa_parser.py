@@ -5,6 +5,7 @@ This is the UPDATED version that uses StateDiagramConverter instead of raw Merma
 which gives us the correct parent_id relationships and nearest common ancestor logic.
 Includes support for shallow history states (displayed as "H" pseudo-states).
 """
+
 import re
 import sys
 from mermaid_parser.converters.state_diagram import StateDiagramConverter
@@ -29,7 +30,9 @@ def parse_mermaid_with_library(mermaid_code: str):
     converter = StateDiagramConverter()
     result = converter.convert(mermaid_code)
 
-    debug_print(f"Converter returned {len(result.states)} states, {len(result.transitions)} transitions, {len(result.notes)} notes")
+    debug_print(
+        f"Converter returned {len(result.states)} states, {len(result.transitions)} transitions, {len(result.notes)} notes"
+    )
 
     # Track states and their hierarchical relationships
     # Use scoped_id as the unique key to handle same-named states in different scopes
@@ -42,33 +45,43 @@ def parse_mermaid_with_library(mermaid_code: str):
     scoped_to_bare = {}  # scoped_id -> bare id_ mapping
 
     # Track history states from the converter result
-    history_states_map = getattr(result, 'history_states', {})  # composite_id -> HistoryState
-    history_transitions_map = getattr(result, 'history_transitions', {})  # (from, trigger) -> composite
+    history_states_map = getattr(
+        result, "history_states", {}
+    )  # composite_id -> HistoryState
+    history_transitions_map = getattr(
+        result, "history_transitions", {}
+    )  # (from, trigger) -> composite
 
     # Debug output for history states
-    debug_print(f"History states map from converter: {list(history_states_map.keys()) if history_states_map else 'EMPTY'}")
-    debug_print(f"History transitions map: {history_transitions_map if history_transitions_map else 'EMPTY'}")
+    debug_print(
+        f"History states map from converter: {list(history_states_map.keys()) if history_states_map else 'EMPTY'}"
+    )
+    debug_print(
+        f"History transitions map: {history_transitions_map if history_transitions_map else 'EMPTY'}"
+    )
 
     # Step 1: Build state mappings from converter output
     for state in result.states:
-        state_id = getattr(state, 'id_', None)
-        parent_id = getattr(state, 'parent_id', None)
+        state_id = getattr(state, "id_", None)
+        parent_id = getattr(state, "parent_id", None)
         # Use scoped_id if available, otherwise fall back to state_id
-        scoped_id = getattr(state, 'scoped_id', state_id)
+        scoped_id = getattr(state, "scoped_id", state_id)
 
         if not state_id:
             continue
 
         # Skip start/end markers and internal markers
-        if (state_id.endswith('_start') or
-            state_id.endswith('_end') or
-            state_id == '[*]' or
-            '----note-' in state_id or
-            '----parent' in state_id):
+        if (
+            state_id.endswith("_start")
+            or state_id.endswith("_end")
+            or state_id == "[*]"
+            or "----note-" in state_id
+            or "----parent" in state_id
+        ):
             continue
 
         # Skip HistoryState objects - they will be added as children of their parent composite
-        if isinstance(state, HistoryState) or getattr(state, 'is_history_state', False):
+        if isinstance(state, HistoryState) or getattr(state, "is_history_state", False):
             continue
 
         # Use scoped_id as the unique key
@@ -87,61 +100,50 @@ def parse_mermaid_with_library(mermaid_code: str):
 
         # Initialize children list for composite states
         state_type = type(state).__name__
-        if state_type in ['Composite', 'Concurrent']:
+        if state_type in ["Composite", "Concurrent"]:
             if state_id not in hierarchical_states:
                 hierarchical_states[state_id] = []
 
         # Check for parallel regions
-        if hasattr(state, 'parallel_regions') and state.parallel_regions:
-            parallel_regions.append({
-                'parent': state_id,
-                'regions': state.parallel_regions
-            })
+        if hasattr(state, "parallel_regions") and state.parallel_regions:
+            parallel_regions.append(
+                {"parent": state_id, "regions": state.parallel_regions}
+            )
 
-    # Step 2: Find initial state from transitions
-    for transition in result.transitions:
-        from_state = getattr(transition, 'from_state', None)
-        to_state = getattr(transition, 'to_state', None)
+    # Step 2: Get initial state from converter result
+    # The converter now extracts root_initial_state and initial_states for us
+    root_initial_state = getattr(result, "root_initial_state", None)
+    nested_initial_states = getattr(result, "initial_states", {})
 
-        if not from_state or not to_state:
-            continue
+    debug_print(f"Root initial state from converter: {root_initial_state}")
+    debug_print(f"Nested initial states from converter: {nested_initial_states}")
 
-        from_id = getattr(from_state, 'id_', None)
-        to_id = getattr(to_state, 'id_', None)
-
-        # Handle initial state (from root_start or [*])
-        if from_id in ['root_start', '[*]']:
-            if not initial_state:
-                initial_state = to_id
-            continue
-
-        # Skip transitions from/to start markers
-        if (from_id and (from_id.endswith('_start') or from_id == '[*]')) or \
-           (to_id and (to_id.endswith('_start') or to_id == '[*]')):
-            continue
+    # Use root_initial_state if available
+    if root_initial_state:
+        initial_state = root_initial_state
 
     # Step 3: Convert transitions to Sherpa format
     for transition in result.transitions:
-        from_state = getattr(transition, 'from_state', None)
-        to_state = getattr(transition, 'to_state', None)
-        label = getattr(transition, 'label', '')
+        from_state = getattr(transition, "from_state", None)
+        to_state = getattr(transition, "to_state", None)
+        label = getattr(transition, "label", "")
 
         if not from_state or not to_state:
             continue
 
-        from_id = getattr(from_state, 'id_', None)
-        to_id = getattr(to_state, 'id_', None)
+        from_id = getattr(from_state, "id_", None)
+        to_id = getattr(to_state, "id_", None)
         # Use scoped_id which already contains the full hierarchical path
         # This correctly handles same-named states in different scopes (e.g., parallel regions)
-        from_scoped = getattr(from_state, 'scoped_id', from_id)
-        to_scoped = getattr(to_state, 'scoped_id', to_id)
+        from_scoped = getattr(from_state, "scoped_id", from_id)
+        to_scoped = getattr(to_state, "scoped_id", to_id)
 
         # Skip start/end markers
         if not from_id or not to_id:
             continue
-        if from_id in ['root_start', '[*]'] or from_id.endswith('_start'):
+        if from_id in ["root_start", "[*]"] or from_id.endswith("_start"):
             continue
-        if to_id.endswith('_start') or to_id == '[*]':
+        if to_id.endswith("_start") or to_id == "[*]":
             continue
 
         # Parse transition label for trigger, guard, and action
@@ -151,16 +153,16 @@ def parse_mermaid_with_library(mermaid_code: str):
 
         if label:
             # Extract action: / {action}
-            action_match = re.search(r'/\s*\{(.+?)\}', label)
+            action_match = re.search(r"/\s*\{(.+?)\}", label)
             if action_match:
                 action = action_match.group(1)
-                label = re.sub(r'/\s*\{.+?\}', '', label).strip()
+                label = re.sub(r"/\s*\{.+?\}", "", label).strip()
 
             # Extract guard: [condition]
-            guard_match = re.search(r'\[(.+?)\]', label)
+            guard_match = re.search(r"\[(.+?)\]", label)
             if guard_match:
                 guard = guard_match.group(1)
-                label = re.sub(r'\[.+?\]', '', label).strip()
+                label = re.sub(r"\[.+?\]", "", label).strip()
 
             # What remains is the trigger/event
             trigger = label.strip() if label.strip() else None
@@ -173,7 +175,7 @@ def parse_mermaid_with_library(mermaid_code: str):
             if not scoped_id:
                 return bare_id
             # Remove region markers (e.g., _region_0_, _region_1_)
-            normalized = re.sub(r'_region_\d+', '', scoped_id)
+            normalized = re.sub(r"_region_\d+", "", scoped_id)
             return normalized
 
         # Format source and destination using scoped_id (already contains full path)
@@ -181,11 +183,11 @@ def parse_mermaid_with_library(mermaid_code: str):
         end_formatted = normalize_scoped_path(to_scoped, to_id)
 
         # Check if this is a history transition (destination is a HistoryState)
-        is_history_transition = getattr(transition, 'is_history_transition', False)
+        is_history_transition = getattr(transition, "is_history_transition", False)
         if is_history_transition or isinstance(to_state, HistoryState):
             # The destination should be the H pseudo-state inside the parent composite
             # HistoryState has parent_state_id attribute
-            parent_composite = getattr(to_state, 'parent_state_id', None)
+            parent_composite = getattr(to_state, "parent_state_id", None)
             if parent_composite:
                 # Find the full hierarchical path to the composite state
                 # Look up the composite's scoped path from all_states
@@ -200,18 +202,20 @@ def parse_mermaid_with_library(mermaid_code: str):
                     end_formatted = f"{composite_full_path}_H"
                 else:
                     end_formatted = f"{parent_composite}_H"
-                debug_print(f"Transition {start_formatted} -> {end_formatted} (history of {parent_composite})")
+                debug_print(
+                    f"Transition {start_formatted} -> {end_formatted} (history of {parent_composite})"
+                )
 
         trans = {
-            'trigger': trigger if trigger else 'auto',
-            'source': start_formatted,
-            'dest': end_formatted
+            "trigger": trigger if trigger else "auto",
+            "source": start_formatted,
+            "dest": end_formatted,
         }
 
         if guard:
-            trans['conditions'] = guard
+            trans["conditions"] = guard
         if action:
-            trans['before'] = action
+            trans["before"] = action
 
         transitions.append(trans)
 
@@ -220,10 +224,12 @@ def parse_mermaid_with_library(mermaid_code: str):
 
     # Debug: Print hierarchical structure
     debug_print(f"Hierarchical states: {hierarchical_states}")
-    debug_print(f"History states to add H: {list(history_states_map.keys()) if history_states_map else 'NONE'}")
+    debug_print(
+        f"History states to add H: {list(history_states_map.keys()) if history_states_map else 'NONE'}"
+    )
 
     # Create a lookup for parallel region info by parent state
-    parallel_info_by_state = {p['parent']: p['regions'] for p in parallel_regions}
+    parallel_info_by_state = {p["parent"]: p["regions"] for p in parallel_regions}
 
     def build_nested_state(state_id):
         """Recursively build nested state structure, including history pseudo-states"""
@@ -233,19 +239,21 @@ def parse_mermaid_with_library(mermaid_code: str):
 
             # Collect all children from all regions (excluding start states)
             nested_children = []
-            parallel_region_children = []  # Track the composite children that form parallel regions
+            parallel_region_children = (
+                []
+            )  # Track the composite children that form parallel regions
 
             for region in regions:
-                region_initial = region.get('initial')
+                region_initial = region.get("initial")
 
-                for child_id, child_state in region['states'].items():
+                for child_id, child_state in region["states"].items():
                     # Skip start states (they have generated IDs like "divider-id-1_start")
-                    if child_id.endswith('_start') or child_id == '[*]':
+                    if child_id.endswith("_start") or child_id == "[*]":
                         continue
 
                     # Only add states whose parent is the current state (state_id)
                     # This prevents adding nested children at the wrong level
-                    child_parent = getattr(child_state, 'parent_id', None)
+                    child_parent = getattr(child_state, "parent_id", None)
                     if child_parent != state_id:
                         continue
 
@@ -255,7 +263,7 @@ def parse_mermaid_with_library(mermaid_code: str):
                         nested_children.append(nested_child)
                         # If this child is a composite state (dict), track it as a parallel region child
                         if isinstance(nested_child, dict):
-                            parallel_region_children.append(nested_child['name'])
+                            parallel_region_children.append(nested_child["name"])
 
             # Add history pseudo-state "H" if this composite state has history
             if state_id in history_states_map:
@@ -264,15 +272,14 @@ def parse_mermaid_with_library(mermaid_code: str):
 
             # Return state with parallel structure
             # When 'initial' is a LIST, transitions library renders parallel regions
-            result = {
-                'name': state_id,
-                'children': nested_children
-            }
+            result = {"name": state_id, "children": nested_children}
 
             # For parallel regions, the initial should be the composite children (e.g., ['Sauna', 'Jacuzzi'])
             # Each composite child should have its own internal initial state
             if parallel_region_children:
-                result['initial'] = parallel_region_children  # LIST triggers parallel rendering
+                result["initial"] = (
+                    parallel_region_children  # LIST triggers parallel rendering
+                )
 
             return result
 
@@ -289,19 +296,19 @@ def parse_mermaid_with_library(mermaid_code: str):
                 nested_children.append("H")
                 debug_print(f"Added 'H' to composite state: {state_id}")
 
-            result = {
-                'name': state_id,
-                'children': nested_children
-            }
+            result = {"name": state_id, "children": nested_children}
 
             # Try to find initial state for this composite from parallel regions info
             # The initial state is typically the first child or specified in region info
             for p in parallel_regions:
-                for region in p['regions']:
-                    if state_id in region.get('states', {}):
-                        region_initial = region.get('initial')
-                        if region_initial and region_initial in hierarchical_states.get(state_id, []):
-                            result['initial'] = region_initial
+                for region in p["regions"]:
+                    if state_id in region.get("states", {}):
+                        region_initial = region.get("initial")
+                        if (
+                            region_initial
+                            and region_initial in hierarchical_states.get(state_id, [])
+                        ):
+                            result["initial"] = region_initial
                             break
 
             return result
@@ -335,9 +342,17 @@ def parse_mermaid_with_library(mermaid_code: str):
     if not initial_state and states_list:
         # Use first state
         first_state = states_list[0]
-        initial_state = first_state if isinstance(first_state, str) else first_state['name']
+        initial_state = (
+            first_state if isinstance(first_state, str) else first_state["name"]
+        )
 
-    return states_list, transitions, hierarchical_states, initial_state, parallel_regions
+    return (
+        states_list,
+        transitions,
+        hierarchical_states,
+        initial_state,
+        parallel_regions,
+    )
 
 
 if __name__ == "__main__":
@@ -375,7 +390,9 @@ if __name__ == "__main__":
     print("Testing History State Support")
     print("=" * 50)
 
-    states, transitions, hierarchical, initial, parallel = parse_mermaid_with_library(test_mermaid)
+    states, transitions, hierarchical, initial, parallel = parse_mermaid_with_library(
+        test_mermaid
+    )
 
     print("\nStates:")
     for s in states:
@@ -392,15 +409,15 @@ if __name__ == "__main__":
     print("History State Verification:")
     history_found = False
     for s in states:
-        if isinstance(s, dict) and 'children' in s:
-            if 'H' in s.get('children', []):
+        if isinstance(s, dict) and "children" in s:
+            if "H" in s.get("children", []):
                 print(f"  ✓ Found 'H' pseudo-state in composite state: {s['name']}")
                 history_found = True
     if not history_found:
         print("  ✗ No history states found")
 
     # Check if transition to H exists
-    history_trans = [t for t in transitions if '_H' in t.get('dest', '')]
+    history_trans = [t for t in transitions if "_H" in t.get("dest", "")]
     if history_trans:
         print(f"  ✓ Found {len(history_trans)} transition(s) to history state:")
         for t in history_trans:
