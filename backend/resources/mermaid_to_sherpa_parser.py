@@ -57,6 +57,16 @@ def parse_mermaid_with_library(mermaid_code: str):
         result, "history_transitions", {}
     )  # (from, trigger) -> composite
 
+    # NEW: Track specific transitions that should go to history based on notes
+    history_transition_keys = set()  # (source_scoped_id, trigger, dest_composite_id)
+    
+    # NEW: Track which composites need H pseudo-state
+    history_composites_needed = set()
+    
+    # Add composites from converter's history_states_map to our new set
+    for composite_id in history_states_map.keys():
+        history_composites_needed.add(composite_id)
+
     # Debug output for history states
     debug_print(
         f"History states map from converter: {list(history_states_map.keys()) if history_states_map else 'EMPTY'}"
@@ -137,7 +147,55 @@ def parse_mermaid_with_library(mermaid_code: str):
                         "Found unnamed 'history state' note but could not infer composite (no target_state); skipping"
                     )
             
-            if composite_with_history and composite_with_history not in history_states_map:
+            if not composite_with_history:
+                continue
+            
+            # NEW: Find specific transitions that should go to history
+            # Look for transitions FROM the note's target_state TO the composite
+            found_transition = False
+            for transition in result.transitions:
+                from_state = getattr(transition, "from_state", None)
+                to_state = getattr(transition, "to_state", None)
+                
+                if not from_state or not to_state:
+                    continue
+                
+                from_id = getattr(from_state, "id_", None)
+                to_id = getattr(to_state, "id_", None)
+                label = getattr(transition, "label", "")
+                
+                # Check if this transition is FROM the note's target state TO the composite
+                if from_id == target_state and to_id == composite_with_history:
+                    # This specific transition should go to history
+                    from_scoped = getattr(from_state, "scoped_id", from_id)
+                    
+                    # Parse trigger from label (simplified version of label parsing)
+                    trigger = label.strip() if label else ""
+                    # Remove guards and actions to get just the trigger
+                    trigger = re.sub(r'\[.+?\]', '', trigger).strip()
+                    trigger = re.sub(r'/\s*\{.+?\}', '', trigger).strip()
+                    trigger = re.sub(r'/\s*[^\[\]]+$', '', trigger).strip()
+                    trigger = trigger if trigger else "auto"
+                    
+                    # Mark this specific transition as a history transition
+                    history_transition_keys.add((from_scoped, trigger, to_id))
+                    history_composites_needed.add(composite_with_history)
+                    found_transition = True
+                    debug_print(
+                        f"Marked history transition: {from_id} --{trigger}--> {composite_with_history}"
+                    )
+            
+            if not found_transition:
+                # No matching transition found, but still add to history_composites_needed
+                # This handles cases where the transition might be implicit or added later
+                # Also maintains backward compatibility
+                history_composites_needed.add(composite_with_history)
+                debug_print(
+                    f"Added '{composite_with_history}' to history (no matching transition found)"
+                )
+            
+            # Keep history_states_map for backward compatibility
+            if composite_with_history not in history_states_map:
                 history_states_map[composite_with_history] = None
                 debug_print(f"Added '{composite_with_history}' to history_states_map")
 
@@ -285,14 +343,23 @@ def parse_mermaid_with_library(mermaid_code: str):
                 return bare_id
             return re.sub(r"_region_\d+", "", scoped_id)
 
-        if not is_history_dest:
+        # NEW: Check if this specific transition should go to history based on notes
+        transition_key = (from_scoped, trigger if trigger else "auto", to_id)
+        should_go_to_history = transition_key in history_transition_keys
+
+        if should_go_to_history and not is_history_dest:
+            # This transition should go to the history state
+            start_formatted = normalize_scoped_path(from_scoped, from_id)
+            end_formatted = normalize_scoped_path(to_scoped, to_id) + "_H"
+            debug_print(f"Converting transition to history: {start_formatted} --{trigger}--> {end_formatted}")
+        elif not is_history_dest:
             start_formatted = normalize_scoped_path(from_scoped, from_id)
             end_formatted = normalize_scoped_path(to_scoped, to_id)
         else:
             start_formatted = normalize_scoped_path(from_scoped, from_id)
             end_formatted = normalize_scoped_path(to_scoped, to_id + '_H')
 
-        if not is_history_dest and (getattr(transition, "is_history_transition", False) or isinstance(to_state, HistoryState)):
+        if not is_history_dest and not should_go_to_history and (getattr(transition, "is_history_transition", False) or isinstance(to_state, HistoryState)):
             parent_composite = getattr(to_state, "parent_state_id", None)
             if parent_composite:
                 composite_full_path = None
@@ -382,7 +449,7 @@ def parse_mermaid_with_library(mermaid_code: str):
                             parallel_region_children.append(nested_child["name"])
 
             # Add history pseudo-state "H" if this composite state has history
-            if state_id in history_states_map:
+            if state_id in history_composites_needed:
                 nested_children.append("H")
                 debug_print(f"Added 'H' to parallel state: {state_id}")
 
@@ -408,7 +475,7 @@ def parse_mermaid_with_library(mermaid_code: str):
                 nested_children.append(nested_child)
 
             # Add history pseudo-state "H" if this composite state has history
-            if state_id in history_states_map:
+            if state_id in history_composites_needed:
                 nested_children.append("H")
                 debug_print(f"Added 'H' to composite state: {state_id}")
 
