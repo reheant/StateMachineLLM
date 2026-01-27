@@ -78,10 +78,8 @@ def test_sibling_composite_bug():
     
     # Check Print composite for H
     print_has_h = False
-    print_state = None
     for s in states:
         if isinstance(s, dict) and s.get('name') == 'Print':
-            print_state = s
             if 'H' in s.get('children', []):
                 print_has_h = True
                 print(f"  ✓ EXPECTED: Print composite has 'H' pseudo-state")
@@ -93,10 +91,8 @@ def test_sibling_composite_bug():
     
     # Check Scan composite for H
     scan_has_h = False
-    scan_state = None
     for s in states:
         if isinstance(s, dict) and s.get('name') == 'Scan':
-            scan_state = s
             if 'H' in s.get('children', []):
                 scan_has_h = True
                 print(f"  ✗ BUG: Scan composite incorrectly has 'H' pseudo-state")
