@@ -305,7 +305,8 @@ def parse_mermaid_with_library(mermaid_code: str):
                 
                 if composite_name not in history_states_map:
                     history_states_map[composite_name] = None
-                    debug_print(f"Added {composite_name} to history_states_map via .H notation")
+                    history_composites_needed.add(composite_name)
+                    debug_print(f"Added {composite_name} to history_states_map and history_composites_needed via .H notation")
             else:
                 to_scoped = composite_name + '_H'
                 debug_print(f"Warning: Composite {composite_name} not found for .H notation")
@@ -376,7 +377,8 @@ def parse_mermaid_with_library(mermaid_code: str):
                 
                 if parent_composite not in history_states_map:
                     history_states_map[parent_composite] = None
-                    debug_print(f"Added {parent_composite} to history_states_map via HistoryState object")
+                    history_composites_needed.add(parent_composite)
+                    debug_print(f"Added {parent_composite} to history_states_map and history_composites_needed via HistoryState object")
                     
                 debug_print(f"Transition {start_formatted} -> {end_formatted} (history of {parent_composite})")
 
