@@ -61,6 +61,54 @@ printer_history_test = """stateDiagram-v2
     }
 """
 
+# Test case for unnamed history note (from dishwasher_winter_2019 example)
+dishwasher_unnamed_history_test = """stateDiagram-v2
+    [*] --> Running
+    
+    state Running {
+        [*] --> Cleaning
+        
+        state Cleaning {
+            [*] --> Washing
+            state Washing
+            state Rinsing
+            Washing --> Rinsing : after(10)
+            Rinsing --> Washing : repeat
+        }
+        
+        Cleaning --> Cleaning : toggleDryingTime
+        
+        note right of Cleaning
+            toggleDryingTime returns to history state
+        end note
+    }
+"""
+
+# Test case for unnamed history note (from spa_manager_winter_2018 example)
+spa_manager_unnamed_history_test = """stateDiagram-v2
+    [*] --> Jacuzzi
+    
+    state Jacuzzi {
+        [*] --> JacuzziOff
+        
+        JacuzziOff --> JacuzziOn : on
+        
+        state JacuzziOn {
+            [*] --> Level1
+            
+            Level1 --> Level2 : up
+            Level2 --> Level1 : down
+        }
+        
+        JacuzziOn --> JacuzziOff : off
+        JacuzziOn --> JacuzziOn : setPattern
+        
+        note right of JacuzziOn
+            setPattern transitions to history state
+        end note
+    }
+"""
+
 def test_dishwasher_history_state():
     """Test dishwasher example with history state from note."""
     print("=" * 80)
@@ -178,20 +226,106 @@ def test_printer_history_state():
     return h_found
 
 
+def test_dishwasher_unnamed_history():
+    """Test dishwasher example with unnamed history note (from dishwasher_winter_2019)."""
+    print("\n\n" + "=" * 80)
+    print("TEST: Dishwasher Unnamed History State Note")
+    print("=" * 80)
+    print(dishwasher_unnamed_history_test)
+    
+    states, transitions, hierarchical, initial, parallel, annotations = parse_mermaid_with_library(
+        dishwasher_unnamed_history_test
+    )
+    
+    print("\nStates:")
+    for s in states:
+        print(f"  {s}")
+    
+    print("\nTransitions:")
+    for t in transitions:
+        print(f"  {t}")
+    
+    print("\n" + "=" * 50)
+    print("Verification:")
+    
+    h_found = False
+    for s in states:
+        if isinstance(s, dict) and s.get('name') == 'Running':
+            for child in s.get('children', []):
+                if isinstance(child, dict) and child.get('name') == 'Cleaning':
+                    if 'H' in child.get('children', []):
+                        h_found = True
+                        print(f"  ✓ PASS: Found 'H' pseudo-state inside Cleaning composite")
+                        print(f"    Cleaning children: {child.get('children')}")
+                    else:
+                        print(f"  ✗ FAIL: 'H' NOT found in Cleaning children: {child.get('children')}")
+                    break
+    
+    if not h_found:
+        print("  ✗ FAIL: No history state found in Cleaning")
+    
+    return h_found
+
+
+def test_spa_manager_unnamed_history():
+    """Test spa manager example with unnamed history note (from spa_manager_winter_2018)."""
+    print("\n\n" + "=" * 80)
+    print("TEST: Spa Manager Unnamed History State Note")
+    print("=" * 80)
+    print(spa_manager_unnamed_history_test)
+    
+    states, transitions, hierarchical, initial, parallel, annotations = parse_mermaid_with_library(
+        spa_manager_unnamed_history_test
+    )
+    
+    print("\nStates:")
+    for s in states:
+        print(f"  {s}")
+    
+    print("\nTransitions:")
+    for t in transitions:
+        print(f"  {t}")
+    
+    print("\n" + "=" * 50)
+    print("Verification:")
+    
+    h_found = False
+    for s in states:
+        if isinstance(s, dict) and s.get('name') == 'Jacuzzi':
+            for child in s.get('children', []):
+                if isinstance(child, dict) and child.get('name') == 'JacuzziOn':
+                    if 'H' in child.get('children', []):
+                        h_found = True
+                        print(f"  ✓ PASS: Found 'H' pseudo-state inside JacuzziOn composite")
+                        print(f"    JacuzziOn children: {child.get('children')}")
+                    else:
+                        print(f"  ✗ FAIL: 'H' NOT found in JacuzziOn children: {child.get('children')}")
+                    break
+    
+    if not h_found:
+        print("  ✗ FAIL: No history state found in JacuzziOn")
+    
+    return h_found
+
+
 if __name__ == "__main__":
     print("Testing history state inference from notes...")
     print("This validates the fix for the rendering bug\n")
     
     test1_passed = test_dishwasher_history_state()
     test2_passed = test_printer_history_state()
+    test3_passed = test_dishwasher_unnamed_history()
+    test4_passed = test_spa_manager_unnamed_history()
     
     print("\n" + "=" * 80)
     print("SUMMARY")
     print("=" * 80)
-    print(f"Dishwasher test: {'✓ PASSED' if test1_passed else '✗ FAILED'}")
-    print(f"Printer test: {'✓ PASSED' if test2_passed else '✗ FAILED'}")
+    print(f"Dishwasher test (explicit state name): {'✓ PASSED' if test1_passed else '✗ FAILED'}")
+    print(f"Printer test (explicit state name): {'✓ PASSED' if test2_passed else '✗ FAILED'}")
+    print(f"Dishwasher test (unnamed history): {'✓ PASSED' if test3_passed else '✗ FAILED'}")
+    print(f"Spa Manager test (unnamed history): {'✓ PASSED' if test4_passed else '✗ FAILED'}")
     
-    if test1_passed and test2_passed:
+    if test1_passed and test2_passed and test3_passed and test4_passed:
         print("\n✓ All tests PASSED!")
         sys.exit(0)
     else:

@@ -86,26 +86,58 @@ def parse_mermaid_with_library(mermaid_code: str):
         note_text = note.content
         target_state = getattr(note.target_state, 'id_', None) if note.target_state else None
         
+        # Support both "returns to StateName history state" and "returns to history state"
         history_match = re.search(
-            r'(?:returns to|transitions to)\s+(\w+)\s+history state',
+            r'(?:returns to|transitions to)\s+(?:(\w+)\s+)?history state',
             note_text,
             re.IGNORECASE
         )
         
         if history_match:
             mentioned_state = history_match.group(1)
+            composite_with_history = None
             
-            if mentioned_state in composite_states:
-                composite_with_history = mentioned_state
-                debug_print(f"Detected history state: '{mentioned_state}' is a composite state")
-            elif mentioned_state in child_to_parent:
-                composite_with_history = child_to_parent[mentioned_state]
-                debug_print(f"Detected history state reference: '{mentioned_state}' is child of '{composite_with_history}'")
+            if mentioned_state:
+                # Explicit composite/child name in the note
+                if mentioned_state in composite_states:
+                    composite_with_history = mentioned_state
+                    debug_print(f"Detected history state: '{mentioned_state}' is a composite state")
+                elif mentioned_state in child_to_parent:
+                    composite_with_history = child_to_parent[mentioned_state]
+                    debug_print(
+                        f"Detected history state reference: '{mentioned_state}' is child of '{composite_with_history}'"
+                    )
+                else:
+                    composite_with_history = mentioned_state
+                    debug_print(
+                        f"Detected history state from note (assumed composite): {composite_with_history}"
+                    )
             else:
-                composite_with_history = mentioned_state
-                debug_print(f"Detected history state from note (assumed composite): {composite_with_history}")
+                # No explicit name in the note; infer from the target state or its parent composite
+                if target_state:
+                    if target_state in composite_states:
+                        composite_with_history = target_state
+                        debug_print(
+                            f"Inferred history state from unnamed note: target_state '{target_state}' is composite"
+                        )
+                    elif target_state in child_to_parent:
+                        composite_with_history = child_to_parent[target_state]
+                        debug_print(
+                            "Inferred history state from unnamed note: "
+                            f"target_state '{target_state}' is child of '{composite_with_history}'"
+                        )
+                    else:
+                        composite_with_history = target_state
+                        debug_print(
+                            "Inferred history state from unnamed note (assumed composite): "
+                            f"{composite_with_history}"
+                        )
+                else:
+                    debug_print(
+                        "Found unnamed 'history state' note but could not infer composite (no target_state); skipping"
+                    )
             
-            if composite_with_history not in history_states_map:
+            if composite_with_history and composite_with_history not in history_states_map:
                 history_states_map[composite_with_history] = None
                 debug_print(f"Added '{composite_with_history}' to history_states_map")
 
