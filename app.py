@@ -49,13 +49,13 @@ async def chat_profile():
     return [
         # Anthropic Models
         cl.ChatProfile(
-            name="anthropic:claude-3-5-sonnet-20241022",
-            markdown_description="The underlying LLM model is Anthropic's **Claude 3.5 Sonnet**.",
+            name="anthropic:claude-4-5-sonnet",
+            markdown_description="The underlying LLM model is Anthropic's **Claude 4.5 Sonnet**.",
             icon="https://picsum.photos/203"
         ),
         cl.ChatProfile(
-            name="anthropic:claude-4-5-sonnet",
-            markdown_description="The underlying LLM model is Anthropic's **Claude 4.5 Sonnet**.",
+            name="anthropic:claude-3-5-sonnet-20241022",
+            markdown_description="The underlying LLM model is Anthropic's **Claude 3.5 Sonnet**.",
             icon="https://picsum.photos/203"
         ),
         cl.ChatProfile(
