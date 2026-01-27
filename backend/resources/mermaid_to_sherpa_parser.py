@@ -9,7 +9,12 @@ Includes support for shallow history states (displayed as "H" pseudo-states).
 import re
 import sys
 from mermaid_parser.converters.state_diagram import StateDiagramConverter
-from mermaid_parser.structs.state_diagram import HistoryState
+
+try:
+    from mermaid_parser.structs.state_diagram import HistoryState
+except ImportError:
+    class HistoryState:
+        pass
 
 
 def debug_print(msg):
@@ -59,6 +64,50 @@ def parse_mermaid_with_library(mermaid_code: str):
     debug_print(
         f"History transitions map: {history_transitions_map if history_transitions_map else 'EMPTY'}"
     )
+
+    # Parse notes to detect history state references from patterns like:
+    # "returns to StateName history state" or "transitions to StateName history state"
+    debug_print(f"Scanning {len(result.notes)} notes for history state references...")
+    
+    child_to_parent = {}
+    composite_states = set()
+    for state in result.states:
+        state_id = getattr(state, "id_", None)
+        parent_id = getattr(state, "parent_id", None)
+        state_type = type(state).__name__
+        
+        if state_id:
+            if state_type in ["Composite", "Concurrent"] or hasattr(state, "children"):
+                composite_states.add(state_id)
+            if parent_id:
+                child_to_parent[state_id] = parent_id
+    
+    for note in result.notes:
+        note_text = note.content
+        target_state = getattr(note.target_state, 'id_', None) if note.target_state else None
+        
+        history_match = re.search(
+            r'(?:returns to|transitions to)\s+(\w+)\s+history state',
+            note_text,
+            re.IGNORECASE
+        )
+        
+        if history_match:
+            mentioned_state = history_match.group(1)
+            
+            if mentioned_state in composite_states:
+                composite_with_history = mentioned_state
+                debug_print(f"Detected history state: '{mentioned_state}' is a composite state")
+            elif mentioned_state in child_to_parent:
+                composite_with_history = child_to_parent[mentioned_state]
+                debug_print(f"Detected history state reference: '{mentioned_state}' is child of '{composite_with_history}'")
+            else:
+                composite_with_history = mentioned_state
+                debug_print(f"Detected history state from note (assumed composite): {composite_with_history}")
+            
+            if composite_with_history not in history_states_map:
+                history_states_map[composite_with_history] = None
+                debug_print(f"Added '{composite_with_history}' to history_states_map")
 
     # Step 1: Build state mappings from converter output
     for state in result.states:
@@ -146,6 +195,31 @@ def parse_mermaid_with_library(mermaid_code: str):
         if to_id.endswith("_start") or to_id == "[*]":
             continue
 
+        # Handle .H notation from EventDriven flow (e.g., "StateName.H")
+        is_history_dest = False
+        if to_id and isinstance(to_id, str) and to_id.endswith('.H'):
+            is_history_dest = True
+            composite_name = to_id[:-2]
+            
+            composite_full_path = None
+            for scoped_key, state in all_states.items():
+                bare = scoped_to_bare.get(scoped_key, scoped_key)
+                if bare == composite_name:
+                    composite_full_path = scoped_key
+                    break
+            
+            if composite_full_path:
+                to_scoped = composite_full_path + '_H'
+                to_id = composite_name
+                debug_print(f"Detected .H notation: {composite_name} -> {composite_full_path}_H")
+                
+                if composite_name not in history_states_map:
+                    history_states_map[composite_name] = None
+                    debug_print(f"Added {composite_name} to history_states_map via .H notation")
+            else:
+                to_scoped = composite_name + '_H'
+                debug_print(f"Warning: Composite {composite_name} not found for .H notation")
+
         # Parse transition label for trigger, guard, and action
         trigger = None
         guard = None
@@ -174,30 +248,21 @@ def parse_mermaid_with_library(mermaid_code: str):
             # What remains is the trigger/event
             trigger = label.strip() if label.strip() else None
 
-        # Helper to build full path from scoped_id by walking up the hierarchy
-        # The scoped_id might be region-prefixed (e.g., SpaManager_region_0_Sauna_Off)
-        # We need to convert it to proper hierarchical format (SpaManager_Sauna_Off)
         def normalize_scoped_path(scoped_id, bare_id):
-            """Convert scoped_id to hierarchical path, removing region prefixes."""
             if not scoped_id:
                 return bare_id
-            # Remove region markers (e.g., _region_0_, _region_1_)
-            normalized = re.sub(r"_region_\d+", "", scoped_id)
-            return normalized
+            return re.sub(r"_region_\d+", "", scoped_id)
 
-        # Format source and destination using scoped_id (already contains full path)
-        start_formatted = normalize_scoped_path(from_scoped, from_id)
-        end_formatted = normalize_scoped_path(to_scoped, to_id)
+        if not is_history_dest:
+            start_formatted = normalize_scoped_path(from_scoped, from_id)
+            end_formatted = normalize_scoped_path(to_scoped, to_id)
+        else:
+            start_formatted = normalize_scoped_path(from_scoped, from_id)
+            end_formatted = normalize_scoped_path(to_scoped, to_id + '_H')
 
-        # Check if this is a history transition (destination is a HistoryState)
-        is_history_transition = getattr(transition, "is_history_transition", False)
-        if is_history_transition or isinstance(to_state, HistoryState):
-            # The destination should be the H pseudo-state inside the parent composite
-            # HistoryState has parent_state_id attribute
+        if not is_history_dest and (getattr(transition, "is_history_transition", False) or isinstance(to_state, HistoryState)):
             parent_composite = getattr(to_state, "parent_state_id", None)
             if parent_composite:
-                # Find the full hierarchical path to the composite state
-                # Look up the composite's scoped path from all_states
                 composite_full_path = None
                 for scoped_key, state in all_states.items():
                     bare = scoped_to_bare.get(scoped_key, scoped_key)
@@ -209,9 +274,12 @@ def parse_mermaid_with_library(mermaid_code: str):
                     end_formatted = f"{composite_full_path}_H"
                 else:
                     end_formatted = f"{parent_composite}_H"
-                debug_print(
-                    f"Transition {start_formatted} -> {end_formatted} (history of {parent_composite})"
-                )
+                
+                if parent_composite not in history_states_map:
+                    history_states_map[parent_composite] = None
+                    debug_print(f"Added {parent_composite} to history_states_map via HistoryState object")
+                    
+                debug_print(f"Transition {start_formatted} -> {end_formatted} (history of {parent_composite})")
 
         trans = {
             "trigger": trigger if trigger else "auto",
@@ -372,8 +440,7 @@ def parse_mermaid_with_library(mermaid_code: str):
         if not target_state:
             continue
 
-        # Skip history-related notes (already handled)
-        if 'history' in note_text.lower():
+        if 'history' in note_text.lower() and not any(keyword in note_text.lower() for keyword in ['entry', 'exit', 'do']):
             continue
 
         # Parse entry actions: "entry / action" or "entry: action"
