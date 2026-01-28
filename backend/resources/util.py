@@ -1125,27 +1125,51 @@ def setup_file_paths(base_dir: str, file_type: str = "single_prompt") -> dict:
         dict: Dictionary containing all necessary file paths
     """
 
-    # Setup directories
-    log_base_dir = os.path.join(base_dir, "resources", f"{file_type}_log")
-    diagram_base_dir = os.path.join(base_dir, "resources", f"{file_type}_diagrams")
+    # For single_prompt, organize files in timestamped folders
+    if file_type == "single_prompt":
+        # Create timestamped folder name
+        timestamp = time.strftime("%Y_%m_%d_%H_%M_%S")
 
-    # Create directories
-    os.makedirs(log_base_dir, exist_ok=True)
-    os.makedirs(diagram_base_dir, exist_ok=True)
+        # Create single output directory with timestamped subfolder
+        output_base_dir = os.path.join(base_dir, "resources", f"{file_type}_outputs", timestamp)
+        os.makedirs(output_base_dir, exist_ok=True)
 
-    # Generate file names
-    file_prefix = f'output_{file_type}_{time.strftime("%Y_%m_%d_%H_%M_%S")}'
-    log_file_name = f"{file_prefix}.txt"
+        # Generate file names (simpler since they're in a timestamped folder)
+        file_prefix = f'output_{file_type}'
+        log_file_name = f"{file_prefix}.txt"
 
-    return {
-        "log_base_dir": log_base_dir,
-        "log_file_path": os.path.join(log_base_dir, log_file_name),
-        "generated_umple_code_path": os.path.join(log_base_dir, f"{file_prefix}.ump"),
-        "generated_mermaid_code_path": os.path.join(log_base_dir, f"{file_prefix}.mmd"),
-        "umple_jar_path": os.path.join(base_dir, "resources", "umple.jar"),
-        "diagram_base_dir": diagram_base_dir,
-        "diagram_file_path": os.path.join(diagram_base_dir, file_prefix),
-    }
+        return {
+            "log_base_dir": output_base_dir,
+            "log_file_path": os.path.join(output_base_dir, log_file_name),
+            "generated_umple_code_path": os.path.join(output_base_dir, f"{file_prefix}.ump"),
+            "generated_mermaid_code_path": os.path.join(output_base_dir, f"{file_prefix}.mmd"),
+            "umple_jar_path": os.path.join(base_dir, "resources", "umple.jar"),
+            "diagram_base_dir": output_base_dir,
+            "diagram_file_path": os.path.join(output_base_dir, file_prefix),
+        }
+    else:
+        # Keep existing behavior for other file types (event_driven, simple_linear)
+        # Setup directories
+        log_base_dir = os.path.join(base_dir, "resources", f"{file_type}_log")
+        diagram_base_dir = os.path.join(base_dir, "resources", f"{file_type}_diagrams")
+
+        # Create directories
+        os.makedirs(log_base_dir, exist_ok=True)
+        os.makedirs(diagram_base_dir, exist_ok=True)
+
+        # Generate file names
+        file_prefix = f'output_{file_type}_{time.strftime("%Y_%m_%d_%H_%M_%S")}'
+        log_file_name = f"{file_prefix}.txt"
+
+        return {
+            "log_base_dir": log_base_dir,
+            "log_file_path": os.path.join(log_base_dir, log_file_name),
+            "generated_umple_code_path": os.path.join(log_base_dir, f"{file_prefix}.ump"),
+            "generated_mermaid_code_path": os.path.join(log_base_dir, f"{file_prefix}.mmd"),
+            "umple_jar_path": os.path.join(base_dir, "resources", "umple.jar"),
+            "diagram_base_dir": diagram_base_dir,
+            "diagram_file_path": os.path.join(diagram_base_dir, file_prefix),
+        }
 
 
 def umpleCodeProcessing(
