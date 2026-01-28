@@ -88,6 +88,8 @@ def choose_openrouter_model():
 def run_single_prompt(system_prompt, model="anthropic/claude-3.5-sonnet"):
     """
     the run_single_prompt initiates the Single Prompt State Machine Framework
+    Returns:
+        bool: True if generation succeeded, False if all attempts failed
     """
     # Setup file paths
     paths = setup_file_paths(os.path.dirname(__file__))
@@ -141,7 +143,7 @@ def run_single_prompt(system_prompt, model="anthropic/claude-3.5-sonnet"):
       end note
       ```
     - NEVER combine multiple composite states in a single note.
-    - NEVER use phrasing like: “Print or Scan history state”
+    - NEVER use phrasing like: "Print or Scan history state"
     History State Example (CORRECT pattern):
     ```
     state Busy {{
@@ -172,10 +174,12 @@ def run_single_prompt(system_prompt, model="anthropic/claude-3.5-sonnet"):
     print(f"Using OpenRouter model: {model}")
 
     # Replace original loop with OpenRouter implementation:
+    success = False
     for i in range(5):
         result = process_umple_attempt_openrouter(i, prompt, paths, model)
         if result != "False":
             print(f"Generation completed successfully!")
+            success = True
             break
         else:
             print(
@@ -183,6 +187,8 @@ def run_single_prompt(system_prompt, model="anthropic/claude-3.5-sonnet"):
                 if i < 4
                 else "All attempts failed."
             )
+
+    return success
 
 
 def process_umple_attempt_openrouter(
@@ -267,6 +273,9 @@ def run_test_entry_exit_annotations():
     - WashCycle.entry: lockDoor
     - WashCycle.exit: unlockDoor
     - Drying.entry: setDryingTime
+
+    Returns:
+        bool: True if test passed, False otherwise
     """
     # Hardcoded mermaid with entry/exit notes (like the dishwasher example)
     test_mermaid = """stateDiagram-v2
@@ -325,12 +334,15 @@ def run_test_entry_exit_annotations():
         )
         if success:
             print(f"TEST PASSED: Diagram saved to {paths['diagram_file_path']}.png")
+            return True
         else:
             print("TEST FAILED: Rendering returned False")
+            return False
     except Exception as e:
         print(f"TEST FAILED: {str(e)}")
         import traceback
         traceback.print_exc()
+        return False
 
 
 if __name__ == "__main__":

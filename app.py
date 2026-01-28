@@ -159,11 +159,14 @@ async def run_conversation(message: cl.Message):
                 # Convert chat profile to OpenRouter model
                 chat_profile = cl.user_session.get("chat_profile")
                 openrouter_model = convert_to_openrouter_model(chat_profile)
-                await asyncio.to_thread(run_single_prompt, message.content, openrouter_model)
+                success = await asyncio.to_thread(run_single_prompt, message.content, openrouter_model)
+                cl.user_session.set("generation_success", success)
             elif strategy == "structure_driven":
                 await asyncio.to_thread(run_simple_linear_smf, message.content)
+                cl.user_session.set("generation_success", True)
             else:  # default to event_driven
                 await asyncio.to_thread(run_event_driven_smf, message.content)
+                cl.user_session.set("generation_success", True)
 
     task = asyncio.create_task(run_and_capture())
 
@@ -217,6 +220,15 @@ async def display_image():
     The display_image() function displays the state machine diagram after it has been translated into
     mermaid syntax and converted into an image
     """
+    # Check if generation was successful
+    generation_success = cl.user_session.get("generation_success", True)
+
+    if not generation_success:
+        await cl.Message(
+            content="**Error: State machine generation failed after 5 attempts. check logs for more info"
+        ).send()
+        return
+
     # Choose the appropriate directory based on strategy
     strategy = cl.user_session.get("generation_strategy", "event_driven")
 
@@ -343,7 +355,8 @@ async def start():
                 async with cl.Step(name="Running Test") as test_step:
                     stdout_capture = io.StringIO()
                     with contextlib.redirect_stdout(stdout_capture):
-                        await asyncio.to_thread(run_test_entry_exit_annotations)
+                        success = await asyncio.to_thread(run_test_entry_exit_annotations)
+                    cl.user_session.set("generation_success", success)
                     test_step.output = stdout_capture.getvalue()
 
                 async with cl.Step(name="Rendering Diagram") as diagram_step:
