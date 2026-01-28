@@ -206,7 +206,7 @@ def process_umple_attempt_openrouter(
     """
     try:
         answer = call_openrouter_llm(
-            prompt, max_tokens=2500, temperature=0.01, model=model
+            prompt, max_tokens=5000, temperature=0.01, model=model
         )
 
         # Extract Mermaid code
