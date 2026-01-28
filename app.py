@@ -219,9 +219,10 @@ async def display_image():
     """
     # Choose the appropriate directory based on strategy
     strategy = cl.user_session.get("generation_strategy", "event_driven")
-    
+
     if strategy == "single_prompt":
-        image_directory = os.path.join(os.path.dirname(__file__), "backend", "resources", "single_prompt_diagrams")
+        # For single_prompt, outputs are in timestamped folders
+        outputs_directory = os.path.join(os.path.dirname(__file__), "backend", "resources", "single_prompt_outputs")
     elif strategy == "structure_driven":
         image_directory = os.path.join(os.path.dirname(__file__), "backend", "resources", "simple_linear_diagrams")
     else:  # event_driven
@@ -229,16 +230,33 @@ async def display_image():
 
     # Get the path of the most recently created diagram
     try:
-        # For single prompt, look specifically for .png files
+        # For single prompt, find the most recent timestamped folder first
         if strategy == "single_prompt":
-            png_files = [f for f in os.listdir(image_directory) if f.endswith('.png')]
-            if not png_files:
-                await cl.Message(content="No PNG images found in the directory.").send()
+            if not os.path.exists(outputs_directory):
+                await cl.Message(content="No outputs directory found.").send()
                 return
-            latest_file = max(
-                (os.path.join(image_directory, f) for f in png_files),
+
+            # Get all timestamped folders
+            timestamped_folders = [d for d in os.listdir(outputs_directory)
+                                 if os.path.isdir(os.path.join(outputs_directory, d))]
+
+            if not timestamped_folders:
+                await cl.Message(content="No output folders found.").send()
+                return
+
+            # Get the most recent folder
+            latest_folder = max(
+                (os.path.join(outputs_directory, d) for d in timestamped_folders),
                 key=os.path.getmtime,
             )
+
+            # Find PNG file in that folder
+            png_files = [f for f in os.listdir(latest_folder) if f.endswith('.png')]
+            if not png_files:
+                await cl.Message(content="No PNG images found in the latest output folder.").send()
+                return
+
+            latest_file = os.path.join(latest_folder, png_files[0])
         else:
             # For other strategies, use all files
             latest_file = max(
@@ -252,7 +270,7 @@ async def display_image():
 
     # Attach the most recent file to the message
     image = cl.Image(path=latest_file, name="State Machine Image", display="inline", size='large')
-    
+
     await cl.Message(
         content="State Machine Image Rendered",
         elements=[image],
