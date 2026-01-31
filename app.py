@@ -313,7 +313,10 @@ async def display_image():
                 ).send()
                 return
 
-            latest_file = os.path.join(latest_folder, png_files[0])
+            latest_file = max(
+                (os.path.join(latest_folder, f) for f in png_files),
+                key=os.path.getmtime,
+            )
         else:
             # For other strategies, use all files
             latest_file = max(
