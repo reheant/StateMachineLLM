@@ -518,10 +518,16 @@ async def start():
                 backend.resources.state_machine_descriptions, system_preset
             )
 
-            # Store system name for folder organization (convert snake_case to Title Case)
-            system_display_name = (
-                system_preset.replace("_", " ").title().split()[0]
-            )  # e.g., "printer_winter_2017" -> "Printer"
+            # Store system name for folder organization (convert snake_case to a readable form)
+            display_words = []
+            for part in system_preset.split("_"):
+                if part.isupper() or part.isdigit():
+                    # Preserve acronyms (e.g., "ATAS") and numeric parts as-is
+                    display_words.append(part)
+                else:
+                    # Capitalize regular words (e.g., "printer" -> "Printer")
+                    display_words.append(part.capitalize())
+            system_display_name = " ".join(display_words)
             cl.user_session.set("system_name", system_display_name)
 
             await run_conversation(cl.Message(content=system_description))
