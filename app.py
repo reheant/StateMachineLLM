@@ -10,14 +10,15 @@ from backend.event_driven_smf.event_driven_smf import run_event_driven_smf
 from backend.simple_linear_smf.simple_linear_smf import run_simple_linear_smf
 from backend.single_prompt import run_single_prompt, run_test_entry_exit_annotations
 
+
 def convert_to_openrouter_model(chat_profile):
     """Convert Chainlit chat profile to OpenRouter model name"""
     if not chat_profile:
         return "anthropic/claude-3.5-sonnet"  # default
-    
+
     profile_to_openrouter = {
         # Anthropic
-        "anthropic:claude-3-5-sonnet-20241022": "anthropic/claude-3.5-sonnet", 
+        "anthropic:claude-3-5-sonnet-20241022": "anthropic/claude-3.5-sonnet",
         "anthropic:claude-4-5-sonnet": "anthropic/claude-4.5-sonnet",
         "anthropic:claude-sonnet-4": "anthropic/claude-sonnet-4",
         # OpenAI
@@ -41,8 +42,9 @@ def convert_to_openrouter_model(chat_profile):
         # Legacy
         "groq:llama-3.2-3b-preview": "meta-llama/llama-3.2-3b-instruct",
     }
-    
+
     return profile_to_openrouter.get(chat_profile, "anthropic/claude-3.5-sonnet")
+
 
 @cl.set_chat_profiles
 async def chat_profile():
@@ -51,98 +53,98 @@ async def chat_profile():
         cl.ChatProfile(
             name="anthropic:claude-4-5-sonnet",
             markdown_description="The underlying LLM model is Anthropic's **Claude 4.5 Sonnet**.",
-            icon="https://picsum.photos/203"
+            icon="https://picsum.photos/203",
         ),
         cl.ChatProfile(
             name="anthropic:claude-3-5-sonnet-20241022",
             markdown_description="The underlying LLM model is Anthropic's **Claude 3.5 Sonnet**.",
-            icon="https://picsum.photos/203"
+            icon="https://picsum.photos/203",
         ),
         cl.ChatProfile(
             name="anthropic:claude-sonnet-4",
             markdown_description="The underlying LLM model is Anthropic's **Claude Sonnet 4**.",
-            icon="https://picsum.photos/203"
+            icon="https://picsum.photos/203",
         ),
         # OpenAI Models
         cl.ChatProfile(
             name="openai:gpt-4o",
             markdown_description="The underlying LLM model is OpenAI's **GPT-4o**.",
-            icon="https://picsum.photos/202"
+            icon="https://picsum.photos/202",
         ),
         cl.ChatProfile(
             name="openai:gpt-4o-mini",
             markdown_description="The underlying LLM model is OpenAI's **GPT-4o Mini**.",
-            icon="https://picsum.photos/202"
+            icon="https://picsum.photos/202",
         ),
         cl.ChatProfile(
             name="openai:gpt-4-turbo",
             markdown_description="The underlying LLM model is OpenAI's **GPT-4 Turbo**.",
-            icon="https://picsum.photos/202"
+            icon="https://picsum.photos/202",
         ),
         cl.ChatProfile(
             name="openai:o1",
             markdown_description="The underlying LLM model is OpenAI's **o1** (reasoning model).",
-            icon="https://picsum.photos/202"
+            icon="https://picsum.photos/202",
         ),
         cl.ChatProfile(
             name="openai:o1-mini",
             markdown_description="The underlying LLM model is OpenAI's **o1-mini** (reasoning model).",
-            icon="https://picsum.photos/202"
+            icon="https://picsum.photos/202",
         ),
         # Google Models
         cl.ChatProfile(
             name="google:gemini-2-0-flash-exp",
             markdown_description="The underlying LLM model is Google's **Gemini 2.0 Flash** (experimental).",
-            icon="https://picsum.photos/205"
+            icon="https://picsum.photos/205",
         ),
         cl.ChatProfile(
             name="google:gemini-1-5-pro-001",
             markdown_description="The underlying LLM model is Google's **Gemini 1.5 Pro**.",
-            icon="https://picsum.photos/205"
+            icon="https://picsum.photos/205",
         ),
         cl.ChatProfile(
             name="google:gemini-1-5-flash",
             markdown_description="The underlying LLM model is Google's **Gemini 1.5 Flash**.",
-            icon="https://picsum.photos/205"
+            icon="https://picsum.photos/205",
         ),
         # Meta Models
         cl.ChatProfile(
             name="meta:llama-3-3-70b-instruct",
             markdown_description="The underlying LLM model is Meta's **Llama 3.3 70B Instruct**.",
-            icon="https://picsum.photos/204"
+            icon="https://picsum.photos/204",
         ),
         cl.ChatProfile(
             name="meta:llama-3-1-405b-instruct",
             markdown_description="The underlying LLM model is Meta's **Llama 3.1 405B Instruct**.",
-            icon="https://picsum.photos/204"
+            icon="https://picsum.photos/204",
         ),
         cl.ChatProfile(
             name="meta:llama-3-1-70b-instruct",
             markdown_description="The underlying LLM model is Meta's **Llama 3.1 70B Instruct**.",
-            icon="https://picsum.photos/204"
+            icon="https://picsum.photos/204",
         ),
         cl.ChatProfile(
             name="meta:llama-3-2-3b-instruct",
             markdown_description="The underlying LLM model is Meta's **Llama 3.2 3B Instruct**.",
-            icon="https://picsum.photos/204"
+            icon="https://picsum.photos/204",
         ),
         # Qwen Models
         cl.ChatProfile(
             name="qwen:qwq-32b",
             markdown_description="The underlying LLM model is Qwen's **QwQ 32B**.",
-            icon="https://picsum.photos/200"
+            icon="https://picsum.photos/200",
         ),
         cl.ChatProfile(
             name="qwen:qwen-2-5-72b-instruct",
             markdown_description="The underlying LLM model is Qwen's **Qwen 2.5 72B Instruct**.",
-            icon="https://picsum.photos/201"
-        )
+            icon="https://picsum.photos/201",
+        ),
     ]
 
 
 @cl.on_message
 async def run_conversation(message: cl.Message):
-    await message.send() # Print the problem description as is
+    await message.send()  # Print the problem description as is
     final_answer = cl.Message(content="", author="Sherpa Output")
     await final_answer.send()
 
@@ -159,7 +161,11 @@ async def run_conversation(message: cl.Message):
                 # Convert chat profile to OpenRouter model
                 chat_profile = cl.user_session.get("chat_profile")
                 openrouter_model = convert_to_openrouter_model(chat_profile)
-                success = await asyncio.to_thread(run_single_prompt, message.content, openrouter_model)
+                # Get system name for folder organization
+                system_name = cl.user_session.get("system_name", "Custom")
+                success = await asyncio.to_thread(
+                    run_single_prompt, message.content, openrouter_model, system_name
+                )
                 cl.user_session.set("generation_success", success)
             elif strategy == "structure_driven":
                 await asyncio.to_thread(run_simple_linear_smf, message.content)
@@ -175,7 +181,7 @@ async def run_conversation(message: cl.Message):
 
         stdout_capture.seek(0)
         current_output = stdout_capture.read()
-        
+
         if current_output:
             lines = current_output.splitlines()
             for line in lines:
@@ -185,8 +191,12 @@ async def run_conversation(message: cl.Message):
                         current_step.output = step_content
                         await current_step.update()
                         await current_step.__aexit__(None, None, None)
-                    
-                    step_name = line[8:].replace("...", "").replace("start_", "") + " action" if line.startswith("Running ") else line
+
+                    step_name = (
+                        line[8:].replace("...", "").replace("start_", "") + " action"
+                        if line.startswith("Running ")
+                        else line
+                    )
                     current_step = cl.Step(name=step_name)
                     await current_step.__aenter__()
                     current_step_content = [line]
@@ -202,8 +212,8 @@ async def run_conversation(message: cl.Message):
         await current_step.update()
         await current_step.__aexit__(None, None, None)
 
-    await task 
-    
+    await task
+
     step_outputs = []
     for line in final_answer.content.splitlines():
         if line.strip():
@@ -234,38 +244,73 @@ async def display_image():
 
     if strategy == "single_prompt":
         # For single_prompt, outputs are in timestamped folders
-        outputs_directory = os.path.join(os.path.dirname(__file__), "backend", "resources", "single_prompt_outputs")
+        outputs_directory = os.path.join(
+            os.path.dirname(__file__), "backend", "resources", "single_prompt_outputs"
+        )
     elif strategy == "structure_driven":
-        image_directory = os.path.join(os.path.dirname(__file__), "backend", "resources", "simple_linear_diagrams")
+        image_directory = os.path.join(
+            os.path.dirname(__file__), "backend", "resources", "simple_linear_diagrams"
+        )
     else:  # event_driven
-        image_directory = os.path.join(os.path.dirname(__file__), "backend", "resources", "event_driven_diagrams")
+        image_directory = os.path.join(
+            os.path.dirname(__file__), "backend", "resources", "event_driven_diagrams"
+        )
 
     # Get the path of the most recently created diagram
     try:
-        # For single prompt, find the most recent timestamped folder first
+        # For single prompt, find the most recent folder in structure: date/model_name/system_name/time
         if strategy == "single_prompt":
             if not os.path.exists(outputs_directory):
                 await cl.Message(content="No outputs directory found.").send()
                 return
 
-            # Get all timestamped folders
-            timestamped_folders = [d for d in os.listdir(outputs_directory)
-                                 if os.path.isdir(os.path.join(outputs_directory, d))]
+            # Get all date folders (e.g., 2026_01_30)
+            date_folders = [
+                d
+                for d in os.listdir(outputs_directory)
+                if os.path.isdir(os.path.join(outputs_directory, d))
+            ]
 
-            if not timestamped_folders:
+            if not date_folders:
                 await cl.Message(content="No output folders found.").send()
                 return
 
-            # Get the most recent folder
-            latest_folder = max(
-                (os.path.join(outputs_directory, d) for d in timestamped_folders),
+            # Get the most recent date folder
+            latest_date_folder = max(
+                (os.path.join(outputs_directory, d) for d in date_folders),
                 key=os.path.getmtime,
             )
 
+            # Navigate through model -> system -> time folder structure
+            def find_deepest_folder(folder_path, depth=0, max_depth=3):
+                """Recursively find the deepest folder containing PNG files or the deepest directory"""
+                if depth >= max_depth:
+                    return folder_path
+                
+                subfolders = [
+                    d
+                    for d in os.listdir(folder_path)
+                    if os.path.isdir(os.path.join(folder_path, d))
+                ]
+                
+                if subfolders:
+                    # Get the most recent subfolder
+                    latest_subfolder = max(
+                        (os.path.join(folder_path, d) for d in subfolders),
+                        key=os.path.getmtime,
+                    )
+                    return find_deepest_folder(latest_subfolder, depth + 1, max_depth)
+                else:
+                    return folder_path
+            
+            latest_folder = find_deepest_folder(latest_date_folder)
+
             # Find PNG file in that folder
-            png_files = [f for f in os.listdir(latest_folder) if f.endswith('.png')]
+            png_files = [f for f in os.listdir(latest_folder) if f.endswith(".png")]
             if not png_files:
-                await cl.Message(content="No PNG images found in the latest output folder.").send()
+                await cl.Message(
+                    content="No PNG images found in the latest output folder."
+                ).send()
                 return
 
             latest_file = os.path.join(latest_folder, png_files[0])
@@ -281,7 +326,9 @@ async def display_image():
         return
 
     # Attach the most recent file to the message
-    image = cl.Image(path=latest_file, name="State Machine Image", display="inline", size='large')
+    image = cl.Image(
+        path=latest_file, name="State Machine Image", display="inline", size="large"
+    )
 
     await cl.Message(
         content="State Machine Image Rendered",
@@ -304,12 +351,27 @@ async def start():
         \n 📊 <b>Structure-Driven SMF</b>: Multi-step process focusing on structure
         """,
         actions=[
-            cl.Action(name="single_prompt", value="single_prompt", payload={}, label="🚀 Single Prompt (OpenRouter)"),
-            cl.Action(name="event_driven", value="event_driven", payload={}, label="🔄 Event-Driven SMF"),
-            cl.Action(name="structure_driven", value="structure_driven", payload={}, label="📊 Structure-Driven SMF"),
+            cl.Action(
+                name="single_prompt",
+                value="single_prompt",
+                payload={},
+                label="🚀 Single Prompt (OpenRouter)",
+            ),
+            cl.Action(
+                name="event_driven",
+                value="event_driven",
+                payload={},
+                label="🔄 Event-Driven SMF",
+            ),
+            cl.Action(
+                name="structure_driven",
+                value="structure_driven",
+                payload={},
+                label="📊 Structure-Driven SMF",
+            ),
         ],
     ).send()
-    
+
     # Store the chosen strategy in user session
     if strategy_step:
         strategy_value = strategy_step.get("name")
@@ -323,9 +385,24 @@ async def start():
         \n 🧪 3. Developer tests (for verifying parser features)
         \nWhat would you like to explore?""",
         actions=[
-            cl.Action(name="custom", value="custom", payload={}, label="✍️ Describe Your Own System"),
-            cl.Action(name="example", value="example", payload={}, label="🤖 Use One Of Our Examples"),
-            cl.Action(name="dev_tests", value="dev_tests", payload={}, label="🧪 Developer Tests"),
+            cl.Action(
+                name="custom",
+                value="custom",
+                payload={},
+                label="✍️ Describe Your Own System",
+            ),
+            cl.Action(
+                name="example",
+                value="example",
+                payload={},
+                label="🤖 Use One Of Our Examples",
+            ),
+            cl.Action(
+                name="dev_tests",
+                value="dev_tests",
+                payload={},
+                label="🧪 Developer Tests",
+            ),
         ],
     ).send()
 
@@ -341,21 +418,32 @@ async def start():
             \n 1. <b>Entry/Exit Annotations</b>: Tests rendering of entry/exit/do actions from notes
             """,
             actions=[
-                cl.Action(name="test_entry_exit", value="test_entry_exit", payload={}, label="🧪 Entry/Exit Annotations"),
+                cl.Action(
+                    name="test_entry_exit",
+                    value="test_entry_exit",
+                    payload={},
+                    label="🧪 Entry/Exit Annotations",
+                ),
             ],
         ).send()
 
         if test_choice:
             test_name = test_choice.get("name")
-            cl.user_session.set("generation_strategy", "single_prompt")  # Use single_prompt directory
+            cl.user_session.set(
+                "generation_strategy", "single_prompt"
+            )  # Use single_prompt directory
 
             if test_name == "test_entry_exit":
-                await cl.Message(content="🧪 Running Test: Entry/Exit Annotations...").send()
+                await cl.Message(
+                    content="🧪 Running Test: Entry/Exit Annotations..."
+                ).send()
 
                 async with cl.Step(name="Running Test") as test_step:
                     stdout_capture = io.StringIO()
                     with contextlib.redirect_stdout(stdout_capture):
-                        success = await asyncio.to_thread(run_test_entry_exit_annotations)
+                        success = await asyncio.to_thread(
+                            run_test_entry_exit_annotations
+                        )
                     cl.user_session.set("generation_success", success)
                     test_step.output = stdout_capture.getvalue()
 
@@ -375,21 +463,68 @@ async def start():
             \n 7. 🚆 <b>Train Automation System</b>: An advanced system managing driverless trains across a rail network with traffic signals and stations
             """,
             actions=[
-                cl.Action(name="printer_winter_2017", value="printer_winter_2017", payload={}, label="🖨️ Printer System"),
-                cl.Action(name="spa_manager_winter_2018", value="spa_manager_winter_2018", payload={}, label="🧖‍♂️ Spa Manager"),
-                cl.Action(name="dishwasher_winter_2019", value="dishwasher_winter_2019", payload={}, label="✨ Smart Dishwasher"),
-                cl.Action(name="chess_clock_fall_2019", value="chess_clock_fall_2019", payload={}, label="🕰️ Digital Chess Clock"),
-                cl.Action(name="automatic_bread_maker_fall_2020", value="automatic_bread_maker_fall_2020", payload={}, label="🥖 Automatic Bread Maker"),
-                cl.Action(name="thermomix_fall_2021", value="thermomix_fall_2021", payload={}, label="🔪 Thermomix TM6"),
-                cl.Action(name="ATAS_fall_2022", value="ATAS_fall_2022", payload={}, label="🚆 Train Automation System"),
+                cl.Action(
+                    name="printer_winter_2017",
+                    value="printer_winter_2017",
+                    payload={},
+                    label="🖨️ Printer System",
+                ),
+                cl.Action(
+                    name="spa_manager_winter_2018",
+                    value="spa_manager_winter_2018",
+                    payload={},
+                    label="🧖‍♂️ Spa Manager",
+                ),
+                cl.Action(
+                    name="dishwasher_winter_2019",
+                    value="dishwasher_winter_2019",
+                    payload={},
+                    label="✨ Smart Dishwasher",
+                ),
+                cl.Action(
+                    name="chess_clock_fall_2019",
+                    value="chess_clock_fall_2019",
+                    payload={},
+                    label="🕰️ Digital Chess Clock",
+                ),
+                cl.Action(
+                    name="automatic_bread_maker_fall_2020",
+                    value="automatic_bread_maker_fall_2020",
+                    payload={},
+                    label="🥖 Automatic Bread Maker",
+                ),
+                cl.Action(
+                    name="thermomix_fall_2021",
+                    value="thermomix_fall_2021",
+                    payload={},
+                    label="🔪 Thermomix TM6",
+                ),
+                cl.Action(
+                    name="ATAS_fall_2022",
+                    value="ATAS_fall_2022",
+                    payload={},
+                    label="🚆 Train Automation System",
+                ),
             ],
         ).send()
 
         if step2:
             # Extract action name from result
             system_preset = step2.get("name")
-            system_description = getattr(backend.resources.state_machine_descriptions, system_preset)
+            system_description = getattr(
+                backend.resources.state_machine_descriptions, system_preset
+            )
+
+            # Store system name for folder organization (convert snake_case to Title Case)
+            system_display_name = (
+                system_preset.replace("_", " ").title().split()[0]
+            )  # e.g., "printer_winter_2017" -> "Printer"
+            cl.user_session.set("system_name", system_display_name)
 
             await run_conversation(cl.Message(content=system_description))
     else:
-        await cl.Message(content="""Tell me about any process, workflow, or behavior you'd like to model. It could be anything from a coffee maker's operations to a complex authentication flow!""").send()
+        # Set system name to Custom for user-described systems
+        cl.user_session.set("system_name", "Custom")
+        await cl.Message(
+            content="""Tell me about any process, workflow, or behavior you'd like to model. It could be anything from a coffee maker's operations to a complex authentication flow!"""
+        ).send()
