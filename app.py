@@ -286,13 +286,13 @@ async def display_image():
                 """Recursively find the deepest (most recently modified) subfolder up to max_depth."""
                 if depth >= max_depth:
                     return folder_path
-                
+
                 subfolders = [
                     d
                     for d in os.listdir(folder_path)
                     if os.path.isdir(os.path.join(folder_path, d))
                 ]
-                
+
                 if subfolders:
                     # Get the most recent subfolder
                     latest_subfolder = max(
@@ -302,7 +302,7 @@ async def display_image():
                     return find_deepest_folder(latest_subfolder, depth + 1, max_depth)
                 else:
                     return folder_path
-            
+
             latest_folder = find_deepest_folder(latest_date_folder)
 
             # Find PNG file in that folder
@@ -329,9 +329,9 @@ async def display_image():
         return
 
     # Attach the most recent file to the message
-    image = cl.Image(
-        path=latest_file, name="State Machine Image", display="inline", size="large"
-    )
+    # Use the actual filename to prevent browser caching issues
+    image_name = os.path.basename(latest_file)
+    image = cl.Image(path=latest_file, name=image_name, display="inline", size="large")
 
     await cl.Message(
         content="State Machine Image Rendered",
