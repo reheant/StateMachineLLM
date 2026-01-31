@@ -283,7 +283,7 @@ async def display_image():
 
             # Navigate through model -> system -> time folder structure
             def find_deepest_folder(folder_path, depth=0, max_depth=3):
-                """Recursively find the deepest folder containing PNG files or the deepest directory"""
+                """Recursively find the deepest (most recently modified) subfolder up to max_depth."""
                 if depth >= max_depth:
                     return folder_path
                 
