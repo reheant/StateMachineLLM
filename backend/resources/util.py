@@ -1115,34 +1115,67 @@ def mermaidCodeSearch(
     return generated_mermaid_code
 
 
-def setup_file_paths(base_dir: str, file_type: str = "single_prompt") -> dict:
+def setup_file_paths(
+    base_dir: str, file_type: str = "single_prompt", system_name: str = None, model_name: str = None
+) -> dict:
     """
     Setup file paths for logs, Umple code, Mermaid code, and diagrams
     Args:
         base_dir: Base directory path
         file_type: Type of file (default: "single_prompt")
+        system_name: Optional name of the system being generated (e.g., "Printer", "Custom")
+        model_name: Optional name of the model used (e.g., "claude-4-5-sonnet", "gpt-4o")
     Returns:
         dict: Dictionary containing all necessary file paths
     """
 
-    # For single_prompt, organize files in timestamped folders
+    # For single_prompt, organize files in timestamped folders with optional system name
     if file_type == "single_prompt":
-        # Create timestamped folder name
-        timestamp = time.strftime("%Y_%m_%d_%H_%M_%S")
+        # Create date and time parts separately
+        date_folder = time.strftime("%Y_%m_%d")  # e.g., 2026_01_30
+        time_folder = time.strftime("%H_%M_%S")  # e.g., 16_38_49
 
-        # Create single output directory with timestamped subfolder
-        output_base_dir = os.path.join(base_dir, "resources", f"{file_type}_outputs", timestamp)
+        # Create single output directory with structure: date/model_name/system_name/time
+        # Sanitize model_name to be filesystem-safe
+        if model_name:
+            safe_model_name = model_name.replace("/", "-").replace(":", "-")
+        else:
+            safe_model_name = "unknown_model"
+        
+        if system_name:
+            # Sanitize system_name to be filesystem-safe
+            safe_system_name = "".join(
+                c if c.isalnum() or c in (" ", "-", "_") else "_" for c in system_name
+            )
+            safe_system_name = safe_system_name.strip().replace(" ", "_")
+            output_base_dir = os.path.join(
+                base_dir,
+                "resources",
+                f"{file_type}_outputs",
+                date_folder,
+                safe_model_name,
+                safe_system_name,
+                time_folder,
+            )
+        else:
+            output_base_dir = os.path.join(
+                base_dir, "resources", f"{file_type}_outputs", date_folder, safe_model_name, time_folder
+            )
         os.makedirs(output_base_dir, exist_ok=True)
 
         # Generate file names (simpler since they're in a timestamped folder)
-        file_prefix = f'output_{file_type}'
+        file_prefix = f"output_{file_type}"
         log_file_name = f"{file_prefix}.txt"
 
         return {
             "log_base_dir": output_base_dir,
             "log_file_path": os.path.join(output_base_dir, log_file_name),
-            "generated_umple_code_path": os.path.join(output_base_dir, f"{file_prefix}.ump"),
-            "generated_mermaid_code_path": os.path.join(output_base_dir, f"{file_prefix}.mmd"),
+            "generated_umple_code_path": os.path.join(
+                output_base_dir, f"{file_prefix}.ump"
+            ),
+            "generated_mermaid_code_path": os.path.join(
+                output_base_dir, f"{file_prefix}.mmd"
+            ),
             "umple_jar_path": os.path.join(base_dir, "resources", "umple.jar"),
             "diagram_base_dir": output_base_dir,
             "diagram_file_path": os.path.join(output_base_dir, file_prefix),
@@ -1164,8 +1197,12 @@ def setup_file_paths(base_dir: str, file_type: str = "single_prompt") -> dict:
         return {
             "log_base_dir": log_base_dir,
             "log_file_path": os.path.join(log_base_dir, log_file_name),
-            "generated_umple_code_path": os.path.join(log_base_dir, f"{file_prefix}.ump"),
-            "generated_mermaid_code_path": os.path.join(log_base_dir, f"{file_prefix}.mmd"),
+            "generated_umple_code_path": os.path.join(
+                log_base_dir, f"{file_prefix}.ump"
+            ),
+            "generated_mermaid_code_path": os.path.join(
+                log_base_dir, f"{file_prefix}.mmd"
+            ),
             "umple_jar_path": os.path.join(base_dir, "resources", "umple.jar"),
             "diagram_base_dir": diagram_base_dir,
             "diagram_file_path": os.path.join(diagram_base_dir, file_prefix),
@@ -1224,7 +1261,7 @@ def graphVizGeneration(generated_umple_gv_path, diagram_file_path: str):
 
 # NOTE: parse_mermaid_to_sherpa_format is DEAD CODE NOW.
 # The single prompt flow uses parse_mermaid_with_library from mermaid_to_sherpa_parser.py instead.
-# Commented out for now, the other formnats technically still rely on this. 
+# Commented out for now, the other formnats technically still rely on this.
 #
 # def parse_mermaid_to_sherpa_format(mermaid_code: str):
 #     """
@@ -1385,7 +1422,6 @@ def create_single_prompt_gsm_diagram_with_sherpa(
         state_annotations,
     ) = parse_mermaid_with_library(mermaid_code)
 
-    
     print(f"Parsed States: {states_list}")
     print(f"Parsed Transitions: {transitions_list}")
     print(f"Initial State: {initial_state}")
@@ -1422,14 +1458,16 @@ def create_single_prompt_gsm_diagram_with_sherpa(
 
         if state_annotations:
             # Format annotations as a left-aligned label at the bottom of the diagram
-            annotation_text = "\\l".join(state_annotations) + "\\l"  # \l = left-align in graphviz
-            graph.graph_attr['label'] = annotation_text
-            graph.graph_attr['labelloc'] = 'b'  # bottom
-            graph.graph_attr['labeljust'] = 'l'  # left-justify
-            graph.graph_attr['fontsize'] = '10'
+            annotation_text = (
+                "\\l".join(state_annotations) + "\\l"
+            )  # \l = left-align in graphviz
+            graph.graph_attr["label"] = annotation_text
+            graph.graph_attr["labelloc"] = "b"  # bottom
+            graph.graph_attr["labeljust"] = "l"  # left-justify
+            graph.graph_attr["fontsize"] = "10"
 
         # Generate and render the diagram directly to PNG using graphviz
-        graph.draw(png_file_path, prog='dot', format='png')
+        graph.draw(png_file_path, prog="dot", format="png")
 
         print(f"Sherpa diagram saved to: {png_file_path}")
         return True

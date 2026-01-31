@@ -85,14 +85,23 @@ def choose_openrouter_model():
             print("Invalid input. Please enter a number (1-17).")
 
 
-def run_single_prompt(system_prompt, model="anthropic/claude-3.5-sonnet"):
+def run_single_prompt(
+    system_prompt, model="anthropic/claude-3.5-sonnet", system_name=None
+):
     """
     the run_single_prompt initiates the Single Prompt State Machine Framework
+    Args:
+        system_prompt: The system description to generate a state machine for
+        model: The OpenRouter model to use
+        system_name: Optional name for the system (used for organizing output folders)
     Returns:
         bool: True if generation succeeded, False if all attempts failed
     """
-    # Setup file paths
-    paths = setup_file_paths(os.path.dirname(__file__))
+    # Extract short model name for folder (e.g., "anthropic/claude-3.5-sonnet" -> "claude-3.5-sonnet")
+    model_short_name = model.split("/")[-1] if "/" in model else model
+    
+    # Setup file paths with optional system name and model name for folder organization
+    paths = setup_file_paths(os.path.dirname(__file__), system_name=system_name, model_name=model_short_name)
 
     # Prepare the list of example to provide to the LLM (N shot prompting)
     n_shot_examples_single_prompt = list(n_shot_examples.keys())[
@@ -319,7 +328,7 @@ def run_test_entry_exit_annotations():
     end note
 """
 
-    paths = setup_file_paths(os.path.dirname(__file__))
+    paths = setup_file_paths(os.path.dirname(__file__), system_name="DevTest_EntryExit", model_name="dev-test")
 
     print("Running TEST: Entry/Exit Annotation Rendering")
     print("=" * 50)
@@ -329,8 +338,7 @@ def run_test_entry_exit_annotations():
 
     try:
         success = create_single_prompt_gsm_diagram_with_sherpa(
-            test_mermaid,
-            paths["diagram_file_path"]
+            test_mermaid, paths["diagram_file_path"]
         )
         if success:
             print(f"TEST PASSED: Diagram saved to {paths['diagram_file_path']}.png")
@@ -341,15 +349,18 @@ def run_test_entry_exit_annotations():
     except Exception as e:
         print(f"TEST FAILED: {str(e)}")
         import traceback
+
         traceback.print_exc()
         return False
 
 
 if __name__ == "__main__":
     import sys
+
     if len(sys.argv) > 1 and sys.argv[1] == "--test-annotations":
         run_test_entry_exit_annotations()
     else:
         # When run standalone, use interactive model selection
         selected_model = choose_openrouter_model()
-        run_single_prompt(description, selected_model)
+        # Use "Standalone" as system name when run directly
+        run_single_prompt(description, selected_model, system_name="Standalone")
