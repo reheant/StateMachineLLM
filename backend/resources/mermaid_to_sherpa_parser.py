@@ -139,6 +139,28 @@ def parse_mermaid_with_library(mermaid_code: str):
             parallel_regions.append(
                 {"parent": state_id, "regions": state.parallel_regions}
             )
+    
+    # Step 1b: Fix hierarchical_states for parallel regions
+    # States in parallel regions have parent_id like '0', '1', etc. instead of actual parent name
+    # We need to remap these to the actual parent state
+    region_to_parent = {}
+    for p in parallel_regions:
+        parent_state = p["parent"]
+        for i, region in enumerate(p["regions"]):
+            region_id = str(i)
+            region_to_parent[region_id] = parent_state
+    
+    # Remap children from region IDs to actual parent states
+    for region_id, actual_parent in region_to_parent.items():
+        if region_id in hierarchical_states:
+            children = hierarchical_states[region_id]
+            debug_print(f"Remapping children {children} from region '{region_id}' to parent '{actual_parent}'")
+            if actual_parent not in hierarchical_states:
+                hierarchical_states[actual_parent] = []
+            for child in children:
+                if child not in hierarchical_states[actual_parent]:
+                    hierarchical_states[actual_parent].append(child)
+            del hierarchical_states[region_id]
 
     # Step 2: Get initial state from converter result
     # The converter now extracts root_initial_state and initial_states for us
@@ -353,6 +375,25 @@ def parse_mermaid_with_library(mermaid_code: str):
                         continue
 
                     # Recursively build each child
+                    nested_child = build_nested_state(child_id)
+                    if nested_child not in nested_children:
+                        nested_children.append(nested_child)
+                        # If this child is a composite state (dict), track it as a parallel region child
+                        if isinstance(nested_child, dict):
+                            parallel_region_children.append(nested_child["name"])
+            
+            # Also add any children that were remapped from region IDs to this parent
+            # These were added to hierarchical_states but aren't in region["states"]
+            if state_id in hierarchical_states:
+                for child_id in hierarchical_states[state_id]:
+                    # Skip if already added from regions
+                    if any(
+                        isinstance(c, dict) and c.get("name") == child_id
+                        for c in nested_children
+                    ) or any(c == child_id for c in nested_children):
+                        continue
+                    
+                    # Recursively build each remapped child
                     nested_child = build_nested_state(child_id)
                     if nested_child not in nested_children:
                         nested_children.append(nested_child)
