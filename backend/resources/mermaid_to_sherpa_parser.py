@@ -8,6 +8,13 @@ Includes support for shallow history states (displayed as "H" pseudo-states).
 
 import re
 import sys
+import types
+
+# Fix for pythonmonkey import error in async/Chainlit context
+# pythonmonkey calls inspect.stack() during import which requires __main__ module
+if '__main__' not in sys.modules:
+    sys.modules['__main__'] = types.ModuleType('__main__')
+
 from mermaid_parser.converters.state_diagram import StateDiagramConverter
 from mermaid_parser.structs.state_diagram import HistoryState
 
@@ -266,6 +273,55 @@ def parse_mermaid_with_library(mermaid_code: str):
     debug_print(
         f"History states to add H: {list(history_states_map.keys()) if history_states_map else 'NONE'}"
     )
+    
+    # Step 3b: Remove duplicate child references from hierarchical_states
+    # The mermaid-parser-py converter sometimes creates reference states when transitions
+    # cross hierarchical boundaries. If a state "Busy" exists as both "On/Busy" and
+    # "On/LoggedIn/Busy", we keep only the nested one and remove the sibling reference.
+    
+    # Build a function to calculate depth using hierarchical_states structure
+    def get_nesting_depth_from_hierarchy(state_name, hier_states, visited=None):
+        """Calculate how deeply nested a state is by counting how many ancestors it has"""
+        if visited is None:
+            visited = set()
+        
+        # Prevent infinite recursion from circular references
+        if state_name in visited:
+            return 0
+        visited.add(state_name)
+        
+        # Walk up the hierarchy to count ancestors
+        for potential_parent, children in hier_states.items():
+            if state_name in children:
+                # This state is a child of potential_parent
+                # Recursively get the depth of the parent and add 1
+                return 1 + get_nesting_depth_from_hierarchy(potential_parent, hier_states, visited)
+        return 0  # Root level state
+    
+    # Find states that appear as children of multiple parents
+    child_to_parents = {}
+    for parent, children in hierarchical_states.items():
+        for child in children:
+            if child not in child_to_parents:
+                child_to_parents[child] = []
+            child_to_parents[child].append(parent)
+    
+    # For each state that appears under multiple parents, keep it under the most nested parent
+    for state_name, parents in child_to_parents.items():
+        if len(parents) > 1:
+            # Calculate depth of each parent using the hierarchical structure
+            parent_depths = [(parent, get_nesting_depth_from_hierarchy(parent, hierarchical_states)) for parent in parents]
+            # Sort by depth (higher depth = more nested)
+            parent_depths.sort(key=lambda x: x[1], reverse=True)
+            deepest_parent = parent_depths[0][0]
+            
+            # Remove from all other (shallower) parents
+            for parent, depth in parent_depths[1:]:
+                if state_name in hierarchical_states.get(parent, []):
+                    hierarchical_states[parent].remove(state_name)
+                    debug_print(f"Removed duplicate '{state_name}' from '{parent}' (kept in '{deepest_parent}')")
+    
+    debug_print(f"Hierarchical states after deduplication: {hierarchical_states}")
 
     # Create a lookup for parallel region info by parent state
     parallel_info_by_state = {p["parent"]: p["regions"] for p in parallel_regions}
@@ -382,6 +438,58 @@ def parse_mermaid_with_library(mermaid_code: str):
         nested_state = build_nested_state(bare_id)
         states_list.append(nested_state)
         added_bare_ids.add(bare_id)
+    
+    # Step 4b: Deduplicate states with identical structure (fix for mermaid-parser-py creating reference states)
+    # When transitions reference nested states, the converter sometimes creates duplicate sibling states
+    def deduplicate_states(states):
+        """Remove duplicate states that have the same name and children structure"""
+        if not states:
+            return states
+        
+        seen_structures = {}  # name -> (children_tuple, first_occurrence_index)
+        indices_to_remove = set()
+        
+        for i, state in enumerate(states):
+            if isinstance(state, dict):
+                state_name = state.get('name')
+                children = state.get('children', [])
+                
+                # Create a hashable representation of children (names only, not full dicts)
+                children_key = tuple(sorted([
+                    c if isinstance(c, str) else c.get('name', '')
+                    for c in children
+                ]))
+                
+                structure_key = (state_name, children_key)
+                
+                if structure_key in seen_structures:
+                    # This is a duplicate - mark it for removal
+                    indices_to_remove.add(i)
+                    debug_print(f"Found duplicate state '{state_name}' - removing duplicate")
+                else:
+                    seen_structures[structure_key] = i
+                    # Recursively deduplicate children
+                    if children:
+                        child_dicts = [c for c in children if isinstance(c, dict)]
+                        if child_dicts:
+                            deduped_children = deduplicate_states(child_dicts)
+                            # Rebuild children list with deduplicated dicts
+                            new_children = []
+                            dict_idx = 0
+                            for c in children:
+                                if isinstance(c, dict):
+                                    if dict_idx < len(deduped_children):
+                                        new_children.append(deduped_children[dict_idx])
+                                        dict_idx += 1
+                                else:
+                                    new_children.append(c)
+                            state['children'] = new_children
+        
+        # Return list without duplicates
+        return [state for i, state in enumerate(states) if i not in indices_to_remove]
+    
+    states_list = deduplicate_states(states_list)
+    debug_print(f"States after deduplication: {len(states_list)} root states")
 
     # Step 5: Set initial state if not found
     if not initial_state and states_list:

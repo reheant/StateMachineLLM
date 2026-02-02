@@ -170,23 +170,24 @@ def run_single_prompt(system_prompt, model="anthropic/claude-3.5-sonnet"):
 
     """
 
-    print(f"Running Single Prompt Generation...")
-    print(f"Using OpenRouter model: {model}")
+    print(f"Running Single Prompt Generation with {model}")
 
-    # Replace original loop with OpenRouter implementation:
     success = False
-    for i in range(5):
+    max_attempts = 3
+    
+    for i in range(max_attempts):
+        if i > 0:
+            print(f"Retrying (attempt {i+1}/{max_attempts})...")
+        
         result = process_umple_attempt_openrouter(i, prompt, paths, model)
+        
         if result != "False":
-            print(f"Generation completed successfully!")
             success = True
             break
+        elif i < max_attempts - 1:
+            print(f"Attempt failed, retrying...")
         else:
-            print(
-                f"Attempt {i+1}/5 failed, retrying..."
-                if i < 4
-                else "All attempts failed."
-            )
+            print(f"All attempts failed")
 
     return success
 
@@ -205,6 +206,7 @@ def process_umple_attempt_openrouter(
         str: Generated Mermaid code if successful, "False" otherwise
     """
     try:
+        # Call LLM
         answer = call_openrouter_llm(
             prompt, max_tokens=5000, temperature=0.01, model=model
         )
@@ -215,44 +217,53 @@ def process_umple_attempt_openrouter(
                 answer, paths["generated_mermaid_code_path"]
             )
         except Exception as e:
-            error = f"Attempt {i} at extracting mermaid code failed\n\n"
+            error = f"Failed to extract mermaid code from LLM response"
             with open(paths["log_file_path"], "a") as file:
-                file.write(error)
-                file.write(f"Error: {str(e)}\n\n")
-            print(error)
-            print(f"Error: {str(e)}")
+                file.write(f"{error}\nError: {str(e)}\n\n")
+            print(f"{error}: {str(e)}")
             return "False"
 
-        print(
-            f"Attempt {i} at extracting mermaid code successful\nGenerated mermaid code:"
-        )
-        print(f"```mermaid\n{generated_mermaid_code}\n```")
+        # Display generated Mermaid code
+        print(f"\nGenerated Mermaid Code:\n```mermaid\n{generated_mermaid_code}\n```")
+        print(f"\n📄 Mermaid saved: {paths['generated_mermaid_code_path']}")
 
         # Log generated code
         with open(paths["log_file_path"], "a") as file:
             file.write(generated_mermaid_code)
             file.write("\n\n")
 
-        # Render diagram using Sherpa
+        # Render diagram
         try:
-            print(f"Rendering diagram with Sherpa from generated Mermaid code")
-            print(f"Output diagram to: {paths['diagram_file_path']}")
             success = create_single_prompt_gsm_diagram_with_sherpa(
                 generated_mermaid_code, paths["diagram_file_path"]
             )
             if not success:
-                raise Exception("Sherpa rendering returned False")
+                raise Exception("Diagram rendering failed")
         except Exception as e:
-            error = f"Attempt {i} at rendering diagram with Sherpa failed\n\n"
+            import traceback
+            import json
+            
+            error = f"Failed to render diagram"
+            full_traceback = traceback.format_exc()
+            
+            # Save error to file
+            error_file = paths["diagram_file_path"] + "_error.json"
+            with open(error_file, "w") as f:
+                json.dump({
+                    "error": str(e),
+                    "traceback": full_traceback,
+                    "mermaid_code": generated_mermaid_code
+                }, f, indent=2)
+            
             with open(paths["log_file_path"], "a") as file:
-                file.write(error)
-                file.write(f"Error: {str(e)}\n\n")
-            print(error)
-            print(f"Error: {str(e)}\n\n")
+                file.write(f"{error}\nError: {str(e)}\nTraceback:\n{full_traceback}\n\n")
+            
+            print(f"{error}: {str(e)}")
             return "False"
 
-        print(f"Attempt {i} at rendering diagram with Sherpa successful")
-        print(f"Diagram saved to: {paths['diagram_file_path']}.png")
+        # Success - show where diagram was saved
+        diagram_output = paths['diagram_file_path'] + ".png"
+        print(f"🖼️  Diagram saved: {diagram_output}")
 
         return generated_mermaid_code
 
