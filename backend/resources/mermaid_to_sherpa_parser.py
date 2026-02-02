@@ -8,6 +8,13 @@ Includes support for shallow history states (displayed as "H" pseudo-states).
 
 import re
 import sys
+import types
+
+# Fix for pythonmonkey import error in async/Chainlit context
+# pythonmonkey calls inspect.stack() during import which requires __main__ module
+if '__main__' not in sys.modules:
+    sys.modules['__main__'] = types.ModuleType('__main__')
+
 from mermaid_parser.converters.state_diagram import StateDiagramConverter
 from mermaid_parser.structs.state_diagram import HistoryState
 
@@ -59,6 +66,29 @@ def parse_mermaid_with_library(mermaid_code: str):
     debug_print(
         f"History transitions map: {history_transitions_map if history_transitions_map else 'EMPTY'}"
     )
+    
+    # Parse notes EARLY to detect additional history states from note patterns
+    # This handles cases like "returns to StateName history state"
+    debug_print(f"Scanning {len(result.notes)} notes for history state references...")
+    
+    for note in result.notes:
+        note_text = note.content
+        target_state = getattr(note.target_state, 'id_', None) if note.target_state else None
+        
+        # Look for pattern: "returns to StateName history state" or "transitions to StateName history state"
+        history_match = re.search(
+            r'(?:returns to|transitions to)\s+(\w+)\s+history state',
+            note_text,
+            re.IGNORECASE
+        )
+        
+        if history_match:
+            mentioned_state = history_match.group(1)
+            
+            # The explicitly mentioned state gets the H pseudo-state
+            if mentioned_state not in history_states_map:
+                history_states_map[mentioned_state] = None
+                debug_print(f"Added '{mentioned_state}' to history_states_map from note")
 
     # Step 1: Build state mappings from converter output
     for state in result.states:
@@ -109,6 +139,28 @@ def parse_mermaid_with_library(mermaid_code: str):
             parallel_regions.append(
                 {"parent": state_id, "regions": state.parallel_regions}
             )
+    
+    # Step 1b: Fix hierarchical_states for parallel regions
+    # States in parallel regions have parent_id like '0', '1', etc. instead of actual parent name
+    # We need to remap these to the actual parent state
+    region_to_parent = {}
+    for p in parallel_regions:
+        parent_state = p["parent"]
+        for i, region in enumerate(p["regions"]):
+            region_id = str(i)
+            region_to_parent[region_id] = parent_state
+    
+    # Remap children from region IDs to actual parent states
+    for region_id, actual_parent in region_to_parent.items():
+        if region_id in hierarchical_states:
+            children = hierarchical_states[region_id]
+            debug_print(f"Remapping children {children} from region '{region_id}' to parent '{actual_parent}'")
+            if actual_parent not in hierarchical_states:
+                hierarchical_states[actual_parent] = []
+            for child in children:
+                if child not in hierarchical_states[actual_parent]:
+                    hierarchical_states[actual_parent].append(child)
+            del hierarchical_states[region_id]
 
     # Step 2: Get initial state from converter result
     # The converter now extracts root_initial_state and initial_states for us
@@ -243,6 +295,55 @@ def parse_mermaid_with_library(mermaid_code: str):
     debug_print(
         f"History states to add H: {list(history_states_map.keys()) if history_states_map else 'NONE'}"
     )
+    
+    # Step 3b: Remove duplicate child references from hierarchical_states
+    # The mermaid-parser-py converter sometimes creates reference states when transitions
+    # cross hierarchical boundaries. If a state "Busy" exists as both "On/Busy" and
+    # "On/LoggedIn/Busy", we keep only the nested one and remove the sibling reference.
+    
+    # Build a function to calculate depth using hierarchical_states structure
+    def get_nesting_depth_from_hierarchy(state_name, hier_states, visited=None):
+        """Calculate how deeply nested a state is by counting how many ancestors it has"""
+        if visited is None:
+            visited = set()
+        
+        # Prevent infinite recursion from circular references
+        if state_name in visited:
+            return 0
+        visited.add(state_name)
+        
+        # Walk up the hierarchy to count ancestors
+        for potential_parent, children in hier_states.items():
+            if state_name in children:
+                # This state is a child of potential_parent
+                # Recursively get the depth of the parent and add 1
+                return 1 + get_nesting_depth_from_hierarchy(potential_parent, hier_states, visited)
+        return 0  # Root level state
+    
+    # Find states that appear as children of multiple parents
+    child_to_parents = {}
+    for parent, children in hierarchical_states.items():
+        for child in children:
+            if child not in child_to_parents:
+                child_to_parents[child] = []
+            child_to_parents[child].append(parent)
+    
+    # For each state that appears under multiple parents, keep it under the most nested parent
+    for state_name, parents in child_to_parents.items():
+        if len(parents) > 1:
+            # Calculate depth of each parent using the hierarchical structure
+            parent_depths = [(parent, get_nesting_depth_from_hierarchy(parent, hierarchical_states)) for parent in parents]
+            # Sort by depth (higher depth = more nested)
+            parent_depths.sort(key=lambda x: x[1], reverse=True)
+            deepest_parent = parent_depths[0][0]
+            
+            # Remove from all other (shallower) parents
+            for parent, depth in parent_depths[1:]:
+                if state_name in hierarchical_states.get(parent, []):
+                    hierarchical_states[parent].remove(state_name)
+                    debug_print(f"Removed duplicate '{state_name}' from '{parent}' (kept in '{deepest_parent}')")
+    
+    debug_print(f"Hierarchical states after deduplication: {hierarchical_states}")
 
     # Create a lookup for parallel region info by parent state
     parallel_info_by_state = {p["parent"]: p["regions"] for p in parallel_regions}
@@ -274,6 +375,25 @@ def parse_mermaid_with_library(mermaid_code: str):
                         continue
 
                     # Recursively build each child
+                    nested_child = build_nested_state(child_id)
+                    if nested_child not in nested_children:
+                        nested_children.append(nested_child)
+                        # If this child is a composite state (dict), track it as a parallel region child
+                        if isinstance(nested_child, dict):
+                            parallel_region_children.append(nested_child["name"])
+            
+            # Also add any children that were remapped from region IDs to this parent
+            # These were added to hierarchical_states but aren't in region["states"]
+            if state_id in hierarchical_states:
+                for child_id in hierarchical_states[state_id]:
+                    # Skip if already added from regions
+                    if any(
+                        isinstance(c, dict) and c.get("name") == child_id
+                        for c in nested_children
+                    ) or any(c == child_id for c in nested_children):
+                        continue
+                    
+                    # Recursively build each remapped child
                     nested_child = build_nested_state(child_id)
                     if nested_child not in nested_children:
                         nested_children.append(nested_child)
@@ -329,8 +449,14 @@ def parse_mermaid_with_library(mermaid_code: str):
 
             return result
         else:
-            # Simple state (leaf node)
-            return state_id
+            # Simple state (leaf node) - BUT check if it needs history pseudo-state
+            if state_id in history_states_map:
+                # Convert simple state to composite with H pseudo-state
+                debug_print(f"Converting simple state '{state_id}' to composite (needs history)")
+                return {"name": state_id, "children": ["H"]}
+            else:
+                # Regular simple state
+                return state_id
 
     # Build the states list with only ROOT-level states (not nested ones)
     states_list = []
@@ -353,6 +479,58 @@ def parse_mermaid_with_library(mermaid_code: str):
         nested_state = build_nested_state(bare_id)
         states_list.append(nested_state)
         added_bare_ids.add(bare_id)
+    
+    # Step 4b: Deduplicate states with identical structure (fix for mermaid-parser-py creating reference states)
+    # When transitions reference nested states, the converter sometimes creates duplicate sibling states
+    def deduplicate_states(states):
+        """Remove duplicate states that have the same name and children structure"""
+        if not states:
+            return states
+        
+        seen_structures = {}  # name -> (children_tuple, first_occurrence_index)
+        indices_to_remove = set()
+        
+        for i, state in enumerate(states):
+            if isinstance(state, dict):
+                state_name = state.get('name')
+                children = state.get('children', [])
+                
+                # Create a hashable representation of children (names only, not full dicts)
+                children_key = tuple(sorted([
+                    c if isinstance(c, str) else c.get('name', '')
+                    for c in children
+                ]))
+                
+                structure_key = (state_name, children_key)
+                
+                if structure_key in seen_structures:
+                    # This is a duplicate - mark it for removal
+                    indices_to_remove.add(i)
+                    debug_print(f"Found duplicate state '{state_name}' - removing duplicate")
+                else:
+                    seen_structures[structure_key] = i
+                    # Recursively deduplicate children
+                    if children:
+                        child_dicts = [c for c in children if isinstance(c, dict)]
+                        if child_dicts:
+                            deduped_children = deduplicate_states(child_dicts)
+                            # Rebuild children list with deduplicated dicts
+                            new_children = []
+                            dict_idx = 0
+                            for c in children:
+                                if isinstance(c, dict):
+                                    if dict_idx < len(deduped_children):
+                                        new_children.append(deduped_children[dict_idx])
+                                        dict_idx += 1
+                                else:
+                                    new_children.append(c)
+                            state['children'] = new_children
+        
+        # Return list without duplicates
+        return [state for i, state in enumerate(states) if i not in indices_to_remove]
+    
+    states_list = deduplicate_states(states_list)
+    debug_print(f"States after deduplication: {len(states_list)} root states")
 
     # Step 5: Set initial state if not found
     if not initial_state and states_list:
@@ -372,8 +550,8 @@ def parse_mermaid_with_library(mermaid_code: str):
         if not target_state:
             continue
 
-        # Skip history-related notes (already handled)
-        if 'history' in note_text.lower():
+        # Skip history-related notes (already handled) but allow entry/exit with history
+        if 'history' in note_text.lower() and not any(keyword in note_text.lower() for keyword in ['entry', 'exit', 'do']):
             continue
 
         # Parse entry actions: "entry / action" or "entry: action"

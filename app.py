@@ -185,7 +185,10 @@ async def run_conversation(message: cl.Message):
         if current_output:
             lines = current_output.splitlines()
             for line in lines:
-                if line.startswith("Running"):
+                # Check for step indicators
+                is_step_start = line.startswith("Running")
+                
+                if is_step_start:
                     if current_step is not None:
                         step_content = "\n".join(current_step_content)
                         current_step.output = step_content
@@ -221,15 +224,64 @@ async def run_conversation(message: cl.Message):
     final_answer.content = "\n".join(step_outputs)
     await final_answer.update()
 
+    # Display Mermaid code first
+    async with cl.Step(name="Displaying Mermaid Code") as mermaid_step:
+        await display_mermaid_code_from_log()
+
+    # Then display diagram (or error)
     async with cl.Step(name="Rendering Diagram") as diagram_step:
         await display_image()
 
 
+async def display_mermaid_code_from_log():
+    """Display the generated Mermaid code from the log directory"""
+    strategy = cl.user_session.get("generation_strategy", "event_driven")
+    
+    # Get appropriate log directory
+    if strategy == "single_prompt":
+        log_dir = os.path.join(os.path.dirname(__file__), "backend", "resources", "single_prompt_log")
+    elif strategy == "structure_driven":
+        log_dir = os.path.join(os.path.dirname(__file__), "backend", "resources", "simple_linear_log")
+    else:
+        log_dir = os.path.join(os.path.dirname(__file__), "backend", "resources", "event_driven_log")
+    
+    # Find latest .mmd file
+    try:
+        mmd_files = [f for f in os.listdir(log_dir) if f.endswith('.mmd')]
+        if not mmd_files:
+            await cl.Message(content="⚠️ No Mermaid code generated.").send()
+            return None
+        
+        latest_mmd = max(
+            (os.path.join(log_dir, f) for f in mmd_files),
+            key=os.path.getmtime
+        )
+        
+        # Read Mermaid code
+        with open(latest_mmd, 'r') as f:
+            mermaid_code = f.read()
+        
+        # Get relative path for display
+        relative_mmd_path = os.path.relpath(latest_mmd, os.path.dirname(__file__))
+        
+        # Display in UI
+        await cl.Message(
+            content=f"### 📝 Generated Mermaid Code\n\n📁 **Saved to:** `{relative_mmd_path}`\n\n```mermaid\n{mermaid_code}\n```"
+        ).send()
+        
+        return latest_mmd
+        
+    except Exception as e:
+        await cl.Message(content=f"⚠️ Error reading Mermaid code: {str(e)}").send()
+        return None
+
+
 async def display_image():
     """
-    The display_image() function displays the state machine diagram after it has been translated into
-    mermaid syntax and converted into an image
+    Display the state machine diagram or error message if rendering failed
     """
+    import json
+    
     # Check if generation was successful
     generation_success = cl.user_session.get("generation_success", True)
 
@@ -256,12 +308,65 @@ async def display_image():
             os.path.dirname(__file__), "backend", "resources", "event_driven_diagrams"
         )
 
+    # Check for error marker files first
+    try:
+        # Determine which directory to check based on strategy
+        if strategy == "single_prompt":
+            if not os.path.exists(outputs_directory):
+                error_dir = None
+            else:
+                timestamped_folders = [d for d in os.listdir(outputs_directory)
+                                     if os.path.isdir(os.path.join(outputs_directory, d))]
+                if timestamped_folders:
+                    latest_folder = max(
+                        (os.path.join(outputs_directory, d) for d in timestamped_folders),
+                        key=os.path.getmtime,
+                    )
+                    error_dir = latest_folder
+                else:
+                    error_dir = None
+        else:
+            error_dir = image_directory
+        
+        if error_dir and os.path.exists(error_dir):
+            error_files = [f for f in os.listdir(error_dir) if f.endswith('_error.json')]
+            if error_files:
+                latest_error = max(
+                    (os.path.join(error_dir, f) for f in error_files),
+                    key=os.path.getmtime
+                )
+                
+                with open(latest_error, 'r') as f:
+                    error_data = json.load(f)
+                
+                error_msg = f"""### ❌ Diagram Generation Failed
+
+**Error Type:** {error_data.get('error_type', 'Unknown').replace('_', ' ').title()}
+
+**Error Message:**
+```
+{error_data.get('error_message', 'Unknown error occurred')}
+```
+
+**Troubleshooting:**
+- Check the Mermaid code above for syntax errors
+- Look for missing braces, invalid state names, or incorrect transitions
+- Common issues: state names starting with numbers, unclosed state blocks, missing commas
+"""
+                await cl.Message(content=error_msg).send()
+                
+                # Delete error file after displaying so it doesn't show again
+                os.remove(latest_error)
+                return
+    except Exception as e:
+        print(f"Error checking for error files: {str(e)}")
+
     # Get the path of the most recently created diagram
     try:
         # For single prompt, find the most recent folder in structure: date/model_name/system_name/time
         if strategy == "single_prompt":
             if not os.path.exists(outputs_directory):
-                await cl.Message(content="No outputs directory found.").send()
+                await cl.Message(content="⚠️ No outputs directory found.").send()
                 return
 
             # Get all date folders (e.g., 2026_01_30)
@@ -272,7 +377,7 @@ async def display_image():
             ]
 
             if not date_folders:
-                await cl.Message(content="No output folders found.").send()
+                await cl.Message(content="⚠️ No output folders found.").send()
                 return
 
             # Get the most recent date folder
@@ -332,9 +437,12 @@ async def display_image():
     # Use the actual filename to prevent browser caching issues
     image_name = os.path.basename(latest_file)
     image = cl.Image(path=latest_file, name=image_name, display="inline", size="large")
+    
+    # Get relative path for display
+    relative_path = os.path.relpath(latest_file, os.path.dirname(__file__))
 
     await cl.Message(
-        content="State Machine Image Rendered",
+        content=f"### ✅ State Machine Diagram Generated Successfully\n\n📁 **Saved to:** `{relative_path}`",
         elements=[image],
     ).send()
 
