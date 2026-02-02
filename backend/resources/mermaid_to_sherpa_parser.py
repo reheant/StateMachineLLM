@@ -59,6 +59,29 @@ def parse_mermaid_with_library(mermaid_code: str):
     debug_print(
         f"History transitions map: {history_transitions_map if history_transitions_map else 'EMPTY'}"
     )
+    
+    # Parse notes EARLY to detect additional history states from note patterns
+    # This handles cases like "returns to StateName history state"
+    debug_print(f"Scanning {len(result.notes)} notes for history state references...")
+    
+    for note in result.notes:
+        note_text = note.content
+        target_state = getattr(note.target_state, 'id_', None) if note.target_state else None
+        
+        # Look for pattern: "returns to StateName history state" or "transitions to StateName history state"
+        history_match = re.search(
+            r'(?:returns to|transitions to)\s+(\w+)\s+history state',
+            note_text,
+            re.IGNORECASE
+        )
+        
+        if history_match:
+            mentioned_state = history_match.group(1)
+            
+            # The explicitly mentioned state gets the H pseudo-state
+            if mentioned_state not in history_states_map:
+                history_states_map[mentioned_state] = None
+                debug_print(f"Added '{mentioned_state}' to history_states_map from note")
 
     # Step 1: Build state mappings from converter output
     for state in result.states:
@@ -329,8 +352,14 @@ def parse_mermaid_with_library(mermaid_code: str):
 
             return result
         else:
-            # Simple state (leaf node)
-            return state_id
+            # Simple state (leaf node) - BUT check if it needs history pseudo-state
+            if state_id in history_states_map:
+                # Convert simple state to composite with H pseudo-state
+                debug_print(f"Converting simple state '{state_id}' to composite (needs history)")
+                return {"name": state_id, "children": ["H"]}
+            else:
+                # Regular simple state
+                return state_id
 
     # Build the states list with only ROOT-level states (not nested ones)
     states_list = []
@@ -372,8 +401,8 @@ def parse_mermaid_with_library(mermaid_code: str):
         if not target_state:
             continue
 
-        # Skip history-related notes (already handled)
-        if 'history' in note_text.lower():
+        # Skip history-related notes (already handled) but allow entry/exit with history
+        if 'history' in note_text.lower() and not any(keyword in note_text.lower() for keyword in ['entry', 'exit', 'do']):
             continue
 
         # Parse entry actions: "entry / action" or "entry: action"
