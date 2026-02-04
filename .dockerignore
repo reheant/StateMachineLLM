@@ -1,0 +1,60 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+
+# Environment files (should be provided at runtime)
+.env
+
+# Chainlit
+.chainlit/
+.files/
+
+# Test outputs
+StateMachineLLM/tests/test_output/
+StateMachineLLM/backend/resources/event_driven_log/
+StateMachineLLM/backend/resources/single_prompt_log/
+StateMachineLLM/backend/resources/single_prompt_outputs/
+StateMachineLLM/backend/resources/event_driven_diagrams/
+StateMachineLLM/backend/resources/single_prompt_diagrams/
+
+# Logs
+*.log
+
+# Documentation
+*.md
+!StateMachineLLM/chainlit.md
+!StateMachineLLM/chainlit_en-US.md
+
+# Images
+*.png
+*.jpg
+*.jpeg
+*.mmd
