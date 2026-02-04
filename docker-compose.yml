@@ -1,0 +1,32 @@
+services:
+  statemachine-llm:
+    build:
+      context: ..
+      dockerfile: StateMachineLLM/Dockerfile
+    container_name: statemachine-llm
+    ports:
+      - "8000:8000"
+    environment:
+      # Load from .env file
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - DEBUG=${DEBUG:-False}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+    env_file:
+      - .env
+    volumes:
+      # Mount output directories to persist generated files
+      - ./backend/resources/event_driven_log:/app/backend/resources/event_driven_log
+      - ./backend/resources/single_prompt_log:/app/backend/resources/single_prompt_log
+      - ./backend/resources/single_prompt_outputs:/app/backend/resources/single_prompt_outputs
+      - ./backend/resources/event_driven_diagrams:/app/backend/resources/event_driven_diagrams
+      - ./backend/resources/single_prompt_diagrams:/app/backend/resources/single_prompt_diagrams
+      - ./.chainlit:/app/.chainlit
+      - ./.files:/app/.files
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s

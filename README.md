@@ -45,12 +45,43 @@ Our solution embeds a state machine within the LLM decision-making process to:
 
 ## Installation and Setup
 
-### Prerequisites
+### 🐳 Docker Setup (Recommended)
+
+**For the easiest setup that works across all platforms**, use Docker:
+
+```bash
+# Create workspace and clone both repositories
+mkdir autostate-workspace && cd autostate-workspace
+
+# Clone main repository
+git clone https://github.com/reheant/StateMachineLLM.git
+
+# Clone mermaid-parser dependency (required as sibling directory)
+git clone https://github.com/YOUR-ORG/mermaid-parser-py.git
+
+# Configure and run
+cd StateMachineLLM
+cp .env.example .env
+# Edit .env and add your API keys
+
+# Build and run with Docker
+docker-compose up --build
+```
+
+Then open http://localhost:8000 in your browser.
+
+📖 **See [DOCKER_SETUP.md](DOCKER_SETUP.md) for detailed Docker instructions and troubleshooting.**
+
+---
+
+### Manual Installation
+
+#### Prerequisites
 
 - Python 3.11 (required for some dependencies)
 - API Key for the LLM you will use
 
-### Setup
+#### Setup
 
 #### For macOS:
 
