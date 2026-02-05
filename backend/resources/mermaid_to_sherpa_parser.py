@@ -12,11 +12,19 @@ import types
 
 # Fix for pythonmonkey import error in async/Chainlit context
 # pythonmonkey calls inspect.stack() during import which requires __main__ module
+# Only set if it doesn't exist to avoid conflicts with module reloading
 if "__main__" not in sys.modules:
-    sys.modules["__main__"] = types.ModuleType("__main__")
+    main_module = types.ModuleType("__main__")
+    main_module.__file__ = "<synthetic __main__>"
+    sys.modules["__main__"] = main_module
 
-from mermaid_parser.converters.state_diagram import StateDiagramConverter
-from mermaid_parser.structs.state_diagram import HistoryState
+try:
+    from mermaid_parser.converters.state_diagram import StateDiagramConverter
+    from mermaid_parser.structs.state_diagram import HistoryState
+except Exception as e:
+    # If there's an import error, provide a helpful message
+    print(f"Error importing mermaid_parser: {e}", file=sys.stderr)
+    raise
 
 
 def debug_print(msg):
@@ -29,7 +37,8 @@ def parse_mermaid_with_library(mermaid_code: str):
     Parse Mermaid stateDiagram-v2 using mermaid-parser-py StateDiagramConverter
     and convert to Sherpa-compatible format.
 
-    Returns: (states_list, transitions_list, hierarchical_dict, initial_state, parallel_regions)
+    Returns: (states_list, transitions_list, hierarchical_dict, initial_state, parallel_regions,
+              state_annotations, root_initial_state, nested_initial_states)
     """
     debug_print("=== PARSING MERMAID CODE ===")
 
@@ -534,6 +543,13 @@ def parse_mermaid_with_library(mermaid_code: str):
             first_state if isinstance(first_state, str) else first_state["name"]
         )
 
+    # Step 5b: DO NOT add _init_ transitions to the transitions list
+    # These would be treated as real transitions by Sherpa, causing:
+    # 1. Initial markers to be placed at wrong hierarchical levels
+    # 2. Transitions like Off->On to go through initial markers
+    # 3. Sherpa to auto-generate unwanted initial states
+    # Instead, we return the initial state information separately for visual rendering
+
     # Step 6: Entry/exit annotations are no longer supported via notes
     # Notes have been removed from the parser
     state_annotations = []  # Empty list since notes are removed
@@ -545,6 +561,8 @@ def parse_mermaid_with_library(mermaid_code: str):
         initial_state,
         parallel_regions,
         state_annotations,
+        root_initial_state,  # NEW: Root-level initial state for visualization
+        nested_initial_states,  # NEW: Nested initial states dict for visualization
     )
 
 

@@ -23,24 +23,25 @@ n_shot_examples = {
         Ready --> Ready : start [action=="print" && !documentInQueue()]
         Ready --> Ready : scan / {action="scan"}
         Ready --> Ready : print / {action="print"}
-        Ready --> ScanAndEmail : start [action=="scan" && originalLoaded()]
-        Ready --> Print : start [action=="print" && documentInQueue()]
 
         state Busy {
-
             state ScanAndEmail
 
             state Print
             
             state HistoryState1
             
+            ScanAndEmail --> Ready : stop
+            ScanAndEmail --> Ready : done
+            Print --> Ready : stop
+            Print --> Ready : done
             Print --> Suspended : outOfPaper
-
         }
+        
+        Ready --> ScanAndEmail : start [action=="scan" && originalLoaded()]
+        Ready --> Print : start [action=="print" && documentInQueue()]
        
         Busy --> Suspended : jam
-        Busy --> Ready : stop
-        Busy --> Ready : done
 
         state Suspended
         Suspended --> Ready : cancel
@@ -99,7 +100,7 @@ n_shot_examples = {
             state SaunaOn {
                 --
                 state Heater {
-                    State Head
+                    State Heat
                     [*] --> Heat
                     
                     State Idle

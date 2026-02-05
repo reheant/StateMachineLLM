@@ -1436,7 +1436,18 @@ def create_single_prompt_gsm_diagram_with_sherpa(
     diagram_file_path: Path where to save the PNG diagram
     """
     # Lazy import to avoid pythonmonkey segfault in async context
-    from .mermaid_to_sherpa_parser import parse_mermaid_with_library
+    # Use absolute import to avoid KeyError with module caching
+    try:
+        from resources.mermaid_to_sherpa_parser import parse_mermaid_with_library
+    except KeyError:
+        # Fallback to direct import if relative import fails
+        import sys
+        import os
+
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        if current_dir not in sys.path:
+            sys.path.insert(0, current_dir)
+        from mermaid_to_sherpa_parser import parse_mermaid_with_library
 
     # Parse Mermaid code using mermaid-parser-py library
     (
@@ -1446,6 +1457,8 @@ def create_single_prompt_gsm_diagram_with_sherpa(
         initial_state,
         parallel_regions,
         state_annotations,
+        root_initial_state,
+        nested_initial_states,
     ) = parse_mermaid_with_library(mermaid_code)
 
     print("\nParsed Mermaid Diagram:")
@@ -1501,28 +1514,121 @@ def create_single_prompt_gsm_diagram_with_sherpa(
         else:
             png_file_path = diagram_file_path
 
-        # Get the graph and add entry/exit annotations as a label
+        # Get the graph and manually add initial state markers ([*])
+        # These are visual-only markers and must be placed at the correct hierarchical level
         graph = gsm.sm.get_graph()
 
-        # Ensure Start nodes render as filled black points: add a 'start' node style
+        # Manually add initial state markers to the Graphviz graph
+        # Strategy: Insert point nodes and edges at the correct hierarchical levels
         try:
-            gsm.sm.style_attributes.setdefault("node", {})["start"] = {
-                "shape": "point",
-                "fillcolor": "black",
-                "label": "",
-            }
-            # Mark any machine state whose name looks like a start marker to use this style
-            for s in getattr(gsm.sm, "states", []):
-                try:
-                    name = s.name
-                except Exception:
-                    name = str(s)
-                if name is None:
-                    continue
-                if name.endswith("_start") or name == "root_start" or name == "[*]":
-                    graph.custom_styles.setdefault("node", {})[name] = "start"
-        except Exception:
-            pass
+            import re
+
+            new_body = []
+
+            # Track which subgraphs (composite states) we're inside
+            current_subgraphs = []  # Stack of (subgraph_name, indent_level)
+
+            # Process each line and inject initial markers at the right places
+            i = 0
+            while i < len(graph.body):
+                line = graph.body[i]
+
+                # Track subgraph entries
+                if "subgraph" in line:
+                    # Extract the subgraph name (e.g., cluster_On)
+                    match = re.search(r"subgraph\s+(\S+)", line)
+                    if match:
+                        subgraph_name = match.group(1)
+                        indent_match = re.match(r"(\s*)", line)
+                        indent_level = len(indent_match.group(1)) if indent_match else 0
+                        current_subgraphs.append((subgraph_name, indent_level))
+
+                        # Check if this subgraph corresponds to a composite state with an initial state
+                        # Subgraph names are like "cluster_On" or "cluster_On_Busy"
+                        # We need to match against the state names in nested_initial_states
+                        # nested_initial_states has keys like "On", "On_Busy", etc.
+                        state_name = subgraph_name.replace("cluster_", "")
+
+                        new_body.append(line)
+
+                        # If this composite state has an initial state, add the marker
+                        if state_name in nested_initial_states:
+                            child_initial = nested_initial_states[state_name]
+                            # Add the initial marker node and edge
+                            marker_name = f"{state_name}_initial"
+                            child_scoped = f"{state_name}_{child_initial}"
+
+                            # Calculate proper indentation (one level deeper than subgraph)
+                            indent = "\t" * (len(current_subgraphs) + 1)
+
+                            # Add point node definition
+                            new_body.append(
+                                f'{indent}"{marker_name}" [fillcolor=black color=black height=0.15 label="" shape=point width=0.15]'
+                            )
+                            # Add edge from marker to initial child state
+                            new_body.append(
+                                f'{indent}"{marker_name}" -> "{child_scoped}"'
+                            )
+
+                        i += 1
+                        continue
+
+                # Track subgraph exits
+                if line.strip() == "}":
+                    if current_subgraphs:
+                        # Check indent level to see if we're exiting a subgraph
+                        indent_match = re.match(r"(\s*)", line)
+                        current_indent = (
+                            len(indent_match.group(1)) if indent_match else 0
+                        )
+
+                        # Pop subgraphs that we're exiting
+                        while (
+                            current_subgraphs
+                            and current_subgraphs[-1][1] >= current_indent
+                        ):
+                            current_subgraphs.pop()
+
+                # Keep the line
+                new_body.append(line)
+                i += 1
+
+            # Add root-level initial marker if needed
+            # Root initial marker should be at the top level (not inside any subgraph)
+            if root_initial_state:
+                # Find where to insert the root initial marker
+                # It should be after the graph attributes but before state definitions
+                insert_index = 0
+                for idx, line in enumerate(new_body):
+                    if (
+                        "digraph" in line
+                        or "graph [" in line
+                        or "node [" in line
+                        or "edge [" in line
+                    ):
+                        insert_index = idx + 1
+                    elif "subgraph" in line:
+                        break
+
+                # Insert root initial marker at top level
+                root_marker = "_initial"
+                new_body.insert(
+                    insert_index,
+                    f'\t"{root_marker}" [fillcolor=black color=black height=0.15 label="" shape=point width=0.15]',
+                )
+                new_body.insert(
+                    insert_index + 1, f'\t"{root_marker}" -> "{root_initial_state}"'
+                )
+
+            # Replace the graph body
+            graph.body = new_body
+
+        except Exception as e:
+            # Non-fatal: if this fails, continue with default rendering
+            print(f"Warning: Could not add initial state markers: {e}")
+            import traceback
+
+            traceback.print_exc()
 
         if state_annotations:
             # Format annotations as a left-aligned label at the bottom of the diagram
