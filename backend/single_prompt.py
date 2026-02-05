@@ -99,9 +99,11 @@ def run_single_prompt(
     """
     # Extract short model name for folder (e.g., "anthropic/claude-3.5-sonnet" -> "claude-3.5-sonnet")
     model_short_name = model.split("/")[-1] if "/" in model else model
-    
+
     # Setup file paths with optional system name and model name for folder organization
-    paths = setup_file_paths(os.path.dirname(__file__), system_name=system_name, model_name=model_short_name)
+    paths = setup_file_paths(
+        os.path.dirname(__file__), system_name=system_name, model_name=model_short_name
+    )
 
     # Prepare the list of example to provide to the LLM (N shot prompting)
     n_shot_examples_single_prompt = list(n_shot_examples.keys())[
@@ -119,7 +121,7 @@ def run_single_prompt(
             n_shot_examples_single_prompt.remove(n_shot_example)
             break
 
-    prompt = f"""You are an AI assistant specialized in generating state machines using Mermaid state diagram syntax. Based on the problem description provided, your task is to:
+    prompt = f"""You are an AI assistant specialized in generating state machines using a Custom Mermaid state diagram syntax. Based on the problem description provided, your task is to:
 
 	1.	Derive implicit knowledge from each sentence
 	2.	Explain how you parse the problem description to extract states for state machine
@@ -129,44 +131,30 @@ def run_single_prompt(
 	6.	Explain how you parse the problem description to extract history states for the state machine
 	7.	Assemble the state machine in Mermaid syntax using information from steps 1. through 6. and encapsulate the code between brackets like the following: <mermaid_code_solution>code</mermaid_code_solution>
 
-    IMPORTANT: Use Mermaid stateDiagram-v2 syntax with the following patterns:
+    IMPORTANT: Use Mermaid syntax with the following patterns:
+    - State declaration: States must be explicitly declared using `state StateName`.
+    - Initial state rule: The initial transition must use the pattern `[*] --> StateName`, and `StateName` must be declared as a state before it is referenced.
+
+    Example (valid):
+        stateDiagram-v2
+        state Off
+        state On
+        [*] --> Off
+        Off --> On : powerOn
+        On --> Off : powerOff
+
+    Example (invalid):
+        stateDiagram-v2
+        [*] --> Off
+        state On
+        Off --> On : powerOn
+        On --> Off : powerOff
     - Guards: event [condition]
     - Actions: event / action
     - Both: event [guard] / action
     - Parallel regions: Use -- separator
     - Hierarchical states: Use state Name {{ ... }} syntax ONLY for composite states (states with substates)
-    - History states: When a transition should return to the last active substate of a composite state, use this pattern:
-      1. The transition MUST go TO the composite state name (e.g., "Suspended --> Busy : resume")
-      2. Add a note referencing the EXACT composite state name: "note right of Suspended\\n    resume returns to Busy history state\\nend note"
-      3. IMPORTANT: The state name in the note MUST match an actual composite state (one with substates defined using "state Name {{ ... }}")
-      4. Do NOT use generic terms like "operation", "task", or "previous" - use the actual state name
-    - Entry/Exit actions: Use notes to specify entry/exit/do actions for states:
-      ```
-      note right of WashCycle
-          entry / lockDoor
-          exit / unlockDoor
-      end note
-
-      note right of Heating
-          do / maintainTemperature
-      end note
-      ```
-    - NEVER combine multiple composite states in a single note.
-    - NEVER use phrasing like: "Print or Scan history state"
-    History State Example (CORRECT pattern):
-    ```
-    state Busy {{
-        [*] --> Processing
-        state Processing
-        Busy --> Paused : pause
-    }}
-    state Paused
-    Paused --> Busy : resume
-    note right of Paused
-        resume returns to Busy history state
-    end note
-    ```
-    In this example: "Busy" is a composite state (has substates), the transition goes TO "Busy", and the note references "Busy" exactly.
+    - History states: Declare history states explicitly as named states inside a composite state (e.g., HistoryState1)
 
     The following are examples demonstrating proper Mermaid syntax:
 
@@ -183,13 +171,13 @@ def run_single_prompt(
 
     success = False
     max_attempts = 3
-    
+
     for i in range(max_attempts):
         if i > 0:
             print(f"Retrying (attempt {i+1}/{max_attempts})...")
-        
+
         result = process_umple_attempt_openrouter(i, prompt, paths, model)
-        
+
         if result != "False":
             success = True
             break
@@ -251,27 +239,33 @@ def process_umple_attempt_openrouter(
         except Exception as e:
             import traceback
             import json
-            
+
             error = f"Failed to render diagram"
             full_traceback = traceback.format_exc()
-            
+
             # Save error to file
             error_file = paths["diagram_file_path"] + "_error.json"
             with open(error_file, "w") as f:
-                json.dump({
-                    "error": str(e),
-                    "traceback": full_traceback,
-                    "mermaid_code": generated_mermaid_code
-                }, f, indent=2)
-            
+                json.dump(
+                    {
+                        "error": str(e),
+                        "traceback": full_traceback,
+                        "mermaid_code": generated_mermaid_code,
+                    },
+                    f,
+                    indent=2,
+                )
+
             with open(paths["log_file_path"], "a") as file:
-                file.write(f"{error}\nError: {str(e)}\nTraceback:\n{full_traceback}\n\n")
-            
+                file.write(
+                    f"{error}\nError: {str(e)}\nTraceback:\n{full_traceback}\n\n"
+                )
+
             print(f"{error}: {str(e)}")
             return "False"
 
         # Success - show where diagram was saved
-        diagram_output = paths['diagram_file_path'] + ".png"
+        diagram_output = paths["diagram_file_path"] + ".png"
         print(f"🖼️  Diagram saved: {diagram_output}")
 
         return generated_mermaid_code
@@ -339,7 +333,11 @@ def run_test_entry_exit_annotations():
     end note
 """
 
-    paths = setup_file_paths(os.path.dirname(__file__), system_name="DevTest_EntryExit", model_name="dev-test")
+    paths = setup_file_paths(
+        os.path.dirname(__file__),
+        system_name="DevTest_EntryExit",
+        model_name="dev-test",
+    )
 
     print("Running TEST: Entry/Exit Annotation Rendering")
     print("=" * 50)

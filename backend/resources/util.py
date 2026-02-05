@@ -1116,7 +1116,10 @@ def mermaidCodeSearch(
 
 
 def setup_file_paths(
-    base_dir: str, file_type: str = "single_prompt", system_name: str = None, model_name: str = None
+    base_dir: str,
+    file_type: str = "single_prompt",
+    system_name: str = None,
+    model_name: str = None,
 ) -> dict:
     """
     Setup file paths for logs, Umple code, Mermaid code, and diagrams
@@ -1141,7 +1144,7 @@ def setup_file_paths(
             safe_model_name = model_name.replace("/", "-").replace(":", "-")
         else:
             safe_model_name = "unknown_model"
-        
+
         if system_name:
             # Sanitize system_name to be filesystem-safe
             safe_system_name = "".join(
@@ -1159,7 +1162,12 @@ def setup_file_paths(
             )
         else:
             output_base_dir = os.path.join(
-                base_dir, "resources", f"{file_type}_outputs", date_folder, safe_model_name, time_folder
+                base_dir,
+                "resources",
+                f"{file_type}_outputs",
+                date_folder,
+                safe_model_name,
+                time_folder,
             )
         os.makedirs(output_base_dir, exist_ok=True)
 
@@ -1422,9 +1430,14 @@ def create_single_prompt_gsm_diagram_with_sherpa(
         state_annotations,
     ) = parse_mermaid_with_library(mermaid_code)
 
+    print("\nParsed Mermaid Diagram:")
+    print("\n")
     print(f"Parsed States: {states_list}")
+    print("\n")
     print(f"Parsed Transitions: {transitions_list}")
+    print("\n")
     print(f"Initial State: {initial_state}")
+    print("\n")
     print(f"State Annotations: {state_annotations}")
 
     if not initial_state:
@@ -1446,6 +1459,23 @@ def create_single_prompt_gsm_diagram_with_sherpa(
             initial=initial_state,
             sm_cls=HierarchicalGraphMachine,
         )
+
+        # Override the default 'active' styling from transitions' diagrams
+        # (which uses a colored fill like 'darksalmon') so active states
+        # don't appear with the coral/darksalmon fill. Use the machine's
+        # default node/graph styles instead.
+        try:
+            node_defaults = (
+                gsm.sm.style_attributes.get("node", {}).get("default", {}).copy()
+            )
+            graph_defaults = (
+                gsm.sm.style_attributes.get("graph", {}).get("default", {}).copy()
+            )
+            gsm.sm.style_attributes.setdefault("node", {})["active"] = node_defaults
+            gsm.sm.style_attributes.setdefault("graph", {})["active"] = graph_defaults
+        except Exception:
+            # Non-fatal: if attributes aren't present, continue with defaults
+            pass
 
         # Ensure the diagram path has .png extension
         if not diagram_file_path.endswith(".png"):
