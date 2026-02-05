@@ -11,6 +11,10 @@ from mermaid.graph import Graph
 from sherpa_ai.memory.state_machine import SherpaStateMachine
 from .llm_tracker import llm
 
+# DO NOT import pythonmonkey-dependent modules at module level
+# This causes segmentation faults in Chainlit's async context.
+# Instead, use lazy imports inside functions that are called via asyncio.to_thread()
+
 # OpenRouter API key for single prompt
 openrouter_api_key = os.environ.get("OPENROUTER_API_KEY")
 
@@ -1435,15 +1439,14 @@ def create_single_prompt_gsm_diagram_with_sherpa(
     mermaid_code: The Mermaid stateDiagram-v2 code as a string
     diagram_file_path: Path where to save the PNG diagram
     """
-    # Lazy import to avoid pythonmonkey segfault in async context
-    # Use absolute import to avoid KeyError with module caching
+    # Lazy import inside the function (called via asyncio.to_thread, so it's safe)
+    # DO NOT import at module level - causes segfault in Chainlit's async context
+    # Import inside function ensures it runs in thread pool, not event loop
     try:
-        from resources.mermaid_to_sherpa_parser import parse_mermaid_with_library
-    except KeyError:
-        # Fallback to direct import if relative import fails
+        from .mermaid_to_sherpa_parser import parse_mermaid_with_library
+    except (ImportError, KeyError) as e:
+        # Fallback import path
         import sys
-        import os
-
         current_dir = os.path.dirname(os.path.abspath(__file__))
         if current_dir not in sys.path:
             sys.path.insert(0, current_dir)

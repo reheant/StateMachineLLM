@@ -375,7 +375,9 @@ def process_custom_mermaid(mermaid_code, system_name="CustomMermaid"):
         system_name: Name for file organization (default: "CustomMermaid")
 
     Returns:
-        bool: True if successful, False otherwise
+        tuple: (success: bool, diagram_path: str or None)
+            - success: True if processing succeeded
+            - diagram_path: Full path to the generated PNG diagram, or None if failed
     """
     import re
 
@@ -409,17 +411,17 @@ def process_custom_mermaid(mermaid_code, system_name="CustomMermaid"):
         if success:
             diagram_output = paths["diagram_file_path"] + ".png"
             print(f"🖼️  Diagram saved: {diagram_output}")
-            return True
+            return (True, diagram_output)
         else:
             print("Rendering returned False")
-            return False
+            return (False, None)
 
     except Exception as e:
         print(f"Error processing custom Mermaid: {str(e)}")
         import traceback
 
         traceback.print_exc()
-        return False
+        return (False, None)
 
 
 if __name__ == "__main__":
