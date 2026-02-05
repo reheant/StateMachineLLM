@@ -202,9 +202,11 @@ async def run_conversation(message: cl.Message):
             if strategy == "single_prompt":
                 # Convert chat profile to OpenRouter model
                 chat_profile = cl.user_session.get("chat_profile")
+                # Get the name of the model for OpenRouter
                 openrouter_model = convert_to_openrouter_model(chat_profile)
                 # Get system name for folder organization
                 system_name = cl.user_session.get("system_name", "Custom")
+                #
                 success = await asyncio.to_thread(
                     run_single_prompt, message.content, openrouter_model, system_name
                 )
@@ -458,18 +460,18 @@ async def display_image():
 
                 error_msg = f"""### ❌ Diagram Generation Failed
 
-**Error Type:** {error_data.get('error_type', 'Unknown').replace('_', ' ').title()}
+                            **Error Type:** {error_data.get('error_type', 'Unknown').replace('_', ' ').title()}
 
-**Error Message:**
-```
-{error_data.get('error_message', 'Unknown error occurred')}
-```
+                            **Error Message:**
+                            ```
+                            {error_data.get('error_message', 'Unknown error occurred')}
+                            ```
 
-**Troubleshooting:**
-- Check the Mermaid code above for syntax errors
-- Look for missing braces, invalid state names, or incorrect transitions
-- Common issues: state names starting with numbers, unclosed state blocks, missing commas
-"""
+                            **Troubleshooting:**
+                            - Check the Mermaid code above for syntax errors
+                            - Look for missing braces, invalid state names, or incorrect transitions
+                            - Common issues: state names starting with numbers, unclosed state blocks, missing commas
+                            """
                 await cl.Message(content=error_msg).send()
 
                 # Delete error file after displaying so it doesn't show again

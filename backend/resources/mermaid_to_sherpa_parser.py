@@ -38,7 +38,7 @@ def parse_mermaid_with_library(mermaid_code: str):
     result = converter.convert(mermaid_code)
 
     debug_print(
-        f"Converter returned {len(result.states)} states, {len(result.transitions)} transitions, {len(result.notes)} notes"
+        f"Converter returned {len(result.states)} states, {len(result.transitions)} transitions"
     )
 
     # Track states and their hierarchical relationships
@@ -66,33 +66,6 @@ def parse_mermaid_with_library(mermaid_code: str):
     debug_print(
         f"History transitions map: {history_transitions_map if history_transitions_map else 'EMPTY'}"
     )
-
-    # Parse notes EARLY to detect additional history states from note patterns
-    # This handles cases like "returns to StateName history state"
-    debug_print(f"Scanning {len(result.notes)} notes for history state references...")
-
-    for note in result.notes:
-        note_text = note.content
-        target_state = (
-            getattr(note.target_state, "id_", None) if note.target_state else None
-        )
-
-        # Look for pattern: "returns to StateName history state" or "transitions to StateName history state"
-        history_match = re.search(
-            r"(?:returns to|transitions to)\s+(\w+)\s+history state",
-            note_text,
-            re.IGNORECASE,
-        )
-
-        if history_match:
-            mentioned_state = history_match.group(1)
-
-            # The explicitly mentioned state gets the H pseudo-state
-            if mentioned_state not in history_states_map:
-                history_states_map[mentioned_state] = None
-                debug_print(
-                    f"Added '{mentioned_state}' to history_states_map from note"
-                )
 
     # Step 1: Build state mappings from converter output
     for state in result.states:
@@ -561,43 +534,9 @@ def parse_mermaid_with_library(mermaid_code: str):
             first_state if isinstance(first_state, str) else first_state["name"]
         )
 
-    # Step 6: Extract entry/exit annotations from notes
-    # These are notes that contain "entry /" or "exit /" patterns
-    state_annotations = []  # List of "StateName.entry: action" strings
-    for note in result.notes:
-        note_text = note.content
-        target_state = (
-            getattr(note.target_state, "id_", None) if note.target_state else None
-        )
-
-        if not target_state:
-            continue
-
-        # Skip history-related notes (already handled) but allow entry/exit with history
-        if "history" in note_text.lower() and not any(
-            keyword in note_text.lower() for keyword in ["entry", "exit", "do"]
-        ):
-            continue
-
-        # Parse entry actions: "entry / action" or "entry: action"
-        entry_match = re.search(
-            r"entry\s*[:/]\s*(.+?)(?:\n|$)", note_text, re.IGNORECASE
-        )
-        if entry_match:
-            action = entry_match.group(1).strip()
-            state_annotations.append(f"{target_state}.entry: {action}")
-
-        # Parse exit actions: "exit / action" or "exit: action"
-        exit_match = re.search(r"exit\s*[:/]\s*(.+?)(?:\n|$)", note_text, re.IGNORECASE)
-        if exit_match:
-            action = exit_match.group(1).strip()
-            state_annotations.append(f"{target_state}.exit: {action}")
-
-        # Parse do activities: "do / activity" or "do: activity"
-        do_match = re.search(r"do\s*[:/]\s*(.+?)(?:\n|$)", note_text, re.IGNORECASE)
-        if do_match:
-            action = do_match.group(1).strip()
-            state_annotations.append(f"{target_state}.do: {action}")
+    # Step 6: Entry/exit annotations are no longer supported via notes
+    # Notes have been removed from the parser
+    state_annotations = []  # Empty list since notes are removed
 
     return (
         states_list,

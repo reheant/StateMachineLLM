@@ -1085,6 +1085,20 @@ def mermaidCodeSearch(
             else:
                 raise Exception("No mermaid code found in LLM response")
 
+    # Defensive sanitization: remove common copy/paste artifacts that break the JS parser
+    # - remove markdown fences and mermaid code fences
+    generated_mermaid_code = re.sub(
+        r"```(?:mermaid)?\s*", "", generated_mermaid_code, flags=re.IGNORECASE
+    )
+    # - remove Python/JS triple-quote artifacts that sometimes are included in LLM outputs
+    generated_mermaid_code = generated_mermaid_code.replace('"""', "").replace(
+        "'''", ""
+    )
+    # - strip surrounding backticks, quotes and whitespace
+    generated_mermaid_code = generated_mermaid_code.strip("` \t\r\n'\"")
+    # - remove any trailing unmatched triple quotes
+    generated_mermaid_code = re.sub(r'("{3,}|\'{3,})\s*$', "", generated_mermaid_code)
+
     # ALWAYS clean up - find stateDiagram-v2 and take ONLY from that point forward
     if "stateDiagram-v2" in generated_mermaid_code:
         start_idx = generated_mermaid_code.find("stateDiagram-v2")
@@ -1101,6 +1115,10 @@ def mermaidCodeSearch(
             stripped.startswith("</")
             or stripped.startswith("<mermaid")
             or stripped == "```"
+            or stripped.startswith('"""')
+            or stripped.startswith("'''")
+            or stripped.endswith('"""')
+            or stripped.endswith("'''")
         ):
             break
         cleaned_lines.append(line)

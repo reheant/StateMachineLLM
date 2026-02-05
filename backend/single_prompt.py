@@ -176,7 +176,7 @@ def run_single_prompt(
         if i > 0:
             print(f"Retrying (attempt {i+1}/{max_attempts})...")
 
-        result = process_umple_attempt_openrouter(i, prompt, paths, model)
+        result = process_mermaid_attempt_openrouter(i, prompt, paths, model)
 
         if result != "False":
             success = True
@@ -189,7 +189,7 @@ def run_single_prompt(
     return success
 
 
-def process_umple_attempt_openrouter(
+def process_mermaid_attempt_openrouter(
     i: int, prompt: str, paths: dict, model: str = "anthropic/claude-3.5-sonnet"
 ) -> str:
     """
