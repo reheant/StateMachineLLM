@@ -1486,6 +1486,26 @@ def create_single_prompt_gsm_diagram_with_sherpa(
         # Get the graph and add entry/exit annotations as a label
         graph = gsm.sm.get_graph()
 
+        # Ensure Start nodes render as filled black points: add a 'start' node style
+        try:
+            gsm.sm.style_attributes.setdefault("node", {})["start"] = {
+                "shape": "point",
+                "fillcolor": "black",
+                "label": "",
+            }
+            # Mark any machine state whose name looks like a start marker to use this style
+            for s in getattr(gsm.sm, "states", []):
+                try:
+                    name = s.name
+                except Exception:
+                    name = str(s)
+                if name is None:
+                    continue
+                if name.endswith("_start") or name == "root_start" or name == "[*]":
+                    graph.custom_styles.setdefault("node", {})[name] = "start"
+        except Exception:
+            pass
+
         if state_annotations:
             # Format annotations as a left-aligned label at the bottom of the diagram
             annotation_text = (

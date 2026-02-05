@@ -568,7 +568,8 @@ async def start():
         Now choose your input:
         \n ✍️ 1. Describe your own system
         \n 🤖 2. Try one of our examples
-        \n 🧪 3. Developer tests (for verifying parser features)
+        \n 🎨 3. Test custom Mermaid code
+        \n 🧪 4. Developer tests (for verifying parser features)
         \nWhat would you like to explore?""",
         actions=[
             cl.Action(
@@ -584,6 +585,12 @@ async def start():
                 label="🤖 Use One Of Our Examples",
             ),
             cl.Action(
+                name="custom_mermaid",
+                value="custom_mermaid",
+                payload={},
+                label="🎨 Test Custom Mermaid",
+            ),
+            cl.Action(
                 name="dev_tests",
                 value="dev_tests",
                 payload={},
@@ -595,7 +602,42 @@ async def start():
     # Extract action name from result
     step1_value = step1.get("name") if step1 else None
 
-    if step1_value == "dev_tests":
+    if step1_value == "custom_mermaid":
+        await cl.Message(
+            content="🎨 **Test Custom Mermaid Code**\n\nPaste your Mermaid state diagram code to see the parsed and rendered diagram."
+        ).send()
+
+        # Ask user for Mermaid code
+        mermaid_input = await cl.AskUserMessage(
+            content="Please paste your Mermaid state diagram code:",
+            timeout=300,
+        ).send()
+
+        if mermaid_input:
+            user_mermaid = mermaid_input["output"]
+
+            await cl.Message(content="🔄 Processing your Mermaid code...").send()
+
+            # Use the same logic as single_prompt but skip LLM call
+            async with cl.Step(name="Rendering Diagram") as render_step:
+                stdout_capture = io.StringIO()
+                with contextlib.redirect_stdout(stdout_capture):
+                    from backend.single_prompt import process_custom_mermaid
+
+                    success = await asyncio.to_thread(
+                        process_custom_mermaid, user_mermaid, "CustomMermaid"
+                    )
+                cl.user_session.set("generation_success", success)
+                render_step.output = stdout_capture.getvalue()
+
+            if success:
+                await display_image()
+            else:
+                await cl.Message(
+                    content="❌ Failed to render the diagram. Check the output above for details."
+                ).send()
+
+    elif step1_value == "dev_tests":
         # Show available developer tests
         test_choice = await cl.AskActionMessage(
             content="""
