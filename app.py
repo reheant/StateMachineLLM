@@ -161,16 +161,20 @@ async def run_conversation(message: cl.Message):
 
         await cl.Message(content="🔄 Processing your Mermaid code...").send()
 
+        # Clear the old diagram path to prevent showing stale cached images
+        cl.user_session.set("diagram_path", None)
+
         # Process the Mermaid code without calling LLM
         async with cl.Step(name="Rendering Diagram") as render_step:
             stdout_capture = io.StringIO()
             with contextlib.redirect_stdout(stdout_capture):
                 from backend.single_prompt import process_custom_mermaid
 
-                success = await asyncio.to_thread(
+                success, diagram_path = await asyncio.to_thread(
                     process_custom_mermaid, user_mermaid, "CustomMermaid"
                 )
             cl.user_session.set("generation_success", success)
+            cl.user_session.set("diagram_path", diagram_path)
             render_step.output = stdout_capture.getvalue()
 
         if success:
@@ -482,8 +486,15 @@ async def display_image():
 
     # Get the path of the most recently created diagram
     try:
+        # Check if a specific diagram path was stored (e.g., from custom mermaid processing)
+        stored_diagram_path = cl.user_session.get("diagram_path")
+        latest_file = None
+        if stored_diagram_path and os.path.exists(stored_diagram_path):
+            latest_file = stored_diagram_path
+            # Clear it after retrieving so it's not used again for subsequent generations
+            cl.user_session.set("diagram_path", None)
         # For single prompt, find the most recent folder in structure: date/model_name/system_name/time
-        if strategy == "single_prompt":
+        elif strategy == "single_prompt":
             if not os.path.exists(outputs_directory):
                 await cl.Message(content="⚠️ No outputs directory found.").send()
                 return
@@ -568,6 +579,9 @@ async def display_image():
 
 @cl.on_chat_start
 async def start():
+    # Clear any stale diagram paths from previous sessions
+    cl.user_session.set("diagram_path", None)
+
     llm.update_llm(cl.user_session.get("chat_profile"))
 
     # First, choose generation strategy
@@ -666,16 +680,20 @@ async def start():
 
             await cl.Message(content="🔄 Processing your Mermaid code...").send()
 
+            # Clear the old diagram path to prevent showing stale cached images
+            cl.user_session.set("diagram_path", None)
+
             # Use the same logic as single_prompt but skip LLM call
             async with cl.Step(name="Rendering Diagram") as render_step:
                 stdout_capture = io.StringIO()
                 with contextlib.redirect_stdout(stdout_capture):
                     from backend.single_prompt import process_custom_mermaid
 
-                    success = await asyncio.to_thread(
+                    success, diagram_path = await asyncio.to_thread(
                         process_custom_mermaid, user_mermaid, "CustomMermaid"
                     )
                 cl.user_session.set("generation_success", success)
+                cl.user_session.set("diagram_path", diagram_path)
                 render_step.output = stdout_capture.getvalue()
 
             if success:
