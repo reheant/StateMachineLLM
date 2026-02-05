@@ -130,6 +130,235 @@ n_shot_examples = {
         }
     }""",
     },
+    "dishwasher_winter_2019": {
+        "system_description": dishwasher_winter_2019,
+        "mermaid_code_solution": '''stateDiagram-v2
+    [*] --> state0
+
+    state state0 {
+        --
+        state doorState {
+            [*] --> Closed
+
+            state Closed
+            state Open
+            state Locked
+
+            Closed --> Open : open
+            Closed --> Locked : lock
+            Open --> Closed : close
+            Locked --> Closed : unlock
+        }
+        --
+        state washingState {
+            [*] --> Idle
+
+            state Idle
+            Idle --> Idle : selectProgram(n) [n >= 1] / {r=n}
+            Idle --> Idle : toggleDryingTime / {if (dT=20) dT=40; else dT = 20}
+            Idle --> Cleaning : start [door.isClosed()] / {door.lock(); c=1}
+
+            state Suspended
+            Suspended --> Drying : close
+            Suspended --> Idle : after(5)
+
+            state Drying
+            Drying --> Drying : extendDryingTime / {dT=40}
+            Drying --> Suspended : open
+            Drying --> Idle : after(dT)
+
+            state Cleaning {
+                [*] --> Intake
+
+                state Intake
+                state Washing
+                state Drain
+                state FinalCleaning
+
+                Intake --> Washing : entry
+                Washing --> Drain : after(10)
+                Drain --> Intake : [c < r] / {c++}
+                Drain --> FinalCleaning : [c >= r]
+                FinalCleaning --> Drying : entry / {door.unlock()}
+            }
+
+            Cleaning --> Cleaning : toggleDryingTime / {if (dT=20) dT=40; else dT = 20}
+        }
+    }'''
+    },
+    "chess_clock_fall_2019": {
+        "system_description": chess_clock_fall_2019,
+        "mermaid_code_solution": '''stateDiagram-v2
+    [*] --> Off
+
+    state Off
+    Off --> On : onOff
+
+    state On {
+        [*] --> GameSetup
+        On --> Off : onOff
+
+        state GameSetup {
+            --
+            state TimingSelection {
+                [*] --> TimingSelectionState
+                state TimingSelectionState
+                TimingSelectionState --> TimingSelectionState : plus / {incrTimingProgram()}
+                TimingSelectionState --> TimingSelectionState : minus / {decrTimingProgram()}
+            }
+            --
+            state WhiteKingStatus {
+                [*] --> WhiteKingOnLeft
+
+                state WhiteKingOnLeft
+                state WhiteKingOnRight
+
+                WhiteKingOnLeft --> WhiteKingOnRight : flip
+                WhiteKingOnRight --> WhiteKingOnLeft : flip
+            }
+        }
+
+        GameSetup --> ReadyToStart : select
+
+        state ReadyToStart
+        ReadyToStart --> GameRunning : startStop
+
+        state GameRunning {
+            [*] --> WhiteClockRunning
+
+            state WhiteClockRunning
+            WhiteClockRunning --> WhiteClockRunning : after(1) [wc > 0] / {decrTimer(wc)}
+            WhiteClockRunning --> GameFinished : after(1) [wc == 0] / {flashFlag(white)}
+            WhiteClockRunning --> BlackClockRunning : flip
+
+            state BlackClockRunning
+            BlackClockRunning --> BlackClockRunning : after(1) [bc > 0] / {decrTimer(bc)}
+            BlackClockRunning --> GameFinished : after(1) [bc == 0] / {flashFlag(black)}
+            BlackClockRunning --> WhiteClockRunning : flip
+
+            state GameFinished
+        }
+
+        GameRunning --> GamePaused : startStop
+
+        state GamePaused
+        GamePaused --> GameRunning : startStop
+    }'''
+    },
+    "thermomix_fall_2021": {
+        "system_description": thermomix_fall_2021,
+        "mermaid_code_solution": '''stateDiagram-v2
+    [*] --> TransportationMode
+
+    state TransportationMode
+    TransportationMode --> On : selectorPressed
+
+    state PreparingOff
+    PreparingOff --> On : selectorReleased
+
+    PreparingOff --> Off : after5sec
+
+    state Off
+    Off --> On : selectorPressed
+
+    state On {
+        [*] --> Home
+        On --> PreparingOff : selectorHeld
+        On --> On : bowlRemoved
+
+        state Home
+        Home --> PreparingShutdown : after14min30sec
+        Home --> PromptToAdd : start [!bowlRemoved()] / {action=setIngredients()}
+
+        state PreparingShutdown
+        PreparingShutdown --> Home : cancel
+        PreparingShutdown --> Off : after30sec
+
+        state PromptToAdd
+        PromptToAdd --> PromptToAdd : next [weightCorrect() && moreIngredientsRequired] / {action=setIngredients}
+        PromptToAdd --> Chop : next [weightCorrect() && !moreIngredientsRequired] / {action=setChoppingSpeedAndTime()}
+
+        state Chop
+        Chop --> PromptToAdd : next [choppingTimeDone && moreIngredientsRequired()] / {action=setIngredients()}
+        Chop --> Cook : next [choppingTimeDone && !moreIngredientsRequired()] / {action=setCookingSpeedAndTime()}
+
+        state Cook
+        Cook --> PromptToAdd : afterChoppingTime [moreIngredientsRequired] / {action=setIngredients()}
+        Cook --> Ready : afterCookingTime [!moreIngredientsRequired]
+
+        state Ready
+        Ready --> PreparingShutdown : after14min30sec
+    }'''
+    },
+    "ATAS_fall_2022": {
+        "system_description": ATAS_fall_2022,
+        "mermaid_code_solution": '''stateDiagram-v2
+    [*] --> Scheduled
+
+    state Scheduled
+    Scheduled --> Active : atBeginningStopDuration / {action=p0n; setCs}
+
+    state Arrived
+
+    state Active {
+        --
+        state TrainMovement {
+            [*] --> StopNotRequired
+
+            state StopNotRequired
+            state ApproachingRedLight
+            state AtRedTrafficLight
+            state ApproachingStation
+            state AtStation
+
+            AtStation --> StopNotRequired : afterStopDuration [!isLastStop()]
+            AtStation --> Arrived : afterStopDuration [isLastStop()] / {action=pOff}
+
+            StopNotRequired --> StopNotRequired : enteringSegment [isStationSegment() && !stopRequired()]
+            StopNotRequired --> StopNotRequired : enteringSegment [isRegularSegment()]
+            StopNotRequired --> StopNotRequired : enteringSegment [isTrafficLightSegment() && !isRed()]
+            StopNotRequired --> ApproachingRedLight : enteringSegment [isTrafficLightSegment() && isRed()]
+            StopNotRequired --> ApproachingStation : enteringSegment [isStationSegment() && stopRequired()]
+
+            ApproachingRedLight --> AtRedTrafficLight : stopped
+            AtRedTrafficLight --> StopNotRequired : green
+            ApproachingStation --> AtStation : stopped
+        }
+
+        TrainMovement --> Emergency : emergency / {action=estop}
+        --
+        state SDS {
+            [*] --> SDSActive
+
+            state SDSActive
+            SDSActive --> SDSActive : after1sec [hasSegmentChanged()] / {action=setCs; enteringSegment()}
+            SDSActive --> SDSActive : after1sec [!hasSegmentChanged()]
+        }
+        --
+        state MDS {
+            [*] --> Stopped
+
+            state Stopped
+            state Moving
+
+            Stopped --> Stopped : after1sec [speed == 0]
+            Stopped --> Moving : after1sec [speed > 0]
+            Moving --> Moving : after1sec [speed > 0]
+            Moving --> Stopped : after1sec [speed == 0] / {action=stopped()}
+        }
+        --
+        state ODS {
+            [*] --> ODSActive
+
+            state ODSActive
+            ODSActive --> ODSActive : after1sec [!obstacleDetected()]
+            ODSActive --> ODSActive : after1sec [obstacleDetected()] / {action=emergency()}
+        }
+
+        state Emergency
+        Emergency --> TrainMovement : clear
+    }'''
+    }
 }
 
 
