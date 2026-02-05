@@ -155,7 +155,7 @@ n_shot_examples = {
 
             state Idle
             Idle --> Idle : selectProgram(n) [n >= 1] / {r=n}
-            Idle --> Idle : toggleDryingTime / {if (dT==20) dT=40; else dT = 20}
+            Idle --> Idle : toggleDryingTime / {if (dT==20) dT=40; else dT=20}
             Idle --> Cleaning : start [door.isClosed()] / {door.lock(); c=1}
 
             state Suspended
@@ -182,7 +182,7 @@ n_shot_examples = {
                 FinalCleaning --> Drying : entry / {door.unlock()}
             }
 
-            Cleaning --> Cleaning : toggleDryingTime / {if (dT==20) dT=40; else dT = 20}
+            Cleaning --> Cleaning : toggleDryingTime / {if (dT==20) dT=40; else dT=20}
         }
     }'''
     },
