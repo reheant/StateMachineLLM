@@ -1085,6 +1085,20 @@ def mermaidCodeSearch(
             else:
                 raise Exception("No mermaid code found in LLM response")
 
+    # Defensive sanitization: remove common copy/paste artifacts that break the JS parser
+    # - remove markdown fences and mermaid code fences
+    generated_mermaid_code = re.sub(
+        r"```(?:mermaid)?\s*", "", generated_mermaid_code, flags=re.IGNORECASE
+    )
+    # - remove Python/JS triple-quote artifacts that sometimes are included in LLM outputs
+    generated_mermaid_code = generated_mermaid_code.replace('"""', "").replace(
+        "'''", ""
+    )
+    # - strip surrounding backticks, quotes and whitespace
+    generated_mermaid_code = generated_mermaid_code.strip("` \t\r\n'\"")
+    # - remove any trailing unmatched triple quotes
+    generated_mermaid_code = re.sub(r'("{3,}|\'{3,})\s*$', "", generated_mermaid_code)
+
     # ALWAYS clean up - find stateDiagram-v2 and take ONLY from that point forward
     if "stateDiagram-v2" in generated_mermaid_code:
         start_idx = generated_mermaid_code.find("stateDiagram-v2")
@@ -1101,6 +1115,10 @@ def mermaidCodeSearch(
             stripped.startswith("</")
             or stripped.startswith("<mermaid")
             or stripped == "```"
+            or stripped.startswith('"""')
+            or stripped.startswith("'''")
+            or stripped.endswith('"""')
+            or stripped.endswith("'''")
         ):
             break
         cleaned_lines.append(line)
@@ -1116,7 +1134,10 @@ def mermaidCodeSearch(
 
 
 def setup_file_paths(
-    base_dir: str, file_type: str = "single_prompt", system_name: str = None, model_name: str = None
+    base_dir: str,
+    file_type: str = "single_prompt",
+    system_name: str = None,
+    model_name: str = None,
 ) -> dict:
     """
     Setup file paths for logs, Umple code, Mermaid code, and diagrams
@@ -1141,7 +1162,7 @@ def setup_file_paths(
             safe_model_name = model_name.replace("/", "-").replace(":", "-")
         else:
             safe_model_name = "unknown_model"
-        
+
         if system_name:
             # Sanitize system_name to be filesystem-safe
             safe_system_name = "".join(
@@ -1159,7 +1180,12 @@ def setup_file_paths(
             )
         else:
             output_base_dir = os.path.join(
-                base_dir, "resources", f"{file_type}_outputs", date_folder, safe_model_name, time_folder
+                base_dir,
+                "resources",
+                f"{file_type}_outputs",
+                date_folder,
+                safe_model_name,
+                time_folder,
             )
         os.makedirs(output_base_dir, exist_ok=True)
 
@@ -1410,7 +1436,18 @@ def create_single_prompt_gsm_diagram_with_sherpa(
     diagram_file_path: Path where to save the PNG diagram
     """
     # Lazy import to avoid pythonmonkey segfault in async context
-    from .mermaid_to_sherpa_parser import parse_mermaid_with_library
+    # Use absolute import to avoid KeyError with module caching
+    try:
+        from resources.mermaid_to_sherpa_parser import parse_mermaid_with_library
+    except KeyError:
+        # Fallback to direct import if relative import fails
+        import sys
+        import os
+
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        if current_dir not in sys.path:
+            sys.path.insert(0, current_dir)
+        from mermaid_to_sherpa_parser import parse_mermaid_with_library
 
     # Parse Mermaid code using mermaid-parser-py library
     (
@@ -1420,11 +1457,18 @@ def create_single_prompt_gsm_diagram_with_sherpa(
         initial_state,
         parallel_regions,
         state_annotations,
+        root_initial_state,
+        nested_initial_states,
     ) = parse_mermaid_with_library(mermaid_code)
 
+    print("\nParsed Mermaid Diagram:")
+    print("\n")
     print(f"Parsed States: {states_list}")
+    print("\n")
     print(f"Parsed Transitions: {transitions_list}")
+    print("\n")
     print(f"Initial State: {initial_state}")
+    print("\n")
     print(f"State Annotations: {state_annotations}")
 
     if not initial_state:
@@ -1447,14 +1491,144 @@ def create_single_prompt_gsm_diagram_with_sherpa(
             sm_cls=HierarchicalGraphMachine,
         )
 
+        # Override the default 'active' styling from transitions' diagrams
+        # (which uses a colored fill like 'darksalmon') so active states
+        # don't appear with the coral/darksalmon fill. Use the machine's
+        # default node/graph styles instead.
+        try:
+            node_defaults = (
+                gsm.sm.style_attributes.get("node", {}).get("default", {}).copy()
+            )
+            graph_defaults = (
+                gsm.sm.style_attributes.get("graph", {}).get("default", {}).copy()
+            )
+            gsm.sm.style_attributes.setdefault("node", {})["active"] = node_defaults
+            gsm.sm.style_attributes.setdefault("graph", {})["active"] = graph_defaults
+        except Exception:
+            # Non-fatal: if attributes aren't present, continue with defaults
+            pass
+
         # Ensure the diagram path has .png extension
         if not diagram_file_path.endswith(".png"):
             png_file_path = f"{diagram_file_path}.png"
         else:
             png_file_path = diagram_file_path
 
-        # Get the graph and add entry/exit annotations as a label
+        # Get the graph and manually add initial state markers ([*])
+        # These are visual-only markers and must be placed at the correct hierarchical level
         graph = gsm.sm.get_graph()
+
+        # Manually add initial state markers to the Graphviz graph
+        # Strategy: Insert point nodes and edges at the correct hierarchical levels
+        try:
+            import re
+
+            new_body = []
+
+            # Track which subgraphs (composite states) we're inside
+            current_subgraphs = []  # Stack of (subgraph_name, indent_level)
+
+            # Process each line and inject initial markers at the right places
+            i = 0
+            while i < len(graph.body):
+                line = graph.body[i]
+
+                # Track subgraph entries
+                if "subgraph" in line:
+                    # Extract the subgraph name (e.g., cluster_On)
+                    match = re.search(r"subgraph\s+(\S+)", line)
+                    if match:
+                        subgraph_name = match.group(1)
+                        indent_match = re.match(r"(\s*)", line)
+                        indent_level = len(indent_match.group(1)) if indent_match else 0
+                        current_subgraphs.append((subgraph_name, indent_level))
+
+                        # Check if this subgraph corresponds to a composite state with an initial state
+                        # Subgraph names are like "cluster_On" or "cluster_On_Busy"
+                        # We need to match against the state names in nested_initial_states
+                        # nested_initial_states has keys like "On", "On_Busy", etc.
+                        state_name = subgraph_name.replace("cluster_", "")
+
+                        new_body.append(line)
+
+                        # If this composite state has an initial state, add the marker
+                        if state_name in nested_initial_states:
+                            child_initial = nested_initial_states[state_name]
+                            # Add the initial marker node and edge
+                            marker_name = f"{state_name}_initial"
+                            child_scoped = f"{state_name}_{child_initial}"
+
+                            # Calculate proper indentation (one level deeper than subgraph)
+                            indent = "\t" * (len(current_subgraphs) + 1)
+
+                            # Add point node definition
+                            new_body.append(
+                                f'{indent}"{marker_name}" [fillcolor=black color=black height=0.15 label="" shape=point width=0.15]'
+                            )
+                            # Add edge from marker to initial child state
+                            new_body.append(
+                                f'{indent}"{marker_name}" -> "{child_scoped}"'
+                            )
+
+                        i += 1
+                        continue
+
+                # Track subgraph exits
+                if line.strip() == "}":
+                    if current_subgraphs:
+                        # Check indent level to see if we're exiting a subgraph
+                        indent_match = re.match(r"(\s*)", line)
+                        current_indent = (
+                            len(indent_match.group(1)) if indent_match else 0
+                        )
+
+                        # Pop subgraphs that we're exiting
+                        while (
+                            current_subgraphs
+                            and current_subgraphs[-1][1] >= current_indent
+                        ):
+                            current_subgraphs.pop()
+
+                # Keep the line
+                new_body.append(line)
+                i += 1
+
+            # Add root-level initial marker if needed
+            # Root initial marker should be at the top level (not inside any subgraph)
+            if root_initial_state:
+                # Find where to insert the root initial marker
+                # It should be after the graph attributes but before state definitions
+                insert_index = 0
+                for idx, line in enumerate(new_body):
+                    if (
+                        "digraph" in line
+                        or "graph [" in line
+                        or "node [" in line
+                        or "edge [" in line
+                    ):
+                        insert_index = idx + 1
+                    elif "subgraph" in line:
+                        break
+
+                # Insert root initial marker at top level
+                root_marker = "_initial"
+                new_body.insert(
+                    insert_index,
+                    f'\t"{root_marker}" [fillcolor=black color=black height=0.15 label="" shape=point width=0.15]',
+                )
+                new_body.insert(
+                    insert_index + 1, f'\t"{root_marker}" -> "{root_initial_state}"'
+                )
+
+            # Replace the graph body
+            graph.body = new_body
+
+        except Exception as e:
+            # Non-fatal: if this fails, continue with default rendering
+            print(f"Warning: Could not add initial state markers: {e}")
+            import traceback
+
+            traceback.print_exc()
 
         if state_annotations:
             # Format annotations as a left-aligned label at the bottom of the diagram
