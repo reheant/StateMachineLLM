@@ -366,25 +366,25 @@ def run_test_entry_exit_annotations():
 def process_custom_mermaid(mermaid_code, system_name="CustomMermaid"):
     """
     Process user-provided Mermaid code (bypasses LLM).
-    
+
     Treats the input as if it were LLM output and runs it through
     the same parsing/rendering pipeline as single_prompt.
-    
+
     Args:
         mermaid_code: User-provided Mermaid state diagram code
         system_name: Name for file organization (default: "CustomMermaid")
-    
+
     Returns:
         bool: True if successful, False otherwise
     """
     import re
-    
+
     # Clean up common UI artifacts
     cleaned_code = mermaid_code
     cleaned_code = cleaned_code.replace("Raw code", "")
     cleaned_code = cleaned_code.strip("'\"")
-    cleaned_code = re.sub(r'\n\s*\n\s*\n', '\n\n', cleaned_code)
-    
+    cleaned_code = re.sub(r"\n\s*\n\s*\n", "\n\n", cleaned_code)
+
     paths = setup_file_paths(
         os.path.dirname(__file__),
         system_name=system_name,
@@ -398,14 +398,14 @@ def process_custom_mermaid(mermaid_code, system_name="CustomMermaid"):
         # Save the Mermaid code
         with open(paths["generated_mermaid_code_path"], "w") as file:
             file.write(cleaned_code)
-        
+
         print(f"📄 Mermaid saved: {paths['generated_mermaid_code_path']}")
 
         # Render diagram using the same function as single_prompt
         success = create_single_prompt_gsm_diagram_with_sherpa(
             cleaned_code, paths["diagram_file_path"]
         )
-        
+
         if success:
             diagram_output = paths["diagram_file_path"] + ".png"
             print(f"🖼️  Diagram saved: {diagram_output}")
@@ -413,10 +413,11 @@ def process_custom_mermaid(mermaid_code, system_name="CustomMermaid"):
         else:
             print("Rendering returned False")
             return False
-            
+
     except Exception as e:
         print(f"Error processing custom Mermaid: {str(e)}")
         import traceback
+
         traceback.print_exc()
         return False
 

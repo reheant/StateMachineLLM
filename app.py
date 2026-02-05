@@ -144,6 +144,48 @@ async def chat_profile():
 
 @cl.on_message
 async def run_conversation(message: cl.Message):
+    # Check if we're in custom Mermaid mode
+    mode = cl.user_session.get("mode")
+
+    if mode == "custom_mermaid":
+        # Handle custom Mermaid input - no LLM call
+        user_mermaid = message.content.strip()
+
+        # Check for exit command
+        if user_mermaid.lower() in ["exit", "quit", "stop"]:
+            await cl.Message(
+                content="👋 Exiting custom Mermaid mode. Start a new chat to begin again."
+            ).send()
+            cl.user_session.set("mode", None)
+            return
+
+        await cl.Message(content="🔄 Processing your Mermaid code...").send()
+
+        # Process the Mermaid code without calling LLM
+        async with cl.Step(name="Rendering Diagram") as render_step:
+            stdout_capture = io.StringIO()
+            with contextlib.redirect_stdout(stdout_capture):
+                from backend.single_prompt import process_custom_mermaid
+
+                success = await asyncio.to_thread(
+                    process_custom_mermaid, user_mermaid, "CustomMermaid"
+                )
+            cl.user_session.set("generation_success", success)
+            render_step.output = stdout_capture.getvalue()
+
+        if success:
+            await display_image()
+            await cl.Message(
+                content="✅ **Diagram rendered successfully!**\n\n📝 *Send another Mermaid diagram to test, or type 'exit' to end the session.*"
+            ).send()
+        else:
+            await cl.Message(
+                content="❌ Failed to render the diagram. Check the output above for details.\n\n📝 *Try again with corrected Mermaid code, or type 'exit' to end.*"
+            ).send()
+
+        return  # Don't proceed to normal LLM flow
+
+    # Normal flow for other modes
     await message.send()  # Print the problem description as is
     final_answer = cl.Message(content="", author="Sherpa Output")
     await final_answer.send()
@@ -603,8 +645,12 @@ async def start():
     step1_value = step1.get("name") if step1 else None
 
     if step1_value == "custom_mermaid":
+        # Set session flag to indicate we're in custom Mermaid mode
+        cl.user_session.set("mode", "custom_mermaid")
+        cl.user_session.set("generation_strategy", "single_prompt")
+
         await cl.Message(
-            content="🎨 **Test Custom Mermaid Code**\n\nPaste your Mermaid state diagram code to see the parsed and rendered diagram."
+            content="🎨 **Test Custom Mermaid Code**\n\nPaste your Mermaid state diagram code to see the parsed and rendered diagram.\n\n💡 *Tip: You can paste multiple Mermaid diagrams in this session - each will be parsed and rendered without calling the LLM.*"
         ).send()
 
         # Ask user for Mermaid code
@@ -632,9 +678,12 @@ async def start():
 
             if success:
                 await display_image()
+                await cl.Message(
+                    content="✅ **Diagram rendered successfully!**\n\n📝 *Send another Mermaid diagram to test, or type 'exit' to end the session.*"
+                ).send()
             else:
                 await cl.Message(
-                    content="❌ Failed to render the diagram. Check the output above for details."
+                    content="❌ Failed to render the diagram. Check the output above for details.\n\n📝 *Try again with corrected Mermaid code.*"
                 ).send()
 
     elif step1_value == "dev_tests":

@@ -78,7 +78,7 @@ n_shot_examples = {
                 State HistoryState1
             }
 
-            On --> HistoryState1 : setPattern(PatternType type)
+            JacuzziOn --> HistoryState1 : setPattern(PatternType type)
             
             JacuzziOn --> JacuzziOff : off
             
