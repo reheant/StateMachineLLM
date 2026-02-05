@@ -275,7 +275,7 @@ n_shot_examples = {
         PreparingShutdown --> Off : after30sec
 
         state PromptToAdd
-        PromptToAdd --> PromptToAdd : next [weightCorrect() && moreIngredientsRequired] / {action=setIngredients}
+        PromptToAdd --> PromptToAdd : next [weightCorrect() && moreIngredientsRequired] / {action=setIngredients()}
         PromptToAdd --> Chop : next [weightCorrect() && !moreIngredientsRequired] / {action=setChoppingSpeedAndTime()}
 
         state Chop
