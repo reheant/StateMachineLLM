@@ -1447,6 +1447,7 @@ def create_single_prompt_gsm_diagram_with_sherpa(
     except (ImportError, KeyError) as e:
         # Fallback import path
         import sys
+
         current_dir = os.path.dirname(os.path.abspath(__file__))
         if current_dir not in sys.path:
             sys.path.insert(0, current_dir)
@@ -1546,32 +1547,12 @@ def create_single_prompt_gsm_diagram_with_sherpa(
                         indent_level = len(indent_match.group(1)) if indent_match else 0
                         current_subgraphs.append((subgraph_name, indent_level))
 
-                        # Check if this subgraph corresponds to a composite state with an initial state
-                        # Subgraph names are like "cluster_On" or "cluster_On_Busy"
-                        # We need to match against the state names in nested_initial_states
-                        # nested_initial_states has keys like "On", "On_Busy", etc.
-                        state_name = subgraph_name.replace("cluster_", "")
+                        # Nested initial state markers are NOT injected here manually.
+                        # Setting "initial" on state dicts (in mermaid_to_sherpa_parser.py)
+                        # causes pytransitions' HierarchicalGraphMachine to render
+                        # the initial markers automatically in the graphviz output.
 
                         new_body.append(line)
-
-                        # If this composite state has an initial state, add the marker
-                        if state_name in nested_initial_states:
-                            child_initial = nested_initial_states[state_name]
-                            # Add the initial marker node and edge
-                            marker_name = f"{state_name}_initial"
-                            child_scoped = f"{state_name}_{child_initial}"
-
-                            # Calculate proper indentation (one level deeper than subgraph)
-                            indent = "\t" * (len(current_subgraphs) + 1)
-
-                            # Add point node definition
-                            new_body.append(
-                                f'{indent}"{marker_name}" [fillcolor=black color=black height=0.15 label="" shape=point width=0.15]'
-                            )
-                            # Add edge from marker to initial child state
-                            new_body.append(
-                                f'{indent}"{marker_name}" -> "{child_scoped}"'
-                            )
 
                         i += 1
                         continue

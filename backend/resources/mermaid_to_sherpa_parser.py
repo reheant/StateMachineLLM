@@ -550,6 +550,52 @@ def parse_mermaid_with_library(mermaid_code: str):
     # 3. Sherpa to auto-generate unwanted initial states
     # Instead, we return the initial state information separately for visual rendering
 
+    # Step 5c: Apply nested_initial_states to composite state dicts
+    # This sets the "initial" key on composite state dicts so pytransitions
+    # knows which child to enter when transitioning into the composite state.
+    def apply_nested_initial_states(states, initial_states_map):
+        """Recursively apply initial states to composite state dicts."""
+        for state in states:
+            if isinstance(state, dict):
+                state_name = state.get("name")
+                if state_name in initial_states_map and "initial" not in state:
+                    child_initial = initial_states_map[state_name]
+                    children = state.get("children", [])
+                    child_names = [
+                        c if isinstance(c, str) else c.get("name", "") for c in children
+                    ]
+                    if child_initial in child_names:
+                        state["initial"] = child_initial
+                        debug_print(
+                            f"Set initial state for '{state_name}': '{child_initial}'"
+                        )
+                # Recurse into children
+                apply_nested_initial_states(
+                    state.get("children", []), initial_states_map
+                )
+
+    apply_nested_initial_states(states_list, nested_initial_states)
+
+    # Step 5d: Remap nested_initial_states keys from bare parent_id to full scoped path
+    # The converter stores keys like "WashCycle" but the graph renderer expects
+    # scoped paths like "Active_WashCycle" (matching subgraph names like cluster_Active_WashCycle).
+    remapped_initial_states = {}
+    for parent_id, child_id in nested_initial_states.items():
+        found = False
+        for scoped_id, state_obj in all_states.items():
+            bare_id = scoped_to_bare.get(scoped_id, scoped_id)
+            if bare_id == parent_id and parent_id in hierarchical_states:
+                normalized = re.sub(r"_region_\d+", "", scoped_id)
+                remapped_initial_states[normalized] = child_id
+                debug_print(
+                    f"Remapped initial state key '{parent_id}' -> '{normalized}'"
+                )
+                found = True
+                break
+        if not found:
+            remapped_initial_states[parent_id] = child_id
+    nested_initial_states = remapped_initial_states
+
     # Step 6: Entry/exit annotations are no longer supported via notes
     # Notes have been removed from the parser
     state_annotations = []  # Empty list since notes are removed
