@@ -1429,6 +1429,114 @@ def graphVizGeneration(generated_umple_gv_path, diagram_file_path: str):
 #     return states_list, transitions, hierarchical_states, initial_state, parallel_regions
 
 
+def fix_hierarchical_state_transitions(graph):
+    """
+    Fix GraphViz edges to composite states so they point to cluster boundaries.
+
+    Problem: pytransitions routes transitions to composite states through their
+    initial states, making arrows point inside the box instead of to the boundary.
+
+    Solution: Detect edges targeting composite states from outside and use GraphViz's
+    'lhead' attribute to make the arrow visually point to the cluster boundary.
+
+    Args:
+        graph: GraphViz Digraph object from pytransitions
+
+    Returns:
+        Modified graph with lhead attributes added to hierarchical transitions
+    """
+    import re
+
+    try:
+        # Step 1: Build a map of composite states and their contents
+        composite_states = {}  # cluster_name -> {initial_state, member_states}
+        state_to_cluster = {}  # state_name -> cluster_name (which cluster contains this state)
+
+        current_cluster = None
+        for line in graph.body:
+            # Track when we enter a subgraph (composite state)
+            cluster_match = re.search(r'subgraph\s+(cluster_\w+)', line)
+            if cluster_match:
+                current_cluster = cluster_match.group(1)
+                composite_states[current_cluster] = {
+                    'initial_state': None,
+                    'member_states': set()
+                }
+                continue
+
+            # Track when we exit a subgraph
+            if line.strip() == '}' and current_cluster:
+                current_cluster = None
+                continue
+
+            # Track states within the current cluster
+            if current_cluster:
+                # Look for state node definitions (e.g., "LoggedOut" [label=...])
+                state_match = re.match(r'\s*"([^"]+)"\s*\[', line)
+                if state_match:
+                    state_name = state_match.group(1)
+                    # Skip initial point markers
+                    if 'shape=point' not in line:
+                        composite_states[current_cluster]['member_states'].add(state_name)
+                        state_to_cluster[state_name] = current_cluster
+
+                # Look for initial state markers within cluster
+                # Initial markers point to the initial state (e.g., "On_initial" -> "LoggedOut")
+                initial_edge_match = re.match(r'\s*"([^"]+_initial)"\s*->\s*"([^"]+)"', line)
+                if initial_edge_match:
+                    initial_marker = initial_edge_match.group(1)
+                    initial_target = initial_edge_match.group(2)
+                    composite_states[current_cluster]['initial_state'] = initial_target
+
+        # Step 2: Find and redirect edges that target initial states from outside the composite
+        fixed_body = []
+        for line in graph.body:
+            # Look for edge definitions (e.g., "Off" -> "LoggedOut")
+            edge_match = re.match(r'(\s*)"([^"]+)"\s*->\s*"([^"]+)"(.*)$', line)
+
+            if edge_match:
+                indent = edge_match.group(1)
+                source = edge_match.group(2)
+                target = edge_match.group(3)
+                rest = edge_match.group(4)  # attributes like [label="..."]
+
+                # Check if target is an initial state of a composite
+                for cluster, info in composite_states.items():
+                    if target == info['initial_state']:
+                        # Check if source is OUTSIDE this composite
+                        source_cluster = state_to_cluster.get(source)
+
+                        # If source is outside the cluster (or is in a different cluster),
+                        # redirect to point to the cluster itself
+                        if source_cluster != cluster and not source.endswith('_initial'):
+                            # Add lhead attribute to make arrow point to cluster boundary
+                            if '[' in rest:
+                                # Add lhead to existing attributes
+                                rest = rest.replace('[', f'[lhead={cluster} ', 1)
+                            else:
+                                # Create new attributes with lhead
+                                rest = f' [lhead={cluster}]'
+
+                            # Keep edge to initial state but use lhead to point to cluster
+                            line = f'{indent}"{source}" -> "{target}"{rest}'
+                            break
+
+            fixed_body.append(line)
+
+        # Replace graph body with fixed version
+        graph.body = fixed_body
+
+        # Enable compound graph mode (required for lhead to work)
+        graph.graph_attr['compound'] = 'true'
+
+    except Exception as e:
+        print(f"Warning: Could not apply hierarchical state fix: {e}")
+        import traceback
+        traceback.print_exc()
+
+    return graph
+
+
 def create_single_prompt_gsm_diagram_with_sherpa(
     mermaid_code: str, diagram_file_path: str
 ):
@@ -1537,6 +1645,10 @@ def create_single_prompt_gsm_diagram_with_sherpa(
         # These are visual-only markers and must be placed at the correct hierarchical level
         graph = gsm.sm.get_graph()
 
+        # Apply fix for hierarchical state transitions
+        # Makes transitions to composite states point to the box boundary instead of internal initial state
+        graph = fix_hierarchical_state_transitions(graph)
+
         # Manually add initial state markers to the Graphviz graph
         # Strategy: Insert point nodes and edges at the correct hierarchical levels
         try:
@@ -1638,6 +1750,12 @@ def create_single_prompt_gsm_diagram_with_sherpa(
             graph.graph_attr["labelloc"] = "b"  # bottom
             graph.graph_attr["labeljust"] = "l"  # left-justify
             graph.graph_attr["fontsize"] = "10"
+
+        # Save the GraphViz source for debugging
+        gv_debug_path = png_file_path.replace('.png', '.gv')
+        with open(gv_debug_path, 'w') as f:
+            f.write(graph.source)
+        print(f"GraphViz source saved to: {gv_debug_path}")
 
         # Generate and render the diagram directly to PNG using graphviz
         graph.draw(png_file_path, prog="dot", format="png")
