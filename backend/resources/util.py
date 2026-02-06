@@ -1459,17 +1459,32 @@ def create_single_prompt_gsm_diagram_with_sherpa(
         state_annotations,
         root_initial_state,
         nested_initial_states,
+        state_declarations_map,
     ) = parse_mermaid_with_library(mermaid_code)
 
-    print("\nParsed Mermaid Diagram:")
-    print("\n")
-    print(f"Parsed States: {states_list}")
-    print("\n")
-    print(f"Parsed Transitions: {transitions_list}")
-    print("\n")
-    print(f"Initial State: {initial_state}")
-    print("\n")
-    print(f"State Annotations: {state_annotations}")
+    # Parser Debug Output
+    print("\nParser Debug Output:")
+    print("─" * 60)
+    print("\nState Declarations Map (from raw mermaid scan):")
+    if state_declarations_map:
+        for state_name, parent_id in sorted(state_declarations_map.items()):
+            parent_str = parent_id if parent_id else "ROOT"
+            print(f"  {state_name} → {parent_str}")
+    else:
+        print("  (empty)")
+
+    print("\nParsed States:")
+    print(f"  {states_list}")
+
+    print("\nParsed Transitions:")
+    for trans in transitions_list:
+        source = trans.get('source', '?')
+        dest = trans.get('dest', '?')
+        trigger = trans.get('trigger', '?')
+        print(f"  {source} --{trigger}--> {dest}")
+
+    print(f"\nInitial State: {initial_state}")
+    print("─" * 60)
 
     if not initial_state:
         print("Warning: No initial state found, using first state")

@@ -38,7 +38,7 @@ def parse_mermaid_with_library(mermaid_code: str):
     and convert to Sherpa-compatible format.
 
     Returns: (states_list, transitions_list, hierarchical_dict, initial_state, parallel_regions,
-              state_annotations, root_initial_state, nested_initial_states)
+              state_annotations, root_initial_state, nested_initial_states, state_declarations_map)
     """
     debug_print("=== PARSING MERMAID CODE ===")
 
@@ -46,9 +46,19 @@ def parse_mermaid_with_library(mermaid_code: str):
     converter = StateDiagramConverter()
     result = converter.convert(mermaid_code)
 
+    # Get the state declarations map for debugging
+    state_declarations_map = getattr(converter, 'state_declarations_map', {})
+
     debug_print(
         f"Converter returned {len(result.states)} states, {len(result.transitions)} transitions"
     )
+
+    # Print state declarations map for debugging
+    if state_declarations_map:
+        debug_print("State Declarations Map (from raw mermaid scan):")
+        for state_name, parent_id in sorted(state_declarations_map.items()):
+            parent_str = parent_id if parent_id else "ROOT"
+            debug_print(f"  {state_name} -> {parent_str}")
 
     # Track states and their hierarchical relationships
     # Use scoped_id as the unique key to handle same-named states in different scopes
@@ -563,6 +573,7 @@ def parse_mermaid_with_library(mermaid_code: str):
         state_annotations,
         root_initial_state,  # NEW: Root-level initial state for visualization
         nested_initial_states,  # NEW: Nested initial states dict for visualization
+        state_declarations_map,  # NEW: State declarations map for debugging
     )
 
 

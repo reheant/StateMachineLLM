@@ -220,10 +220,6 @@ def process_mermaid_attempt_openrouter(
             print(f"{error}: {str(e)}")
             return "False"
 
-        # Display generated Mermaid code
-        print(f"\nGenerated Mermaid Code:\n```mermaid\n{generated_mermaid_code}\n```")
-        print(f"\n📄 Mermaid saved: {paths['generated_mermaid_code_path']}")
-
         # Log generated code
         with open(paths["log_file_path"], "a") as file:
             file.write(generated_mermaid_code)
@@ -264,10 +260,7 @@ def process_mermaid_attempt_openrouter(
             print(f"{error}: {str(e)}")
             return "False"
 
-        # Success - show where diagram was saved
-        diagram_output = paths["diagram_file_path"] + ".png"
-        print(f"🖼️  Diagram saved: {diagram_output}")
-
+        # Success
         return generated_mermaid_code
 
     except Exception as e:
