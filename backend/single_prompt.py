@@ -155,6 +155,35 @@ def run_single_prompt(
     - Parallel regions: Use -- separator
     - Hierarchical states: Use state Name {{ ... }} syntax ONLY for composite states (states with substates)
     - History states: Declare history states explicitly as named states inside a composite state (e.g., HistoryState1)
+    - Entry/Exit/Do actions: When a state has entry, exit, or do actions, use a `note right of` block.
+      These notes will be displayed as annotations at the bottom of the generated diagram.
+
+      Syntax for entry/exit/do actions:
+        note right of StateName
+            entry / actionOnEntry()
+            exit / actionOnExit()
+            do: ongoingAction()
+        end note
+
+      Example:
+        state WashCycle {{
+            [*] --> WaterIntake
+            WaterIntake --> Washing : tankFull
+        }}
+
+        note right of WashCycle
+            entry / lockDoor()
+            exit / unlockDoor()
+        end note
+
+      Rules:
+        - Use `entry / action` for actions that execute when ENTERING the state
+        - Use `exit / action` for actions that execute when LEAVING the state
+        - Use `do: action` for ongoing activities that execute WHILE in the state
+        - Each action should be on its own line inside the note block
+        - The note block must end with `end note`
+        - Place the note block AFTER the state declaration (outside the state's curly braces if composite)
+        - You can have entry, exit, and do on the same state — put them all in one note block
 
     The following are examples demonstrating proper Mermaid syntax:
 
