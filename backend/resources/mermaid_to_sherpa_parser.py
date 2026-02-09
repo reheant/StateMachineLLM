@@ -47,7 +47,7 @@ def parse_mermaid_with_library(mermaid_code: str):
     result = converter.convert(mermaid_code)
 
     # Get the state declarations map for debugging
-    state_declarations_map = getattr(converter, 'state_declarations_map', {})
+    state_declarations_map = getattr(converter, "state_declarations_map", {})
 
     debug_print(
         f"Converter returned {len(result.states)} states, {len(result.transitions)} transitions"
@@ -606,9 +606,43 @@ def parse_mermaid_with_library(mermaid_code: str):
             remapped_initial_states[parent_id] = child_id
     nested_initial_states = remapped_initial_states
 
-    # Step 6: Entry/exit annotations are no longer supported via notes
-    # Notes have been removed from the parser
-    state_annotations = []  # Empty list since notes are removed
+    # Step 6: Extract entry/exit/do annotations from parsed notes
+    # Notes are extracted by the converter from "note right of StateName" blocks
+    state_notes = getattr(result, "state_notes", {})
+    state_annotations = []
+    if state_notes:
+        debug_print(f"Found state notes: {state_notes}")
+        for state_id, notes_list in sorted(state_notes.items()):
+            for note_text in notes_list:
+                # Parse each line of the note for entry/exit/do actions
+                # Note text may contain real newlines or escaped \n from the parser
+                lines = note_text.replace("\\n", "\n").split("\n")
+                for line in lines:
+                    line = line.strip()
+                    if not line:
+                        continue
+                    # Check for entry / exit / do patterns
+                    import re as _re
+
+                    entry_match = _re.match(r"^entry\s*/\s*(.+)", line)
+                    exit_match = _re.match(r"^exit\s*/\s*(.+)", line)
+                    do_match = _re.match(r"^do\s*:\s*(.+)", line)
+                    if entry_match:
+                        state_annotations.append(
+                            f"{state_id}.entry: {entry_match.group(1).strip()}"
+                        )
+                    elif exit_match:
+                        state_annotations.append(
+                            f"{state_id}.exit: {exit_match.group(1).strip()}"
+                        )
+                    elif do_match:
+                        state_annotations.append(
+                            f"{state_id}.do: {do_match.group(1).strip()}"
+                        )
+                    else:
+                        # Generic note — still include it
+                        state_annotations.append(f"{state_id}: {line}")
+        debug_print(f"Built {len(state_annotations)} annotations: {state_annotations}")
 
     return (
         states_list,
