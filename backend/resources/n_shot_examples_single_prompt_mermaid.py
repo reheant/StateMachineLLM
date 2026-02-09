@@ -130,6 +130,332 @@ n_shot_examples = {
         }
     }""",
     },
+    "dishwasher_winter_2019": {
+        "system_description": dishwasher_winter_2019,
+        "mermaid_code_solution": """stateDiagram-v2
+       
+    state DishwasherOn {
+        --
+        state Door {
+            State Closed
+            State Open
+            State Locked
+
+            [*] --> Closed
+            Closed --> Open : open
+            Closed --> Locked : lock
+            Open --> Closed : close
+            Locked --> Closed : unlock
+        }
+        --
+        state Washer {
+            State Idle
+            [*] --> Idle
+            Idle --> Idle : selectProgram(n) [n >= 1] / [r=n]
+            Idle --> Idle : toggleDryingTime / [if (dT=20) dT=40 else dT = 20]
+            Idle --> Cleaning : start [door.isClosed()] / [door.lock() c=1]
+
+            state Suspended
+            Suspended --> Drying : close
+            Suspended --> Idle : after(5)
+
+            state Drying
+            Drying --> Drying : extendDryingTime / [dT=40]
+            Drying --> Suspended : open
+            Drying --> Idle : after(dT)
+
+            state Cleaning {
+                state Intake
+                state Washing
+                state Drain
+                state FinalCleaning
+                state HistoryState1
+                
+                [*] --> Intake
+                Intake --> Washing : entry
+                Washing --> Drain : after(10min)
+                Drain --> Intake : [c < r] / [c++]
+                Drain --> FinalCleaning : [c >= r]
+                FinalCleaning --> Drying : entry / [door.unlock()]
+            }
+
+            Cleaning --> HistoryState1 : toggleDryingTime / [if (dT=20) dT=40 else dT = 20]
+            Cleaning --> Drying : / door.unlock()
+        }
+    }""",
+    },
+    "chess_clock_fall_2019": {
+        "system_description": chess_clock_fall_2019,
+        "mermaid_code_solution": """
+        stateDiagram-v2
+        state Off
+        [*] --> Off
+
+        state On {
+            
+            state GameSetup {
+                --
+                state TimingSelection {
+                    state TimingSelectionState
+                    [*] --> TimingSelectionState
+                    TimingSelectionState --> TimingSelectionState : plus / {incrTimingProgram()}
+                    TimingSelectionState --> TimingSelectionState : minus / {decrTimingProgram()}
+                }
+                --
+                state WhiteKingStatus {
+                    state WhiteKingOnLeft
+                    state WhiteKingOnRight
+                    [*] --> WhiteKingOnLeft
+                    WhiteKingOnLeft --> WhiteKingOnRight : flip
+                    WhiteKingOnRight --> WhiteKingOnLeft : flip
+                }
+            }
+            [*] --> GameSetup
+            state ReadyToStart
+            GameSetup --> ReadyToStart : select
+            
+            state GameFinished
+            state GamePaused
+            
+            state GameRunning {
+                state WhiteClockRunning
+                [*] --> WhiteClockRunning
+
+                state BlackClockRunning
+                WhiteClockRunning --> WhiteClockRunning : after(1) [wc > 0] / {decrTimer(wc)}
+                WhiteClockRunning --> GameFinished : after(1) [wc == 0] / {flashFlag(white)}
+                WhiteClockRunning --> BlackClockRunning : flip
+                
+                note right of WhiteClockRunning
+                    entry / {startTimer(wc)}
+                    exit / {stopTimer(wc)}
+                end note
+
+                BlackClockRunning --> BlackClockRunning : after(1) [bc > 0] / {decrTimer(bc)}
+                BlackClockRunning --> GameFinished : after(1) [bc == 0] / {flashFlag(black)}
+                BlackClockRunning --> WhiteClockRunning : flip
+                
+                note right of BlackClockRunning
+                    entry / {startTimer(bc)}
+                    exit / {stopTimer(bc)}
+                end note
+                
+                state HistoryState1
+                HistoryState1 --> WhiteClockRunning : resume
+
+            }
+            ReadyToStart --> GameRunning : startStop
+            GameRunning --> GamePaused : startStop
+            GamePaused --> GameRunning : startStop
+            GamePaused --> HistoryState1 : resume
+
+        }
+        Off --> On : onOff
+        On --> Off : onOff
+        """,
+    },
+    "automatic_bread_maker_fall_2020": {
+        "system_description": automatic_bread_maker_fall_2020,
+        "mermaid_code_solution": """stateDiagram-v2
+        state Off
+        [*] --> Off
+        Off --> On : on
+        On --> Off : off
+        state On {
+            [*] --> Setup
+            state Setup {
+                state Medium
+                [*] --> Medium : / delay = 0 then selectFirstCourse()
+                state Dark
+                Medium --> Dark : crust
+                state Light 
+                Dark --> Light : crust
+                Light --> Medium 
+                
+                State HistoryState1
+            }
+            Setup --> HistoryState1 : menu / selectNextCourse()
+            Setup --> HistoryState1 : plus [delay=17*60+50] / delay=delay+10
+            Setup --> HistoryState1 : minus [delay>=10] / delay=delay-10
+            
+            state Countdown
+            Setup --> Countdown : start [delay>0]
+            Countdown --> Setup : stop
+            
+            state Baking {
+                state Kneading
+                [*] --> Kneading
+                
+                note right of Kneading
+                    entry / startKneading()
+                    exit / stopKneading()
+                end note
+                
+                state Rising
+                Kneading --> Rising : after kneadingTime
+                
+                state Bake
+                Rising --> Bake : after risingTime
+                
+                note right of Bake
+                    do: heat()
+                end note
+                
+                state Warming
+                Bake --> Warming : after bakingTime
+                
+                note right of Warming
+                    do: warm()
+                end note
+    
+                Warming --> Setup : after 60min
+            }
+            
+            Countdown --> Baking : after delay / setCourseTime()
+            Baking --> Setup : stop
+            Setup --> Baking : start [delay=0] / setCourseTime()
+        }
+    """
+    },
+    
+    "thermomix_fall_2021": {
+        "system_description": thermomix_fall_2021,
+        "mermaid_code_solution": """stateDiagram-v2
+        
+        state TransportationMode
+        [*] --> TransportationMode
+
+        TransportationMode --> On : selectorPressed
+
+        state PreparingOff
+        PreparingOff --> HistoryState1 : selectorReleased
+        On --> PreparingOff : selectorHeld
+        
+        state Off
+        PreparingOff --> Off : after5sec
+
+        Off --> On : selectorPressed
+
+        state On {
+
+            state Home
+            [*] --> Home
+            
+            state PreparingShutdown
+            Home --> PreparingShutdown : after14min30sec
+            PreparingShutdown --> Home : cancel
+            PreparingShutdown --> Off : after30sec
+            
+            state PromptToAdd
+            Home --> PromptToAdd : start [!bowlRemoved()] / setIngredients()
+            PromptToAdd --> PromptToAdd : next [weightCorrect() && moreIngredientsRequired] / setIngredients()
+    
+            state Chop
+            PromptToAdd --> Chop : next [weightCorrect() && !moreIngredientsRequired] / setChoppingSpeedAndTime()
+            Chop --> PromptToAdd : next [choppingTimeDone && moreIngredientsRequired()] / setIngredients()
+            
+            state Cook
+            Chop --> Cook : next [choppingTimeDone && !moreIngredientsRequired()] / setCookingSpeedAndTime()
+            Cook --> PromptToAdd : afterChoppingTime [moreIngredientsRequired
+            
+            state Ready
+            Cook --> Ready : afterCookingTime [!moreIngredientsRequired]
+            Ready --> PreparingShutdown : after14min30sec
+            
+            state HistoryState1
+            
+        }
+        On --> On : bowlRemoved
+        """,
+    },
+    "ATAS_fall_2022": {
+        "system_description": ATAS_fall_2022,
+        "mermaid_code_solution": """stateDiagram-v2
+        state Scheduled
+        [*] --> Scheduled
+
+        Scheduled --> Active : atBeginningStopDuration / p0n and setCs
+
+        state Arrived
+
+        state Active {
+            --
+            state TrainControl {
+                state Emergency
+                [*] --> TrainMovement
+                TrainMovement --> Emergency : emergency / estop
+                Emergency --> HistoryState1 : clear
+                
+                state TrainMovement {
+                    state AtStation
+                    [*] --> AtStation
+                    AtStation --> StopNotRequired : after stopDuration [!stopRequired()]
+                    AtStation --> Arrived : after stopDuration [isLastStop()] / pOff
+                    
+                    note right of AtStation
+                        entry / openDoors()
+                        exit / closeDoors()
+                    end note
+
+                    state StopNotRequired
+                    StopNotRequired --> StopNotRequired : enteringSegment [isStationSegment() && !stopRequired()]
+                    StopNotRequired --> StopNotRequired : enteringSegment [isRegularSegment()]
+                    StopNotRequired --> StopNotRequired : enteringSegment [isTrafficLightSegment() && !isRed()]
+                    
+                    note right of StopNotRequired
+                        entry / setSpeed
+                    end note
+                    
+                    state ApproachingStation
+                    StopNotRequired --> ApproachingStation : enteringSegment [isStationSegment() && stopRequired()]
+                    ApproachingStation --> AtStation : stopped
+                    
+                    state ApproachingRedLight
+                    StopNotRequired --> ApproachingRedLight : enteringSegment [isTrafficLightSegment() && isRed()]
+                    
+                    state AtRedTrafficLight
+                    ApproachingRedLight --> AtRedTrafficLight : stopped
+                    AtRedTrafficLight --> StopNotRequired : green
+                    
+                    state HistoryState1
+                }
+
+                TrainMovement --> Emergency : emergency / estop
+
+                state Emergency
+                Emergency --> TrainMovement : clear
+                    
+            }
+
+            --
+            state SDS {
+                state SDSActive
+                [*] --> SDSActive
+
+                SDSActive --> SDSActive : after1sec [hasSegmentChanged()] / setCs and enteringSegment()
+                SDSActive --> SDSActive : after1sec [!hasSegmentChanged()]
+            }
+            --
+            state MDS {
+                state Stopped
+                state Moving
+                [*] --> Stopped
+
+                Stopped --> Stopped : after1sec [speed == 0]
+                Stopped --> Moving : after1sec [speed > 0]
+                Moving --> Moving : after1sec [speed > 0]
+                Moving --> Stopped : after1sec [speed == 0] / stopped()
+            }
+            --
+            state ODS {
+                state ODSActive
+                [*] --> ODSActive
+
+                ODSActive --> ODSActive : after1sec [!obstacleDetected()]
+                ODSActive --> ODSActive : after1sec [obstacleDetected()] / emergency()
+            }
+        }""",
+    },
 }
 
 
