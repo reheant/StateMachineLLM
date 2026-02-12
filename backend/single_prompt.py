@@ -153,8 +153,63 @@ def run_single_prompt(
     - Actions: event / action
     - Both: event [guard] / action
     - Parallel regions: Use -- separator
-    - Hierarchical states: Use state Name {{ ... }} syntax ONLY for composite states (states with substates)
-    - History states: Declare history states explicitly as named states inside a composite state (e.g., HistoryState1)
+    - Hierarchical/Composite states: Use state Name {{ ... }} syntax ONLY for composite states (states with substates)
+    - History states: Declare history states explicitly as named states inside a composite state (e.g., HistoryState1).
+        History States Guidance :
+            - Purpose: record the last active substate in a composite state so upon re-entry in that composite state, the state machine can automatically resume that substate instead of the initial substate.
+            - Declaration: always declare history states inside the composite state's block with a unique name.
+            - Usage: reference history states only for re-entry transitions, e.g. `CompositeState --> HistoryStateName : reenter / resumeAction` or `Outside --> HistoryStateName : reenter`.
+            - Transition rules (strict):
+                * A history state must be declared inside the composite state we wish to keep track of, so that, upon re-entry, the machine can resume automatically from the last active substate.
+                * A history state may only be targeted by transitions originating from outside its composite state or from the composite state itself.
+                * Substates inside the same composite must never transition directly to the history state.
+                * History states are exclusively for external re-entry behavior, not for internal navigation or state flow.
+                - Examples:
+                    - Valid (composite -> history):
+                      
+                        stateDiagram-v2
+                        [*] --> Outside
+                        state Outside
+                        state Composite
+                        state Composite {{
+                            state A
+                            state B
+                            state HistoryState1
+                            [*] --> A
+                            A --> B : toB
+                           
+
+                        }}
+                        Composite --> HistoryState1 : reenter / resumeAction
+                        Outside --> Composite : enter
+                    - Valid (external state -> history):
+                      
+                        stateDiagram-v2
+                        [*] --> Outside
+                        state Outside
+                        state Composite
+                        state Composite {{
+                            state A
+                            state B
+                            state HistoryState1
+                            [*] --> A
+                            A --> B : toB
+                           
+
+                        }}
+                        Outside --> HistoryState1 : reenter
+                        Outside --> Composite : enter
+
+                    - Invalid (substate -> history):
+                        stateDiagram-v2
+                        [*] --> Outside
+                        Outside --> Composite : enter
+                        state Composite {{
+                            state A
+                            state HistoryState1
+                            [*] --> A
+                            A --> HistoryState1 : illegal / bad
+                        }}
     - Entry/Exit/Do actions: When a state has entry, exit, or do actions, use a `note right of` block.
       These notes will be displayed as annotations at the bottom of the generated diagram.
 
