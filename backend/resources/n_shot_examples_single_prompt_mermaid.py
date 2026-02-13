@@ -29,7 +29,7 @@ n_shot_examples = {
 
             state Print
             
-            state HistoryState1
+            state H
             
             ScanAndEmail --> Ready : stop
             ScanAndEmail --> Ready : done
@@ -45,7 +45,7 @@ n_shot_examples = {
 
         state Suspended
         Suspended --> Ready : cancel
-        Suspended --> HistoryState1 : resume
+        Suspended --> H : resume
 
     }""",
     },
@@ -76,17 +76,17 @@ n_shot_examples = {
                 Level2 --> Level3 : up
                 Level2 --> Level1 : down
                 Level3 --> Level2 : down
-                State HistoryState1
+                State H
             }
 
-            JacuzziOn --> HistoryState1 : setPattern(PatternType type)
+            JacuzziOn --> H : setPattern(PatternType type)
             
             JacuzziOn --> JacuzziOff : off
             
             State Paused 
             
             JacuzziOn --> Paused : pause
-            Paused --> HistoryState1 : after2min
+            Paused --> H : after2min
             Paused --> JacuzziOff : off
 
         }
@@ -169,7 +169,7 @@ n_shot_examples = {
                 state Washing
                 state Drain
                 state FinalCleaning
-                state HistoryState1
+                state H
                 
                 [*] --> Intake
                 Intake --> Washing : entry
@@ -179,7 +179,7 @@ n_shot_examples = {
                 FinalCleaning --> Drying : entry / [door.unlock()]
             }
 
-            Cleaning --> HistoryState1 : toggleDryingTime / [if (dT=20) dT=40 else dT = 20]
+            Cleaning --> H : toggleDryingTime / [if (dT=20) dT=40 else dT = 20]
             Cleaning --> Drying : / door.unlock()
         }
     }""",
@@ -240,14 +240,14 @@ n_shot_examples = {
                     exit / {stopTimer(bc)}
                 end note
                 
-                state HistoryState1
-                HistoryState1 --> WhiteClockRunning : resume
+                state H
+                H --> WhiteClockRunning : resume
 
             }
             ReadyToStart --> GameRunning : startStop
             GameRunning --> GamePaused : startStop
             GamePaused --> GameRunning : startStop
-            GamePaused --> HistoryState1 : resume
+            GamePaused --> H : resume
 
         }
         Off --> On : onOff
@@ -272,11 +272,11 @@ n_shot_examples = {
                 Dark --> Light : crust
                 Light --> Medium 
                 
-                State HistoryState1
+                State H
             }
-            Setup --> HistoryState1 : menu / selectNextCourse()
-            Setup --> HistoryState1 : plus [delay=17*60+50] / delay=delay+10
-            Setup --> HistoryState1 : minus [delay>=10] / delay=delay-10
+            Setup --> H : menu / selectNextCourse()
+            Setup --> H : plus [delay=17*60+50] / delay=delay+10
+            Setup --> H : minus [delay>=10] / delay=delay-10
             
             state Countdown
             Setup --> Countdown : start [delay>0]
@@ -328,7 +328,7 @@ n_shot_examples = {
         TransportationMode --> On : selectorPressed
 
         state PreparingOff
-        PreparingOff --> HistoryState1 : selectorReleased
+        PreparingOff --> H : selectorReleased
         On --> PreparingOff : selectorHeld
         
         state Off
@@ -362,7 +362,7 @@ n_shot_examples = {
             Cook --> Ready : afterCookingTime [!moreIngredientsRequired]
             Ready --> PreparingShutdown : after14min30sec
             
-            state HistoryState1
+            state H
             
         }
         On --> On : bowlRemoved
@@ -384,7 +384,7 @@ n_shot_examples = {
                 state Emergency
                 [*] --> TrainMovement
                 TrainMovement --> Emergency : emergency / estop
-                Emergency --> HistoryState1 : clear
+                Emergency --> H : clear
                 
                 state TrainMovement {
                     state AtStation
@@ -417,7 +417,7 @@ n_shot_examples = {
                     ApproachingRedLight --> AtRedTrafficLight : stopped
                     AtRedTrafficLight --> StopNotRequired : green
                     
-                    state HistoryState1
+                    state H
                 }
 
                 TrainMovement --> Emergency : emergency / estop

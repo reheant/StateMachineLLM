@@ -154,7 +154,7 @@ def run_single_prompt(
     - Both: event [guard] / action
     - Parallel regions: Use -- separator
     - Hierarchical/Composite states: Use state Name {{ ... }} syntax ONLY for composite states (states with substates)
-    - History states: Declare history states explicitly as named states inside a composite state (e.g., HistoryState1).
+    - History states: Declare history states explicitly as named states inside a composite state (e.g., H).
         History States Guidance :
             - Purpose: record the last active substate in a composite state so upon re-entry in that composite state, the state machine can automatically resume that substate instead of the initial substate.
             - Declaration: always declare history states inside the composite state's block with a unique name.
@@ -174,13 +174,13 @@ def run_single_prompt(
                         state Composite {{
                             state A
                             state B
-                            state HistoryState1
+                            state H
                             [*] --> A
                             A --> B : toB
                            
 
                         }}
-                        Composite --> HistoryState1 : reenter / resumeAction
+                        Composite --> H : reenter / resumeAction
                         Outside --> Composite : enter
                     - Valid (external state -> history):
                       
@@ -191,13 +191,13 @@ def run_single_prompt(
                         state Composite {{
                             state A
                             state B
-                            state HistoryState1
+                            state H
                             [*] --> A
                             A --> B : toB
                            
 
                         }}
-                        Outside --> HistoryState1 : reenter
+                        Outside --> H : reenter
                         Outside --> Composite : enter
 
                     - Invalid (substate -> history):
@@ -206,9 +206,9 @@ def run_single_prompt(
                         Outside --> Composite : enter
                         state Composite {{
                             state A
-                            state HistoryState1
+                            state H
                             [*] --> A
-                            A --> HistoryState1 : illegal / bad
+                            A --> H : illegal / bad
                         }}
     - Entry/Exit/Do actions: When a state has entry, exit, or do actions, use a `note right of` block.
       These notes will be displayed as annotations at the bottom of the generated diagram.
