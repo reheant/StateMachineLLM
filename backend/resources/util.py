@@ -1431,102 +1431,202 @@ def graphVizGeneration(generated_umple_gv_path, diagram_file_path: str):
 
 def fix_hierarchical_state_transitions(graph):
     """
-    Fix GraphViz edges to composite states so they point to cluster boundaries.
+    Fix GraphViz edges to/from composite states so they use cluster boundaries.
 
-    Problem: pytransitions routes transitions to composite states through their
-    initial states, making arrows point inside the box instead of to the boundary.
+    pytransitions represents each composite state X as a hidden "proxy marker" node
+    (shape=point, width=0) named X, inside a cluster_X_root subgraph.  It uses
+    this proxy node as the source/destination in edge definitions for composite-level
+    transitions.
 
-    Solution: Detect edges targeting composite states from outside and use GraphViz's
-    'lhead' attribute to make the arrow visually point to the cluster boundary.
+    FIX A – Self-loops (source == target == proxy marker):
+        Add ltail+lhead so the loop renders on the outer cluster boundary.
+
+    FIX B – Parent → child transitions (source is proxy, target is inside source's cluster):
+        GraphViz CANNOT render ltail when the head is inside the tail cluster
+        ("head is inside tail cluster" warning; the ltail is silently ignored).
+        The proxy (shape=point) then looks identical to an initial-state [*] marker.
+        B1: If the edge carries a label (user-defined transition) → create an
+            invisible anchor node in the PARENT cluster and re-source the edge
+            from that anchor.  The edge naturally crosses the cluster boundary.
+        B2: If the edge has no label (pytransitions initial-state transition) →
+            just strip ltail so it renders as [*] → child (correct visual).
+
+    FIX C – Composite → external (source is proxy, target is outside the cluster):
+        Add ltail=cluster_X if pytransitions omitted it.
 
     Args:
         graph: GraphViz Digraph object from pytransitions
 
     Returns:
-        Modified graph with lhead attributes added to hierarchical transitions
+        Modified graph with corrected composite-state edge rendering.
     """
     import re
 
     try:
-        # Step 1: Build a map of composite states and their contents
-        composite_states = {}  # cluster_name -> {initial_state, member_states}
-        state_to_cluster = {}  # state_name -> cluster_name (which cluster contains this state)
+        # ── Step 1: scan body to build maps ──────────────────────────────────
+        #   composite_marker_to_cluster : proxy_node → cluster_name
+        #   cluster_to_parent           : cluster    → nearest non-_root ancestor
+        #   cluster_insert_points       : cluster    → body-index right after its
+        #                                              graph[] attr line (safe place
+        #                                              to insert new node defs)
 
-        current_cluster = None
-        for line in graph.body:
-            # Track when we enter a subgraph (composite state)
+        composite_marker_to_cluster = {}
+        cluster_to_parent = {}
+        cluster_insert_points = {}
+
+        cluster_stack = []
+        in_root_subcluster = False
+        root_parent_cluster = None
+
+        for idx, line in enumerate(graph.body):
+            # ── subgraph entry ──
             cluster_match = re.search(r'subgraph\s+(cluster_\w+)', line)
             if cluster_match:
-                current_cluster = cluster_match.group(1)
-                composite_states[current_cluster] = {
-                    'initial_state': None,
-                    'member_states': set()
-                }
+                cname = cluster_match.group(1)
+                # Record nearest non-_root ancestor as parent
+                if not cname.endswith('_root'):
+                    for s in reversed(cluster_stack):
+                        if not s.endswith('_root'):
+                            cluster_to_parent[cname] = s
+                            break
+                cluster_stack.append(cname)
+                if cname.endswith('_root'):
+                    root_parent_cluster = cname[:-5]   # strip '_root'
+                    in_root_subcluster = True
                 continue
 
-            # Track when we exit a subgraph
-            if line.strip() == '}' and current_cluster:
-                current_cluster = None
+            # ── subgraph exit ──
+            if line.strip() == '}':
+                if cluster_stack:
+                    exiting = cluster_stack.pop()
+                    if exiting.endswith('_root'):
+                        in_root_subcluster = False
+                        root_parent_cluster = None
                 continue
 
-            # Track states within the current cluster
-            if current_cluster:
-                # Look for state node definitions (e.g., "LoggedOut" [label=...])
-                state_match = re.match(r'\s*"([^"]+)"\s*\[', line)
-                if state_match:
-                    state_name = state_match.group(1)
-                    # Skip initial point markers
-                    if 'shape=point' not in line:
-                        composite_states[current_cluster]['member_states'].add(state_name)
-                        state_to_cluster[state_name] = current_cluster
+            # ── record insertion point (line after graph[] attr in non-_root clusters) ──
+            if 'graph [' in line and cluster_stack and not cluster_stack[-1].endswith('_root'):
+                cluster_insert_points[cluster_stack[-1]] = idx
 
-                # Look for initial state markers within cluster
-                # Initial markers point to the initial state (e.g., "On_initial" -> "LoggedOut")
-                initial_edge_match = re.match(r'\s*"([^"]+_initial)"\s*->\s*"([^"]+)"', line)
-                if initial_edge_match:
-                    initial_marker = initial_edge_match.group(1)
-                    initial_target = initial_edge_match.group(2)
-                    composite_states[current_cluster]['initial_state'] = initial_target
+            # ── proxy marker detection ──
+            if in_root_subcluster and root_parent_cluster and 'shape=point' in line:
+                node_match = re.match(r'\s*"?(\w+)"?\s*\[', line)
+                if node_match:
+                    composite_marker_to_cluster[node_match.group(1)] = root_parent_cluster
 
-        # Step 2: Find and redirect edges that target initial states from outside the composite
+        # ── Step 2: fix edges ────────────────────────────────────────────────
+        anchors_needed = {}   # parent_cluster → set of anchor-node IDs to insert
+        # Invisible constraint edges: position each anchor right next to
+        # its composite's cluster boundary.  Appended after all real edges.
+        constraint_edges = []
+
         fixed_body = []
         for line in graph.body:
-            # Look for edge definitions (e.g., "Off" -> "LoggedOut")
-            edge_match = re.match(r'(\s*)"([^"]+)"\s*->\s*"([^"]+)"(.*)$', line)
-
+            edge_match = re.match(r'(\s*)"?(\w+)"?\s*->\s*"?(\w+)"?(.*)', line)
             if edge_match:
-                indent = edge_match.group(1)
-                source = edge_match.group(2)
-                target = edge_match.group(3)
-                rest = edge_match.group(4)  # attributes like [label="..."]
+                indent  = edge_match.group(1)
+                source  = edge_match.group(2)
+                target  = edge_match.group(3)
+                rest    = edge_match.group(4)
 
-                # Check if target is an initial state of a composite
-                for cluster, info in composite_states.items():
-                    if target == info['initial_state']:
-                        # Check if source is OUTSIDE this composite
-                        source_cluster = state_to_cluster.get(source)
+                if source in composite_marker_to_cluster:
+                    cluster = composite_marker_to_cluster[source]
+                    is_child = target.startswith(source + '_')
 
-                        # If source is outside the cluster (or is in a different cluster),
-                        # redirect to point to the cluster itself
-                        if source_cluster != cluster and not source.endswith('_initial'):
-                            # Add lhead attribute to make arrow point to cluster boundary
+                    if source == target:
+                        # ── Case A: self-loop on composite ──
+                        if 'ltail' not in rest and 'lhead' not in rest:
                             if '[' in rest:
-                                # Add lhead to existing attributes
-                                rest = rest.replace('[', f'[lhead={cluster} ', 1)
+                                rest = rest.replace('[', f'[ltail={cluster} lhead={cluster} ', 1)
                             else:
-                                # Create new attributes with lhead
-                                rest = f' [lhead={cluster}]'
+                                rest = f' [ltail={cluster} lhead={cluster}]'
+                            trailing = '\n' if line.endswith('\n') else ''
+                            line = f'{indent}{source} -> {target}{rest}{trailing}'
 
-                            # Keep edge to initial state but use lhead to point to cluster
-                            line = f'{indent}"{source}" -> "{target}"{rest}'
-                            break
+                    elif is_child:
+                        # ── Case B: parent → child ──
+                        # Check for any non-empty label (label, headlabel, taillabel)
+                        has_label = bool(re.search(r'(?:head|tail)?label="[^"]+', rest))
+
+                        if has_label:
+                            # B1: user-defined transition → split into two visible
+                            # edges via an external anchor node to create a loop
+                            # that exits the cluster boundary and re-enters:
+                            #   Exit edge:     proxy → anchor [ltail, arrowhead=none]
+                            #   Re-entry edge: anchor → target [label="..."]
+                            anchor_id = f'_ext_{source}'
+                            parent_cluster = cluster_to_parent.get(cluster)
+                            if parent_cluster:
+                                anchors_needed.setdefault(parent_cluster, set()).add(anchor_id)
+                            else:
+                                anchors_needed.setdefault(None, set()).add(anchor_id)
+                            # Build re-entry edge: strip ltail, convert headlabel→label
+                            rest_reentry = re.sub(r'\s*ltail=\S+', '', rest)
+                            rest_reentry = rest_reentry.replace('headlabel=', 'label=')
+                            trailing = '\n' if line.endswith('\n') else ''
+                            line = f'{indent}{anchor_id} -> {target}{rest_reentry}{trailing}'
+                            # Exit edge: visible line from cluster boundary → anchor
+                            constraint_edges.append(
+                                f'{indent}{source} -> {anchor_id} [ltail={cluster} arrowhead=none]'
+                            )
+                        else:
+                            # B2: initial transition → strip ltail, keep as [*]→child
+                            rest = re.sub(r'\s*ltail=\S+', '', rest)
+                            trailing = '\n' if line.endswith('\n') else ''
+                            line = f'{indent}{source} -> {target}{rest}{trailing}'
+
+                    else:
+                        # ── Case C: composite → external state ──
+                        if 'ltail' not in rest:
+                            if '[' in rest:
+                                rest = rest.replace('[', f'[ltail={cluster} ', 1)
+                            else:
+                                rest = f' [ltail={cluster}]'
+                            trailing = '\n' if line.endswith('\n') else ''
+                            line = f'{indent}{source} -> {target}{rest}{trailing}'
 
             fixed_body.append(line)
 
-        # Replace graph body with fixed version
-        graph.body = fixed_body
+        # Append exit edges at the end (same level as other edges)
+        fixed_body.extend(constraint_edges)
 
-        # Enable compound graph mode (required for lhead to work)
+        # ── Step 3: insert anchor waypoint nodes into parent clusters ────────
+        # For Case B1 transitions (composite → child), we split one edge into
+        # two that meet at an invisible anchor outside the composite's cluster:
+        #   exit edge:     cluster boundary → anchor  (arrowhead=none)
+        #   re-entry edge: anchor → child inside cluster
+        # The anchor is invisible so the two edges appear as one continuous arc
+        # that loops out of the cluster boundary and back in to the target child.
+        if anchors_needed:
+            insertions = []   # (line_index, definition_line)
+            for parent_cluster, anchor_ids in anchors_needed.items():
+                if parent_cluster is not None:
+                    insert_idx = cluster_insert_points.get(parent_cluster)
+                else:
+                    insert_idx = None
+                if insert_idx is not None:
+                    for aid in sorted(anchor_ids):
+                        insertions.append((
+                            insert_idx + 1,
+                            f'\t\t{aid} [shape=point width=0.01 style=invis]'
+                        ))
+                else:
+                    # Fallback: insert at top level, right before first edge
+                    for i, bline in enumerate(fixed_body):
+                        if '->' in bline:
+                            for aid in sorted(anchor_ids):
+                                insertions.append((
+                                    i,
+                                    f'\t{aid} [shape=point width=0.01 style=invis]'
+                                ))
+                            break
+
+            # Insert in reverse order so earlier indices stay valid
+            insertions.sort(key=lambda x: x[0], reverse=True)
+            for ins_idx, ins_text in insertions:
+                fixed_body.insert(ins_idx, ins_text)
+
+        graph.body = fixed_body
         graph.graph_attr['compound'] = 'true'
 
     except Exception as e:
