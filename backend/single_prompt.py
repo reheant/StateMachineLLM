@@ -121,17 +121,25 @@ def run_single_prompt(
             n_shot_examples_single_prompt.remove(n_shot_example)
             break
 
-    prompt = f"""You are an AI assistant specialized in generating state machines using a Custom Mermaid state diagram syntax. Based on the problem description provided, your task is to:
-
-	1.	Derive implicit knowledge from each 
-    2.  If something is not explicitly stated in the problem description but is commonly understood or can be reasonably inferred, include that information in the state machine. For example, if the problem describes a "door" that can be "open" or "closed", you can infer that there are likely states corresponding to "DoorOpen" and "DoorClosed", even if those exact terms are not used in the description. 
-	3.	Assemble the state machine in Mermaid syntax using information from steps 1. through 2. and encapsulate the code between brackets like the following: <mermaid_code_solution>code</mermaid_code_solution>
+    prompt = f"""
+    You are an AI assistant that generates state machines in a strict, custom Mermaid stateDiagram-v2 syntax. Follow these steps and rules exactly. 
     
-    IMPORTANT: Use Mermaid syntax with the following patterns:
-    - State declaration: States must be explicitly declared using `state StateName`.
-    - Initial state rule: The initial transition must use the pattern `[*] --> StateName`, and `StateName` must be declared as a state before it is referenced.
+    TASK:
+        1.	From the provided system description, identify and extract all states, transitions, events, guards, and actions relevant to the system's behavior. Pay close attention to details in the description to ensure a comprehensive understanding of the system's dynamics.
+        2.  Derive a complete state machine model that accurately represents the system's behavior based on the extracted information. This includes determining the correct states, transitions, events, guards, and actions, as well as any hierarchical or parallel structures that may be necessary to capture the system's complexity.
+        3.	Assemble the state machine in Mermaid syntax using information from steps 1. and 2. and encapsulate the code between brackets like the following: <mermaid_code_solution>code</mermaid_code_solution>
+        
+    IMPORTANT: Follow the Mermaid syntax and modeling rules below strictly. Any deviation is invalid.
+    
+    STATE DECLARATION:
+    - Declare every state explicitly 
+    - Syntax: `state StateName`
+    
+    INITIAL STATE:
+    - The initial state must be declared using the pattern `[*] --> StateName`
+    - The state referenced in the initial transition must be declared as a state before it is referenced. 
 
-    Example (valid):
+    Valid Example:
         stateDiagram-v2
         state Off
         state On
@@ -139,112 +147,175 @@ def run_single_prompt(
         Off --> On : powerOn
         On --> Off : powerOff
 
-    Example (invalid):
+    Invalid Example:
         stateDiagram-v2
         [*] --> Off
         state On
         Off --> On : powerOn
         On --> Off : powerOff
-    - Guards: event [condition]
-    - Actions: event / action
-    - Both: event [guard] / action
-    - Parallel regions: Use -- separator
-    - Hierarchical/Composite states: Use state Name {{ ... }} syntax ONLY for composite states (states with substates)
-    - History states: Declare history states explicitly as named states inside a composite state (e.g., H).
-        History States Guidance :
-            - Purpose: record the last active substate in a composite state so upon re-entry in that composite state, the state machine can automatically resume that substate instead of the initial substate.
-            - Declaration: always declare history states inside the composite state's block with a unique name.
-            - Usage: reference history states only for re-entry transitions, e.g. `CompositeState --> HistoryStateName : reenter / resumeAction` or `Outside --> HistoryStateName : reenter`.
-            - Transition rules (strict):
-                * A history state must be declared inside the composite state we wish to keep track of, so that, upon re-entry, the machine can resume automatically from the last active substate.
-                * A history state may only be targeted by transitions originating from outside its composite state or from the composite state itself.
-                * Substates inside the same composite must never transition directly to the history state.
-                * History states are exclusively for external re-entry behavior, not for internal navigation or state flow.
-                - Examples:
-                    - Valid (composite -> history):
-                      
-                        stateDiagram-v2
-                        [*] --> Outside
-                        state Outside
-                        state Composite
-                        state Composite {{
-                            state A
-                            state B
-                            state H
-                            [*] --> A
-                            A --> B : toB
-                           
+    
+    TRANSITIONS:
+    - Declare all transitions explicitly, including both source and target states.
 
-                        }}
-                        Composite --> H : reenter / resumeAction
-                        Outside --> Composite : enter
-                    - Valid (external state -> history):
-                      
-                        stateDiagram-v2
-                        [*] --> Outside
-                        state Outside
-                        state Composite
-                        state Composite {{
-                            state A
-                            state B
-                            state H
-                            [*] --> A
-                            A --> B : toB
-                           
+    - Syntax:
+        - Transition with Event, Guard, and Action: `SourceState --> TargetState : event [guard] / action`
+        - Transition with Event and Action: `SourceState --> TargetState : event / action`
+        - Transition with Event and Guard: `SourceState --> TargetState : event [guard]`
+        - Transition with Event only: `SourceState --> TargetState : event`
+    
+    GUARDS: 
+    - Guards are conditions that must be true for a transition to occur. 
+    - Syntax: `SourceState --> TargetState : event [guard]`
+    
+    ACTIONS:
+        1) Action on transitions:
+        - Purpose: describe activities that occur when a transition fires (e.g., sending a signal, updating a variable).
+        - Syntax (Mermaid): Source --> Target : event [guard] / action
+        - If multiple actions occur, separate them on different transitions or use a note block to list them clearly. 
+        - Actions are labels (imperative style), optionally with parentheses for arguments: lockDoor(), startTimer(10s)
+        - Actions execute only when the transition is taken and any guard evaluates to true.
+        
+        2) Entry / Exit / Do actions (actions attached to states)
+        - Purpose: entry executes once when entering the state; exit executes once when leaving; do executes continuously while inside the state (ongoing activity).
+        - Must be declared in a note block placed AFTER the state declaration:
+            note right of StateName
+                entry / actionOnEntry()
+                exit / actionOnExit()
+                do: ongoingAction()
+            end note
+        - Example:
+            state WashCycle {{
+                [*] --> WaterIntake
+                WaterIntake --> Washing : tankFull
+            }}
 
-                        }}
-                        Outside --> H : reenter
-                        Outside --> Composite : enter
+            note right of WashCycle
+                entry / lockDoor()
+                exit / unlockDoor()
+            end note
 
-                    - Invalid (substate -> history):
-                        stateDiagram-v2
-                        [*] --> Outside
-                        Outside --> Composite : enter
-                        state Composite {{
-                            state A
-                            state H
-                            [*] --> A
-                            A --> H : illegal / bad
-                        }}
-    - Entry/Exit/Do actions: When a state has entry, exit, or do actions, use a `note right of` block.
-      These notes will be displayed as annotations at the bottom of the generated diagram.
-
-      Syntax for entry/exit/do actions:
-        note right of StateName
-            entry / actionOnEntry()
-            exit / actionOnExit()
-            do: ongoingAction()
-        end note
-
-      Example:
-        state WashCycle {{
-            [*] --> WaterIntake
-            WaterIntake --> Washing : tankFull
+    EVENT: 
+    - Events are triggers that cause transitions between states. They are declared after the colon in the transition declaration (e.g., `: event`).
+    - Syntax: `SourceState --> TargetState : event`
+    
+    PARALLEL REGIONS: 
+    - Use parallel regions to represent concurrent states or activities that can occur simultaneously. Each region has its own set of states and transitions.
+    - It is possible that parallel regions contain composite states. To model this, simply declare a composite state within a parallel region following the syntax and rules for composite states.
+    - Syntax: separate parallel regions with `--` and declare states within each region as usual.
+    - Rules: each region must declare its own states and an initial pseudostate (`[*] --> Substate`). Cross-region transitions must reference explicit substates.
+    - Example:
+        stateDiagram-v2
+        [*] --> ParallelController
+        state ParallelController {{
+            state RegionA {{
+                state Substate1
+                state Substate2
+                [*] --> Substate1
+                Substate1 --> Substate2 : event1
+            }}
+            --
+            state RegionWithComposite {{
+                [*] --> CompositeState
+                state CompositeState {{
+                    state Substate3
+                    state Substate4
+                    [*] --> Substate3
+                    Substate3 --> Substate4 : event2
+                }}
+            }}
+        }}
+        
+    HIERARCHICAL/COMPOSITE STATES:
+    - Purpose: group related substates under a named parent so the system can show internal phases while keeping the same external interface.
+    - When to use:
+        - A state contains multiple internal phases or steps.
+        - Substates share external transitions or entry/exit behavior.
+        - Re-entry should resume the last active substate (use history state).
+        - The flat model is too complex to read.
+    - Syntax: `state CompositeState {{ ... }}`. Declare substates and an initial pseudostate (`[*] --> Substate`) inside the braces.
+    - Rules:
+        - Declare the composite state before referencing it in transitions.
+        - Place entry/exit/do note blocks AFTER the composite declaration (outside the braces).
+        - History states must be declared inside the composite and may only be targeted from a state outside the composite or from the composite itself; substates MUST NOT transition directly to the history state. If a history state is declared, it is exclusively for external re-entry behavior and must not be used for internal navigation or state flow.
+    - Example:
+        stateDiagram-v2
+        [*] --> Device
+        state Device {{
+            state Idle
+            state Active {{
+                state Step1
+                state Step2
+                [*] --> Step1
+                Step1 --> Step2 : next
+            }}
+            Idle --> Active : start
         }}
 
-        note right of WashCycle
-            entry / lockDoor()
-            exit / unlockDoor()
-        end note
+        note right of Active
+            entry / startTimer()
+            exit / stopTimer()
+        end note  
+    
+    HISTORY STATES:
+    - Purpose: record the last active substate in a composite state so upon re-entry in that composite state, the state machine can automatically resume that substate instead of the initial substate.
+    - Rules: 
+        - Always declare history states inside a composite state's block.
+        - Reference history states only for re-entry transitions originating from OUTSIDE the composite state or from the composite state itself (e.g., `CompositeState --> HistoryStateName : reenter / resumeAction` or `Outside --> HistoryStateName : reenter`).
+        - Substates within the same composite state must never transition directly to the history state.
+        - History states are used exclusively for external re-entry behavior and must not be used for internal navigation, sequencing, or state flow.
+        - If the specification requires returning to the last active substate upon re-entry, the transition must originate from outside the composite state or from the composite state itself, and the history state must be declared inside the composite to enable this behavior.
 
-      Rules:
-        - Use `entry / action` for actions that execute when ENTERING the state
-        - Use `exit / action` for actions that execute when LEAVING the state
-        - Use `do: action` for ongoing activities that execute WHILE in the state
-        - Each action should be on its own line inside the note block
-        - The note block must end with `end note`
-        - Place the note block AFTER the state declaration (outside the state's curly braces if composite)
-        - You can have entry, exit, and do on the same state — put them all in one note block
+    - Examples:
+        - Valid (composite -> history):
+            stateDiagram-v2
+            [*] --> Outside
+            state Outside
+            state Composite
+            state Composite {{
+                state A
+                state B
+                state H
+                [*] --> A
+                A --> B : toB
+            }}
+            Composite --> H : reenter / resumeAction
+            Outside --> Composite : enter
 
-    The following are examples demonstrating proper Mermaid syntax:
+        - Valid (external state -> history):
+            stateDiagram-v2
+            [*] --> Outside
+            state Outside
+            state Composite
+            state Composite {{
+                state A
+                state B
+                state H
+                [*] --> A
+                A --> B : toB
+            }}
+            Outside --> H : reenter
+            Outside --> Composite : enter
 
+        - Invalid (substate -> history):
+            stateDiagram-v2
+            [*] --> Outside
+            Outside --> Composite : enter
+            state Composite {{
+                state A
+                state H
+                [*] --> A
+                A --> H : illegal / bad
+            }}
+
+
+    EXAMPLE PROBLEM DESCRIPTIONS AND MERMAID SOLUTIONS:
     {get_n_shot_examples(n_shot_examples_single_prompt, ["system_description", "mermaid_code_solution"])}
 
-    Now your Problem Description:
-    {system_prompt}
+    PROBLEM DESCRIPTION:
+    {system_prompt}    
 
-    Provide your answer following the exact Mermaid syntax patterns shown in the examples:
-
+    FINAL REMARKS:
+    - Provide your answer following the exact Mermaid syntax patterns shown in the examples and strictly adhering to all specified rules. 
     """
 
     print(f"Running Single Prompt Generation with {model}")
