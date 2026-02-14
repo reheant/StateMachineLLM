@@ -123,14 +123,10 @@ def run_single_prompt(
 
     prompt = f"""You are an AI assistant specialized in generating state machines using a Custom Mermaid state diagram syntax. Based on the problem description provided, your task is to:
 
-	1.	Derive implicit knowledge from each sentence
-	2.	Explain how you parse the problem description to extract states for state machine
-	3.	Explain how you parse the problem description to extract transitions for the state machine
-	4.	Explain how you parse the problem description to extract hierarchical states for the state machine
-	5.	Explain how you parse the problem description to extract concurrent regions for the state machine
-	6.	Explain how you parse the problem description to extract history states for the state machine
-	7.	Assemble the state machine in Mermaid syntax using information from steps 1. through 6. and encapsulate the code between brackets like the following: <mermaid_code_solution>code</mermaid_code_solution>
-
+	1.	Derive implicit knowledge from each 
+    2.  If something is not explicitly stated in the problem description but is commonly understood or can be reasonably inferred, include that information in the state machine. For example, if the problem describes a "door" that can be "open" or "closed", you can infer that there are likely states corresponding to "DoorOpen" and "DoorClosed", even if those exact terms are not used in the description. 
+	3.	Assemble the state machine in Mermaid syntax using information from steps 1. through 2. and encapsulate the code between brackets like the following: <mermaid_code_solution>code</mermaid_code_solution>
+    
     IMPORTANT: Use Mermaid syntax with the following patterns:
     - State declaration: States must be explicitly declared using `state StateName`.
     - Initial state rule: The initial transition must use the pattern `[*] --> StateName`, and `StateName` must be declared as a state before it is referenced.
