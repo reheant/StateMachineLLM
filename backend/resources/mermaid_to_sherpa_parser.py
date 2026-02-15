@@ -235,9 +235,69 @@ def parse_mermaid_with_library(mermaid_code: str):
             normalized = re.sub(r"_region_\d+", "", scoped_id)
             return normalized
 
-        # Format source and destination using scoped_id (already contains full path)
-        start_formatted = normalize_scoped_path(from_scoped, from_id)
-        end_formatted = normalize_scoped_path(to_scoped, to_id)
+        # Helper to build full hierarchical path by searching the state hierarchy
+        def build_full_path(bare_id, current_scoped_id=None, from_scoped_id=None):
+            """
+            Build the full hierarchical path for a state by searching through all_states.
+            If the state appears in multiple places (e.g., nested in different composites),
+            use intelligent heuristics to pick the correct one based on context.
+            
+            Strategy:
+            1. If scoped_id is provided and valid, use it
+            2. If only one occurrence exists, use it
+            3. If multiple occurrences exist:
+               - Check if any occurrence is a sibling of the source state (same parent)
+               - Otherwise, prefer the shallowest occurrence (likely root-level)
+            """
+            # First try to use the scoped_id if provided
+            if current_scoped_id and current_scoped_id in all_states:
+                return normalize_scoped_path(current_scoped_id, bare_id)
+            
+            # Search for all occurrences of this bare_id in all_states
+            candidates = []
+            for scoped_key, state_obj in all_states.items():
+                bare = scoped_to_bare.get(scoped_key, scoped_key)
+                if bare == bare_id:
+                    # Found a match - calculate its depth by counting parent relationships
+                    depth = 0
+                    current = scoped_key
+                    parents_chain = []
+                    while current in state_parents:
+                        parent = state_parents[current]
+                        parents_chain.append(parent)
+                        depth += 1
+                        current = parent
+                    candidates.append((scoped_key, depth, parents_chain))
+            
+            if not candidates:
+                # State not found in hierarchy - return bare_id as fallback
+                return bare_id
+            
+            if len(candidates) == 1:
+                # Only one occurrence - use it
+                return normalize_scoped_path(candidates[0][0], bare_id)
+            
+            # Multiple occurrences - use context-aware selection
+            if from_scoped_id and from_scoped_id in state_parents:
+                # Get the source state's parent
+                source_parent = state_parents[from_scoped_id]
+                
+                # Check if any candidate is a sibling (shares the same parent)
+                siblings = [c for c in candidates if source_parent in c[2]]
+                if siblings:
+                    # Prefer siblings - sort by depth and take deepest sibling
+                    siblings.sort(key=lambda x: x[1], reverse=True)
+                    return normalize_scoped_path(siblings[0][0], bare_id)
+            
+            # No sibling match - prefer shallowest (likely root-level state)
+            # This handles cases like "Off" at root vs "Off" nested inside a composite
+            candidates.sort(key=lambda x: x[1])  # Sort ascending (shallowest first)
+            best_scoped_id = candidates[0][0]
+            return normalize_scoped_path(best_scoped_id, bare_id)
+
+        # Format source and destination using full hierarchical paths
+        start_formatted = build_full_path(from_id, from_scoped)
+        end_formatted = build_full_path(to_id, to_scoped, from_scoped)
 
         # Check if this is a history transition (destination is a HistoryState)
         is_history_transition = getattr(transition, "is_history_transition", False)
@@ -727,3 +787,4 @@ if __name__ == "__main__":
             print(f"    {t['source']} --{t['trigger']}--> {t['dest']}")
     else:
         print("  ✗ No transitions to history state found")
+        
