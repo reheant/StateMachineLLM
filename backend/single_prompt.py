@@ -125,9 +125,13 @@ def run_single_prompt(
     You are an AI assistant that generates state machines in a strict, custom Mermaid stateDiagram-v2 syntax. Follow these steps and rules exactly. 
     
     TASK:
-        1.	From the provided system description, identify and extract all states, transitions, events, guards, and actions relevant to the system's behavior. Pay close attention to details in the description to ensure a comprehensive understanding of the system's dynamics.
-        2.  Derive a complete state machine model that accurately represents the system's behavior based on the extracted information. This includes determining the correct states, transitions, events, guards, and actions, as well as any hierarchical or parallel structures that may be necessary to capture the system's complexity.
-        3.	Assemble the state machine in Mermaid syntax using information from steps 1. and 2. and encapsulate the code between brackets like the following: <mermaid_code_solution>code</mermaid_code_solution>
+       	1.	Derive implicit knowledge from each sentence
+        2.	Explain how you parse the problem description to extract states for state machine
+        3.	Explain how you parse the problem description to extract transitions for the state machine
+        4.	Explain how you parse the problem description to extract hierarchical states for the state machine
+        5.	Explain how you parse the problem description to extract concurrent regions for the state machine
+        6.	Explain how you parse the problem description to extract history states for the state machine
+        7.	Assemble the state machine in Mermaid syntax using information from steps 1. through 6. and encapsulate the code between brackets like the following: <mermaid_code_solution>code</mermaid_code_solution>
         
     IMPORTANT: Follow the Mermaid syntax and modeling rules below strictly. Any deviation is invalid.
     
