@@ -307,7 +307,6 @@ def run_single_prompt(
                 A --> H : illegal / bad
             }}
 
-
     EXAMPLE PROBLEM DESCRIPTIONS AND MERMAID SOLUTIONS:
     {get_n_shot_examples(n_shot_examples_single_prompt, ["system_description", "mermaid_code_solution"])}
 
@@ -316,6 +315,7 @@ def run_single_prompt(
 
     FINAL REMARKS:
     - Provide your answer following the exact Mermaid syntax patterns shown in the examples and strictly adhering to all specified rules. 
+    
     """
 
     print(f"Running Single Prompt Generation with {model}")
