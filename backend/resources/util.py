@@ -1544,7 +1544,7 @@ def fix_hierarchical_state_transitions(graph):
                 # at top level for Active itself).
                 deferred_nodes[parent_cluster].append(
                     f'\t"{node_name}" '
-                    f'[shape=point width=0.1 fillcolor=black color=black label=""]'
+                    f'[shape=point width=0 height=0 style=invis label=""]'
                 )
 
                 if clean_attrs.startswith('['):
@@ -1554,9 +1554,11 @@ def fix_hierarchical_state_transitions(graph):
                 else:
                     out_attrs = f'[ltail={source_cluster}]'
 
-                # Edge 1: cluster boundary ──(label)──> dot
+                # Edge 1: cluster boundary ──(label)──> dot  (no arrowhead)
                 extra_edges.append(
-                    f'{indent}{source_raw} -> "{node_name}" {out_attrs}'
+                    f'{indent}{source_raw} -> "{node_name}" {out_attrs[:-1]} dir=none]'
+                    if out_attrs.endswith(']')
+                    else f'{indent}{source_raw} -> "{node_name}" {out_attrs} [dir=none]'
                 )
                 # Edge 2: dot ──> cluster boundary (constraint=false avoids
                 # pushing the dot node out of the parent cluster rank)
@@ -1578,7 +1580,7 @@ def fix_hierarchical_state_transitions(graph):
 
                 deferred_nodes[parent_cluster].append(
                     f'\t"{node_name}" '
-                    f'[shape=point width=0.1 fillcolor=black color=black label=""]'
+                    f'[shape=point width=0 height=0 style=invis label=""]'
                 )
 
                 if clean_attrs.startswith('['):
@@ -1588,9 +1590,11 @@ def fix_hierarchical_state_transitions(graph):
                 else:
                     out_attrs = f'[ltail={source_cluster}]'
 
-                # Edge 1: cluster boundary ──(label)──> dot
+                # Edge 1: cluster boundary ──(label)──> dot  (no arrowhead)
                 extra_edges.append(
-                    f'{indent}{source_raw} -> "{node_name}" {out_attrs}'
+                    f'{indent}{source_raw} -> "{node_name}" {out_attrs[:-1]} dir=none]'
+                    if out_attrs.endswith(']')
+                    else f'{indent}{source_raw} -> "{node_name}" {out_attrs} [dir=none]'
                 )
                 # Edge 2: dot ──> target child (enters the cluster)
                 extra_edges.append(
@@ -1638,6 +1642,8 @@ def fix_hierarchical_state_transitions(graph):
 
         # compound=true is required for lhead/ltail to take effect.
         graph.graph_attr['compound'] = 'true'
+        # ortho routing gives right-angle bends, making self-loops look rectangular.
+        graph.graph_attr['splines'] = 'ortho'
 
     except Exception as e:
         print(f"Warning: Could not apply hierarchical state fix: {e}")
