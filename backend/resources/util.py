@@ -1431,102 +1431,212 @@ def graphVizGeneration(generated_umple_gv_path, diagram_file_path: str):
 
 def fix_hierarchical_state_transitions(graph):
     """
-    Fix GraphViz edges to composite states so they point to cluster boundaries.
+    Fix GraphViz edges for two cases pytransitions doesn't handle:
 
-    Problem: pytransitions routes transitions to composite states through their
-    initial states, making arrows point inside the box instead of to the boundary.
+    1. Composite state self-loop (e.g. Active -> Active):
+       GraphViz cannot render ltail=X lhead=X on the same cluster.
+       Solution: Replace with an intermediate dot node placed in the parent
+       cluster so the arrows visually loop around the cluster boundary.
 
-    Solution: Detect edges targeting composite states from outside and use GraphViz's
-    'lhead' attribute to make the arrow visually point to the cluster boundary.
+    2. Composite state -> own child (e.g. Cleaning -> Cleaning_HistoryPoint):
+       ltail alone is ignored by GraphViz when the destination is inside the
+       same cluster.  Solution: route through an intermediate dot node placed
+       in the parent cluster — one arrow exits the cluster to the dot, a
+       second arrow re-enters the cluster to the specific child node.
+
+    Note: pytransitions already handles lhead (external -> composite) and
+    ltail (composite -> external), so those cases are left untouched.
 
     Args:
         graph: GraphViz Digraph object from pytransitions
 
     Returns:
-        Modified graph with lhead attributes added to hierarchical transitions
+        Modified graph with fixes applied to hierarchical transitions
     """
     import re
+    from collections import defaultdict
 
     try:
-        # Step 1: Build a map of composite states and their contents
-        composite_states = {}  # cluster_name -> {initial_state, member_states}
-        state_to_cluster = {}  # state_name -> cluster_name (which cluster contains this state)
+        # ── Pass 1: build cluster hierarchy ───────────────────────────────────
+        # Real composite clusters (skip internal _root clusters).
+        # pytransitions names the initial-point node of cluster_X as X.
+        composite_clusters = set()
+        cluster_parent = {}   # cluster_name -> parent cluster name (or None)
+        cluster_stack = []    # all clusters incl. _root for correct brace matching
 
-        current_cluster = None
-        for line in graph.body:
-            # Track when we enter a subgraph (composite state)
-            cluster_match = re.search(r'subgraph\s+(cluster_\w+)', line)
-            if cluster_match:
-                current_cluster = cluster_match.group(1)
-                composite_states[current_cluster] = {
-                    'initial_state': None,
-                    'member_states': set()
-                }
+        for item in graph.body:
+            m = re.search(r'subgraph\s+(cluster_\w+)', item)
+            if m:
+                cname = m.group(1)
+                parent = cluster_stack[-1] if cluster_stack else None
+                if not cname.endswith('_root'):
+                    composite_clusters.add(cname)
+                    cluster_parent[cname] = parent
+                cluster_stack.append(cname)
+            elif item.strip() == '}' and cluster_stack:
+                cluster_stack.pop()
+
+        # initial-point name -> cluster  e.g. 'Active' -> 'cluster_Active'
+        initial_to_cluster = {
+            c[len('cluster_'):]: c for c in composite_clusters
+        }
+
+        # ── Pass 2: identify edges to fix ─────────────────────────────────────
+        # Regex handles both quoted ("_initial") and unquoted (Active) node names.
+        edge_re = re.compile(
+            r'(\s*)("(?:[^"]+)"|[A-Za-z_]\w*)\s*->\s*("(?:[^"]+)"|[A-Za-z_][^\s\[]*)(.*)',
+            re.DOTALL,
+        )
+
+        lines_to_skip = set()             # indices of body items to drop
+        residuals = {}                    # index -> trailing content to preserve
+        deferred_nodes = defaultdict(list)  # parent_cluster (or None) -> [node_def, ...]
+        extra_edges = []                  # replacement edge strings (top-level)
+        counter = 0
+
+        for i, item in enumerate(graph.body):
+            m = edge_re.match(item)
+            if not m:
                 continue
 
-            # Track when we exit a subgraph
-            if line.strip() == '}' and current_cluster:
-                current_cluster = None
+            indent     = m.group(1)
+            source_raw = m.group(2)
+            target_raw = m.group(3).rstrip()
+            rest       = m.group(4)
+
+            source = source_raw.strip('"')
+            target = target_raw.strip('"')
+
+            source_cluster = initial_to_cluster.get(source)
+            if not source_cluster:
                 continue
 
-            # Track states within the current cluster
-            if current_cluster:
-                # Look for state node definitions (e.g., "LoggedOut" [label=...])
-                state_match = re.match(r'\s*"([^"]+)"\s*\[', line)
-                if state_match:
-                    state_name = state_match.group(1)
-                    # Skip initial point markers
-                    if 'shape=point' not in line:
-                        composite_states[current_cluster]['member_states'].add(state_name)
-                        state_to_cluster[state_name] = current_cluster
+            # Skip auto-generated pytransitions initial-state edges (headlabel="").
+            if re.search(r'headlabel=""', rest):
+                continue
 
-                # Look for initial state markers within cluster
-                # Initial markers point to the initial state (e.g., "On_initial" -> "LoggedOut")
-                initial_edge_match = re.match(r'\s*"([^"]+_initial)"\s*->\s*"([^"]+)"', line)
-                if initial_edge_match:
-                    initial_marker = initial_edge_match.group(1)
-                    initial_target = initial_edge_match.group(2)
-                    composite_states[current_cluster]['initial_state'] = initial_target
+            cluster_prefix = source
+            parent_cluster = cluster_parent.get(source_cluster)  # None = top level
 
-        # Step 2: Find and redirect edges that target initial states from outside the composite
+            # Extract just this edge's attribute block; anything after belongs to
+            # a second statement packed in the same body item by pytransitions.
+            edge_attrs, after_edge = rest, ''
+            bracket_depth = 0
+            for idx, ch in enumerate(rest):
+                if ch == '[':
+                    bracket_depth += 1
+                elif ch == ']':
+                    bracket_depth -= 1
+                    if bracket_depth == 0:
+                        edge_attrs = rest[:idx + 1]
+                        after_edge = rest[idx + 1:]
+                        break
+
+            # Strip any previously-added ltail from edge_attrs (clean slate).
+            clean_attrs = re.sub(r'\bltail=\S+\s*', '', edge_attrs).strip()
+
+            if source == target:
+                # ── Case 1: self-loop on composite ────────────────────────────
+                node_name = f'_selfloop_{source}_{counter}'
+                counter += 1
+
+                # Dot node goes in the parent cluster (inside Active for Cleaning,
+                # at top level for Active itself).
+                deferred_nodes[parent_cluster].append(
+                    f'\t"{node_name}" '
+                    f'[shape=point width=0.1 fillcolor=black color=black label=""]'
+                )
+
+                if clean_attrs.startswith('['):
+                    out_attrs = '[ltail=' + source_cluster + ' ' + clean_attrs[1:]
+                elif clean_attrs:
+                    out_attrs = '[ltail=' + source_cluster + ' ' + clean_attrs.strip('[]') + ']'
+                else:
+                    out_attrs = f'[ltail={source_cluster}]'
+
+                # Edge 1: cluster boundary ──(label)──> dot
+                extra_edges.append(
+                    f'{indent}{source_raw} -> "{node_name}" {out_attrs}'
+                )
+                # Edge 2: dot ──> cluster boundary (constraint=false avoids
+                # pushing the dot node out of the parent cluster rank)
+                extra_edges.append(
+                    f'{indent}"{node_name}" -> {target_raw} '
+                    f'[lhead={source_cluster} constraint=false]'
+                )
+
+                lines_to_skip.add(i)
+                if after_edge.strip():
+                    residuals[i] = '\t' + after_edge.lstrip('\t ')
+
+            elif target.startswith(cluster_prefix + '_'):
+                # ── Case 2: composite -> own child ────────────────────────────
+                # ltail is silently ignored by GraphViz when the destination is
+                # inside the ltail cluster.  Route through an intermediate dot.
+                node_name = f'_entry_{source}_{counter}'
+                counter += 1
+
+                deferred_nodes[parent_cluster].append(
+                    f'\t"{node_name}" '
+                    f'[shape=point width=0.1 fillcolor=black color=black label=""]'
+                )
+
+                if clean_attrs.startswith('['):
+                    out_attrs = '[ltail=' + source_cluster + ' ' + clean_attrs[1:]
+                elif clean_attrs:
+                    out_attrs = '[ltail=' + source_cluster + ' ' + clean_attrs.strip('[]') + ']'
+                else:
+                    out_attrs = f'[ltail={source_cluster}]'
+
+                # Edge 1: cluster boundary ──(label)──> dot
+                extra_edges.append(
+                    f'{indent}{source_raw} -> "{node_name}" {out_attrs}'
+                )
+                # Edge 2: dot ──> target child (enters the cluster)
+                extra_edges.append(
+                    f'{indent}"{node_name}" -> {target_raw}'
+                )
+
+                lines_to_skip.add(i)
+                if after_edge.strip():
+                    residuals[i] = '\t' + after_edge.lstrip('\t ')
+
+        # ── Pass 3: rebuild body, inject dot nodes at correct cluster boundaries ─
         fixed_body = []
-        for line in graph.body:
-            # Look for edge definitions (e.g., "Off" -> "LoggedOut")
-            edge_match = re.match(r'(\s*)"([^"]+)"\s*->\s*"([^"]+)"(.*)$', line)
+        cluster_stack_build = []
 
-            if edge_match:
-                indent = edge_match.group(1)
-                source = edge_match.group(2)
-                target = edge_match.group(3)
-                rest = edge_match.group(4)  # attributes like [label="..."]
+        for i, item in enumerate(graph.body):
+            if i in lines_to_skip:
+                # Preserve any secondary statement packed in the same body item.
+                if i in residuals:
+                    fixed_body.append(residuals[i])
+                continue
 
-                # Check if target is an initial state of a composite
-                for cluster, info in composite_states.items():
-                    if target == info['initial_state']:
-                        # Check if source is OUTSIDE this composite
-                        source_cluster = state_to_cluster.get(source)
+            m = re.search(r'subgraph\s+(cluster_\w+)', item)
+            if m:
+                cluster_stack_build.append(m.group(1))
+                fixed_body.append(item)
+                continue
 
-                        # If source is outside the cluster (or is in a different cluster),
-                        # redirect to point to the cluster itself
-                        if source_cluster != cluster and not source.endswith('_initial'):
-                            # Add lhead attribute to make arrow point to cluster boundary
-                            if '[' in rest:
-                                # Add lhead to existing attributes
-                                rest = rest.replace('[', f'[lhead={cluster} ', 1)
-                            else:
-                                # Create new attributes with lhead
-                                rest = f' [lhead={cluster}]'
+            if item.strip() == '}' and cluster_stack_build:
+                closing = cluster_stack_build[-1]
+                cluster_stack_build.pop()
+                # Inject dot nodes deferred to this cluster before its closing brace.
+                if closing in deferred_nodes:
+                    fixed_body.extend(deferred_nodes[closing])
+                fixed_body.append(item)
+                continue
 
-                            # Keep edge to initial state but use lhead to point to cluster
-                            line = f'{indent}"{source}" -> "{target}"{rest}'
-                            break
+            fixed_body.append(item)
 
-            fixed_body.append(line)
+        # Top-level dot nodes (for root-level composite self-loops / own-child).
+        fixed_body.extend(deferred_nodes.get(None, []))
+        # All replacement edges go at the top level.
+        fixed_body.extend(extra_edges)
 
-        # Replace graph body with fixed version
         graph.body = fixed_body
 
-        # Enable compound graph mode (required for lhead to work)
+        # compound=true is required for lhead/ltail to take effect.
         graph.graph_attr['compound'] = 'true'
 
     except Exception as e:
