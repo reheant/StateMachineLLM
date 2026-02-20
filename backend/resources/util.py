@@ -1461,25 +1461,23 @@ def fix_hierarchical_state_transitions(graph):
         # Real composite clusters (skip internal _root clusters).
         # pytransitions names the initial-point node of cluster_X as X.
         composite_clusters = set()
-        cluster_parent = {}   # cluster_name -> parent cluster name (or None)
-        cluster_stack = []    # all clusters incl. _root for correct brace matching
+        cluster_parent = {}  # cluster_name -> parent cluster name (or None)
+        cluster_stack = []  # all clusters incl. _root for correct brace matching
 
         for item in graph.body:
-            m = re.search(r'subgraph\s+(cluster_\w+)', item)
+            m = re.search(r"subgraph\s+(cluster_\w+)", item)
             if m:
                 cname = m.group(1)
                 parent = cluster_stack[-1] if cluster_stack else None
-                if not cname.endswith('_root'):
+                if not cname.endswith("_root"):
                     composite_clusters.add(cname)
                     cluster_parent[cname] = parent
                 cluster_stack.append(cname)
-            elif item.strip() == '}' and cluster_stack:
+            elif item.strip() == "}" and cluster_stack:
                 cluster_stack.pop()
 
         # initial-point name -> cluster  e.g. 'Active' -> 'cluster_Active'
-        initial_to_cluster = {
-            c[len('cluster_'):]: c for c in composite_clusters
-        }
+        initial_to_cluster = {c[len("cluster_") :]: c for c in composite_clusters}
 
         # ── Pass 2: identify edges to fix ─────────────────────────────────────
         # Regex handles both quoted ("_initial") and unquoted (Active) node names.
@@ -1488,10 +1486,12 @@ def fix_hierarchical_state_transitions(graph):
             re.DOTALL,
         )
 
-        lines_to_skip = set()             # indices of body items to drop
-        residuals = {}                    # index -> trailing content to preserve
-        deferred_nodes = defaultdict(list)  # parent_cluster (or None) -> [node_def, ...]
-        extra_edges = []                  # replacement edge strings (top-level)
+        lines_to_skip = set()  # indices of body items to drop
+        residuals = {}  # index -> trailing content to preserve
+        deferred_nodes = defaultdict(
+            list
+        )  # parent_cluster (or None) -> [node_def, ...]
+        extra_edges = []  # replacement edge strings (top-level)
         counter = 0
 
         for i, item in enumerate(graph.body):
@@ -1499,10 +1499,10 @@ def fix_hierarchical_state_transitions(graph):
             if not m:
                 continue
 
-            indent     = m.group(1)
+            indent = m.group(1)
             source_raw = m.group(2)
             target_raw = m.group(3).rstrip()
-            rest       = m.group(4)
+            rest = m.group(4)
 
             source = source_raw.strip('"')
             target = target_raw.strip('"')
@@ -1511,8 +1511,14 @@ def fix_hierarchical_state_transitions(graph):
             if not source_cluster:
                 continue
 
-            # Skip auto-generated pytransitions initial-state edges (headlabel="").
-            if re.search(r'headlabel=""', rest):
+            # Skip auto-generated pytransitions initial-state edges.
+            # Inner composite initial edges use headlabel=""; the outermost composite's
+            # initial edge (e.g. Active -> Active_WashCycle produced by pytransitions
+            # when initial='WashCycle' is set) uses label="" instead.  Both must be
+            # left untouched so the [*]->Child arrow stays in the diagram.
+            if re.search(r'headlabel=""', rest) or re.search(
+                r'(?<![a-z])label=""', rest
+            ):
                 continue
 
             cluster_prefix = source
@@ -1520,24 +1526,24 @@ def fix_hierarchical_state_transitions(graph):
 
             # Extract just this edge's attribute block; anything after belongs to
             # a second statement packed in the same body item by pytransitions.
-            edge_attrs, after_edge = rest, ''
+            edge_attrs, after_edge = rest, ""
             bracket_depth = 0
             for idx, ch in enumerate(rest):
-                if ch == '[':
+                if ch == "[":
                     bracket_depth += 1
-                elif ch == ']':
+                elif ch == "]":
                     bracket_depth -= 1
                     if bracket_depth == 0:
-                        edge_attrs = rest[:idx + 1]
-                        after_edge = rest[idx + 1:]
+                        edge_attrs = rest[: idx + 1]
+                        after_edge = rest[idx + 1 :]
                         break
 
             # Strip any previously-added ltail from edge_attrs (clean slate).
-            clean_attrs = re.sub(r'\bltail=\S+\s*', '', edge_attrs).strip()
+            clean_attrs = re.sub(r"\bltail=\S+\s*", "", edge_attrs).strip()
 
             if source == target:
                 # ── Case 1: self-loop on composite ────────────────────────────
-                node_name = f'_selfloop_{source}_{counter}'
+                node_name = f"_selfloop_{source}_{counter}"
                 counter += 1
 
                 # Dot node goes in the parent cluster (inside Active for Cleaning,
@@ -1547,35 +1553,37 @@ def fix_hierarchical_state_transitions(graph):
                     f'[shape=point width=0 height=0 style=invis label=""]'
                 )
 
-                if clean_attrs.startswith('['):
-                    out_attrs = '[ltail=' + source_cluster + ' ' + clean_attrs[1:]
+                if clean_attrs.startswith("["):
+                    out_attrs = "[ltail=" + source_cluster + " " + clean_attrs[1:]
                 elif clean_attrs:
-                    out_attrs = '[ltail=' + source_cluster + ' ' + clean_attrs.strip('[]') + ']'
+                    out_attrs = (
+                        "[ltail=" + source_cluster + " " + clean_attrs.strip("[]") + "]"
+                    )
                 else:
-                    out_attrs = f'[ltail={source_cluster}]'
+                    out_attrs = f"[ltail={source_cluster}]"
 
                 # Edge 1: cluster boundary ──(label)──> dot  (no arrowhead)
                 extra_edges.append(
                     f'{indent}{source_raw} -> "{node_name}" {out_attrs[:-1]} dir=none]'
-                    if out_attrs.endswith(']')
+                    if out_attrs.endswith("]")
                     else f'{indent}{source_raw} -> "{node_name}" {out_attrs} [dir=none]'
                 )
                 # Edge 2: dot ──> cluster boundary (constraint=false avoids
                 # pushing the dot node out of the parent cluster rank)
                 extra_edges.append(
                     f'{indent}"{node_name}" -> {target_raw} '
-                    f'[lhead={source_cluster} constraint=false]'
+                    f"[lhead={source_cluster} constraint=false]"
                 )
 
                 lines_to_skip.add(i)
                 if after_edge.strip():
-                    residuals[i] = '\t' + after_edge.lstrip('\t ')
+                    residuals[i] = "\t" + after_edge.lstrip("\t ")
 
-            elif target.startswith(cluster_prefix + '_'):
+            elif target.startswith(cluster_prefix + "_"):
                 # ── Case 2: composite -> own child ────────────────────────────
                 # ltail is silently ignored by GraphViz when the destination is
                 # inside the ltail cluster.  Route through an intermediate dot.
-                node_name = f'_entry_{source}_{counter}'
+                node_name = f"_entry_{source}_{counter}"
                 counter += 1
 
                 deferred_nodes[parent_cluster].append(
@@ -1583,27 +1591,27 @@ def fix_hierarchical_state_transitions(graph):
                     f'[shape=point width=0 height=0 style=invis label=""]'
                 )
 
-                if clean_attrs.startswith('['):
-                    out_attrs = '[ltail=' + source_cluster + ' ' + clean_attrs[1:]
+                if clean_attrs.startswith("["):
+                    out_attrs = "[ltail=" + source_cluster + " " + clean_attrs[1:]
                 elif clean_attrs:
-                    out_attrs = '[ltail=' + source_cluster + ' ' + clean_attrs.strip('[]') + ']'
+                    out_attrs = (
+                        "[ltail=" + source_cluster + " " + clean_attrs.strip("[]") + "]"
+                    )
                 else:
-                    out_attrs = f'[ltail={source_cluster}]'
+                    out_attrs = f"[ltail={source_cluster}]"
 
                 # Edge 1: cluster boundary ──(label)──> dot  (no arrowhead)
                 extra_edges.append(
                     f'{indent}{source_raw} -> "{node_name}" {out_attrs[:-1]} dir=none]'
-                    if out_attrs.endswith(']')
+                    if out_attrs.endswith("]")
                     else f'{indent}{source_raw} -> "{node_name}" {out_attrs} [dir=none]'
                 )
                 # Edge 2: dot ──> target child (enters the cluster)
-                extra_edges.append(
-                    f'{indent}"{node_name}" -> {target_raw}'
-                )
+                extra_edges.append(f'{indent}"{node_name}" -> {target_raw}')
 
                 lines_to_skip.add(i)
                 if after_edge.strip():
-                    residuals[i] = '\t' + after_edge.lstrip('\t ')
+                    residuals[i] = "\t" + after_edge.lstrip("\t ")
 
         # ── Pass 3: rebuild body, inject dot nodes at correct cluster boundaries ─
         fixed_body = []
@@ -1616,13 +1624,13 @@ def fix_hierarchical_state_transitions(graph):
                     fixed_body.append(residuals[i])
                 continue
 
-            m = re.search(r'subgraph\s+(cluster_\w+)', item)
+            m = re.search(r"subgraph\s+(cluster_\w+)", item)
             if m:
                 cluster_stack_build.append(m.group(1))
                 fixed_body.append(item)
                 continue
 
-            if item.strip() == '}' and cluster_stack_build:
+            if item.strip() == "}" and cluster_stack_build:
                 closing = cluster_stack_build[-1]
                 cluster_stack_build.pop()
                 # Inject dot nodes deferred to this cluster before its closing brace.
@@ -1641,13 +1649,14 @@ def fix_hierarchical_state_transitions(graph):
         graph.body = fixed_body
 
         # compound=true is required for lhead/ltail to take effect.
-        graph.graph_attr['compound'] = 'true'
+        graph.graph_attr["compound"] = "true"
         # ortho routing gives right-angle bends, making self-loops look rectangular.
-        graph.graph_attr['splines'] = 'ortho'
+        graph.graph_attr["splines"] = "ortho"
 
     except Exception as e:
         print(f"Warning: Could not apply hierarchical state fix: {e}")
         import traceback
+
         traceback.print_exc()
 
     return graph
@@ -1706,9 +1715,9 @@ def create_single_prompt_gsm_diagram_with_sherpa(
 
     print("\nParsed Transitions:")
     for trans in transitions_list:
-        source = trans.get('source', '?')
-        dest = trans.get('dest', '?')
-        trigger = trans.get('trigger', '?')
+        source = trans.get("source", "?")
+        dest = trans.get("dest", "?")
+        trigger = trans.get("trigger", "?")
         print(f"  {source} --{trigger}--> {dest}")
 
     print(f"\nInitial State: {initial_state}")
@@ -1868,8 +1877,8 @@ def create_single_prompt_gsm_diagram_with_sherpa(
             graph.graph_attr["fontsize"] = "10"
 
         # Save the GraphViz source for debugging
-        gv_debug_path = png_file_path.replace('.png', '.gv')
-        with open(gv_debug_path, 'w') as f:
+        gv_debug_path = png_file_path.replace(".png", ".gv")
+        with open(gv_debug_path, "w") as f:
             f.write(graph.source)
         print(f"GraphViz source saved to: {gv_debug_path}")
 
