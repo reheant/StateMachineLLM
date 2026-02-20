@@ -239,6 +239,34 @@ def parse_mermaid_with_library(mermaid_code: str):
         start_formatted = normalize_scoped_path(from_scoped, from_id)
         end_formatted = normalize_scoped_path(to_scoped, to_id)
 
+        # Fix unqualified transition targets: the mermaid-parser-py library sometimes leaves
+        # the scoped_id of a cross-boundary transition target unqualified (e.g. "GameOver"
+        # instead of "On_GameOver") when the target is declared in an ancestor scope but not
+        # in the immediate parent of the source state.  Use state_declarations_map to build
+        # the correct fully-qualified hierarchical path whenever end_formatted equals the bare
+        # to_id and the declarations map shows the target has a non-root parent.
+        if to_id and end_formatted == to_id and to_id in state_declarations_map:
+            declared_parent = state_declarations_map.get(to_id)
+            if declared_parent and declared_parent != "ROOT":
+                # Walk up the declarations map to build the full path
+                path_parts = [to_id]
+                current = to_id
+                visited_path = {to_id}
+                while (
+                    current in state_declarations_map
+                    and state_declarations_map[current] not in (None, "", "ROOT")
+                    and state_declarations_map[current] not in visited_path
+                ):
+                    parent = state_declarations_map[current]
+                    path_parts.insert(0, parent)
+                    visited_path.add(parent)
+                    current = parent
+                full_path = "_".join(path_parts)
+                debug_print(
+                    f"Resolved unqualified transition target '{end_formatted}' -> '{full_path}'"
+                )
+                end_formatted = full_path
+
         # Check if this is a history transition (destination is a HistoryState)
         is_history_transition = getattr(transition, "is_history_transition", False)
         if is_history_transition or isinstance(to_state, HistoryState):
@@ -320,6 +348,22 @@ def parse_mermaid_with_library(mermaid_code: str):
                 )
         return 0  # Root level state
 
+    def is_ancestor(potential_ancestor, potential_descendant, hier_states):
+        """Return True if potential_ancestor is a (transitive) ancestor of potential_descendant."""
+        visited = set()
+        current = potential_descendant
+        while current and current not in visited:
+            visited.add(current)
+            for p, children in hier_states.items():
+                if current in children:
+                    if p == potential_ancestor:
+                        return True
+                    current = p
+                    break
+            else:
+                break
+        return False
+
     # Find states that appear as children of multiple parents
     child_to_parents = {}
     for parent, children in hierarchical_states.items():
@@ -328,7 +372,11 @@ def parse_mermaid_with_library(mermaid_code: str):
                 child_to_parents[child] = []
             child_to_parents[child].append(parent)
 
-    # For each state that appears under multiple parents, keep it under the most nested parent
+    # For each state that appears under multiple parents, keep it under the most nested parent.
+    # IMPORTANT: only deduplicate when the duplicate is a *cross-reference* caused by the
+    # converter — i.e. one parent is an ancestor of the other in the same hierarchy branch.
+    # Same-named states whose parents are in *different* branches (e.g. Moving inside MDS and
+    # Moving inside Active) are genuinely distinct states and must NOT be collapsed.
     for state_name, parents in child_to_parents.items():
         if len(parents) > 1:
             # Calculate depth of each parent using the hierarchical structure
@@ -340,8 +388,16 @@ def parse_mermaid_with_library(mermaid_code: str):
             parent_depths.sort(key=lambda x: x[1], reverse=True)
             deepest_parent = parent_depths[0][0]
 
-            # Remove from all other (shallower) parents
+            # Remove from shallower parents ONLY when they are ancestors of the deepest parent.
+            # If two parents are in unrelated branches, the state exists legitimately in both.
             for parent, depth in parent_depths[1:]:
+                if not is_ancestor(parent, deepest_parent, hierarchical_states):
+                    # parent is not an ancestor of deepest_parent → different branch → different state
+                    debug_print(
+                        f"Keeping '{state_name}' in '{parent}' — not a cross-reference "
+                        f"('{parent}' is not an ancestor of '{deepest_parent}')"
+                    )
+                    continue
                 if state_name in hierarchical_states.get(parent, []):
                     hierarchical_states[parent].remove(state_name)
                     debug_print(
