@@ -189,7 +189,7 @@ machine to resume the last active substate instead of restarting from the initia
 
 Rules - violations produce incorrect re-entry behavior or parse errors:
 1. Declare history states inside the composite state's block.
-2. Target a history state only from a transition that originates OUTSIDE the composite,
+2. Target a history state only from a transition that originates OUTSIDE the composite state,
    or from the composite state itself (e.g., `Composite --> H : reenter / resumeAction`
    or `Outside --> H : reenter`).
 3. Substates inside the same composite must NEVER transition directly to the history state.

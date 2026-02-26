@@ -87,7 +87,9 @@ Then write the diagram in step 8.
    active substate and where history connectors are required.
 7. Self-verify — before writing any code, go through your findings from \
    steps 1–6 and confirm: every state is declared before it is referenced; \
-   every history state is used only for external re-entry; every composite \
+   transitions to a history state (H) occur only from the composite state \
+   itself or from states outside the composite when the history state is \
+   defined for external re-entry; every composite \
    state has an initial pseudostate; no syntax rule from \
    <mermaid_syntax_rules> is violated. Correct any issues you find.
 8. Assemble the final Mermaid diagram using the verified information from \
