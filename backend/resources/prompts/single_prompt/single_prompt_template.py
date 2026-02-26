@@ -14,6 +14,7 @@ Follows Claude prompting best practices:
 - Positive-framing output instructions (tell Claude what to do, not what NOT to do)
 - No-preamble enforced via positive constraint (first character must be `<`)
 - Anti-hallucination guard: only model what is grounded in the problem description
+- Strict syntax rules and examples to follow, with explicit instructions to adhere to them
 """
 
 
