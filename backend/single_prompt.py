@@ -18,12 +18,13 @@ from resources.util import (
     mermaidDiagramGeneration,
     create_single_prompt_gsm_diagram_with_sherpa,
 )
-from resources.custom_mermaid_syntax import mermaid_syntax
+from resources.prompts.single_prompt.custom_mermaid_syntax import mermaid_syntax
 from resources.state_machine_descriptions import *
 from resources.n_shot_examples_single_prompt_mermaid import (
     get_n_shot_examples,
     n_shot_examples,
 )
+from resources.prompts.single_prompt.single_prompt_template import build_single_prompt
 
 # Default description if not ran with Chainlit
 description = chess_clock_fall_2019
@@ -122,33 +123,14 @@ def run_single_prompt(
             n_shot_examples_single_prompt.remove(n_shot_example)
             break
 
-    prompt = f"""
-    You are an AI assistant that generates state machines in a strict, custom Mermaid stateDiagram-v2 syntax. Follow these steps and rules exactly. 
-    
-    TASK:
-       	1.	Derive implicit knowledge from each sentence
-        2.	Explain how you parse the problem description to extract states for state machine
-        3.	Explain how you parse the problem description to extract transitions for the state machine
-        4.	Explain how you parse the problem description to extract hierarchical states for the state machine
-        5.	Explain how you parse the problem description to extract concurrent regions for the state machine
-        6.	Explain how you parse the problem description to extract history states for the state machine
-        7.	Assemble the state machine in Mermaid syntax using information from steps 1. through 6. and encapsulate the code between brackets like the following: <mermaid_code_solution>code</mermaid_code_solution>
-        
-    IMPORTANT: Follow the Mermaid syntax and modeling rules below strictly. Any deviation is invalid.
-    
-    MERMAID SYNTAX AND MODELING RULES:
-    {mermaid_syntax}
-
-    EXAMPLE PROBLEM DESCRIPTIONS AND MERMAID SOLUTIONS:
-    {get_n_shot_examples(n_shot_examples_single_prompt, ["system_description", "mermaid_code_solution"])}
-
-    PROBLEM DESCRIPTION:
-    {system_prompt}
-
-    FINAL REMARKS:
-    - Provide your answer following the exact Mermaid syntax patterns shown in the examples and strictly adhering to all specified rules. 
-    
-    """
+    prompt = build_single_prompt(
+        mermaid_syntax=mermaid_syntax,
+        n_shot_examples_str=get_n_shot_examples(
+            n_shot_examples_single_prompt,
+            ["system_description", "mermaid_code_solution"],
+        ),
+        system_prompt=system_prompt,
+    )
 
     print(f"Running Single Prompt Generation with {model}")
 
@@ -188,7 +170,7 @@ def process_mermaid_attempt_openrouter(
     try:
         # Call LLM
         answer = call_openrouter_llm(
-            prompt, max_tokens=5000, temperature=0.01, model=model
+            prompt, max_tokens=6000, temperature=0.01, model=model
         )
 
         # Extract Mermaid code
