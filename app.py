@@ -9,6 +9,7 @@ from backend.resources.llm_tracker import llm
 from backend.event_driven_smf.event_driven_smf import run_event_driven_smf
 from backend.simple_linear_smf.simple_linear_smf import run_simple_linear_smf
 from backend.single_prompt import run_single_prompt, run_test_entry_exit_annotations
+from backend.two_shot_prompt import run_two_shot_prompt
 
 
 def convert_to_openrouter_model(chat_profile):
@@ -215,6 +216,14 @@ async def run_conversation(message: cl.Message):
                     run_single_prompt, message.content, openrouter_model, system_name
                 )
                 cl.user_session.set("generation_success", success)
+            elif strategy == "two_shot_prompt":
+                chat_profile = cl.user_session.get("chat_profile")
+                openrouter_model = convert_to_openrouter_model(chat_profile)
+                system_name = cl.user_session.get("system_name", "Custom")
+                success = await asyncio.to_thread(
+                    run_two_shot_prompt, message.content, openrouter_model, system_name
+                )
+                cl.user_session.set("generation_success", success)
             elif strategy == "structure_driven":
                 await asyncio.to_thread(run_simple_linear_smf, message.content)
                 cl.user_session.set("generation_success", True)
@@ -286,12 +295,12 @@ async def display_mermaid_code_from_log():
     strategy = cl.user_session.get("generation_strategy", "event_driven")
     # For single_prompt, generated mermaid is written inside a timestamped outputs folder
     try:
-        if strategy == "single_prompt":
+        if strategy in ("single_prompt", "two_shot_prompt"):
             outputs_base = os.path.join(
                 os.path.dirname(__file__),
                 "backend",
                 "resources",
-                "single_prompt_outputs",
+                f"{strategy}_outputs",
             )
             if not os.path.exists(outputs_base):
                 await cl.Message(content="⚠️ No outputs directory found.").send()
@@ -409,10 +418,10 @@ async def display_image():
     # Choose the appropriate directory based on strategy
     strategy = cl.user_session.get("generation_strategy", "event_driven")
 
-    if strategy == "single_prompt":
-        # For single_prompt, outputs are in timestamped folders
+    if strategy in ("single_prompt", "two_shot_prompt"):
+        # Outputs are in timestamped folders under {strategy}_outputs/
         outputs_directory = os.path.join(
-            os.path.dirname(__file__), "backend", "resources", "single_prompt_outputs"
+            os.path.dirname(__file__), "backend", "resources", f"{strategy}_outputs"
         )
     elif strategy == "structure_driven":
         image_directory = os.path.join(
@@ -426,7 +435,7 @@ async def display_image():
     # Check for error marker files first
     try:
         # Determine which directory to check based on strategy
-        if strategy == "single_prompt":
+        if strategy in ("single_prompt", "two_shot_prompt"):
             if not os.path.exists(outputs_directory):
                 error_dir = None
             else:
@@ -493,8 +502,8 @@ async def display_image():
             latest_file = stored_diagram_path
             # Clear it after retrieving so it's not used again for subsequent generations
             cl.user_session.set("diagram_path", None)
-        # For single prompt, find the most recent folder in structure: date/model_name/system_name/time
-        elif strategy == "single_prompt":
+        # For single/two-shot prompt, find the most recent folder: date/model_name/system_name/time
+        elif strategy in ("single_prompt", "two_shot_prompt"):
             if not os.path.exists(outputs_directory):
                 await cl.Message(content="⚠️ No outputs directory found.").send()
                 return
@@ -587,10 +596,11 @@ async def start():
     # First, choose generation strategy
     strategy_step = await cl.AskActionMessage(
         content="""
-        <b>Hi there!</b> 
+        <b>Hi there!</b>
         \nLet's create a state machine diagram!
         \nFirst, choose your generation strategy:
         \n 🚀 <b>Single Prompt (OpenRouter)</b>: Fast, direct generation using OpenRouter API
+        \n 🔁 <b>Two-Shot Prompt (OpenRouter)</b>: Generate then self-correct using OpenRouter API
         \n 🔄 <b>Event-Driven SMF</b>: Multi-step process focusing on events
         \n 📊 <b>Structure-Driven SMF</b>: Multi-step process focusing on structure
         """,
@@ -600,6 +610,12 @@ async def start():
                 value="single_prompt",
                 payload={},
                 label="🚀 Single Prompt (OpenRouter)",
+            ),
+            cl.Action(
+                name="two_shot_prompt",
+                value="two_shot_prompt",
+                payload={},
+                label="🔁 Two-Shot Prompt (OpenRouter)",
             ),
             cl.Action(
                 name="event_driven",

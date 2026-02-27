@@ -101,6 +101,56 @@ def call_openrouter_llm(
         )
 
 
+def call_openrouter_llm_chat(
+    messages, max_tokens=10000, temperature=0.01, model="anthropic/claude-3.5-sonnet"
+):
+    """
+    Call OpenRouter API with a full multi-turn messages list.
+
+    Used by the two-shot framework to send a conversation that includes
+    the first prompt, the LLM's first response, and a refinement request
+    as separate turns.
+
+    Args:
+        messages: List of message dicts with "role" and "content" keys,
+            e.g. [{"role": "system", ...}, {"role": "user", ...},
+                  {"role": "assistant", ...}, {"role": "user", ...}]
+        max_tokens: Maximum tokens for the response.
+        temperature: Sampling temperature.
+        model: OpenRouter model identifier.
+
+    Returns:
+        str: The LLM's response content.
+    """
+    import requests as _requests
+
+    url = "https://openrouter.ai/api/v1/chat/completions"
+
+    headers = {
+        "Authorization": f"Bearer {openrouter_api_key}",
+        "Content-Type": "application/json",
+        "HTTP-Referer": "https://github.com/ECSE458-Multi-Agent-LLM/StateMachineLLM",
+        "X-Title": "StateMachineLLM Two-Shot Prompt",
+    }
+
+    data = {
+        "model": model,
+        "messages": messages,
+        "temperature": temperature,
+        "max_tokens": max_tokens,
+    }
+
+    response = _requests.post(url, headers=headers, json=data)
+
+    if response.status_code == 200:
+        result = response.json()
+        return result["choices"][0]["message"]["content"]
+    else:
+        raise Exception(
+            f"OpenRouter API call failed with status {response.status_code}: {response.text}"
+        )
+
+
 # **************** HTML TABLE UTILITY FUNCTIONS ****************
 
 
@@ -1154,8 +1204,8 @@ def setup_file_paths(
         dict: Dictionary containing all necessary file paths
     """
 
-    # For single_prompt, organize files in timestamped folders with optional system name
-    if file_type == "single_prompt":
+    # For single_prompt and two_shot_prompt, organize files in timestamped folders
+    if file_type in ("single_prompt", "two_shot_prompt"):
         # Create date and time parts separately
         date_folder = time.strftime("%Y_%m_%d")  # e.g., 2026_01_30
         time_folder = time.strftime("%H_%M_%S")  # e.g., 16_38_49
