@@ -4,7 +4,8 @@ Refinement prompt template for the Two-Shot State Machine Framework.
 This is a self-contained single-turn prompt — it does not rely on any
 conversation history from shot 1. The LLM receives only what it needs to
 review and correct the generated diagram: the system description, the
-previously generated Mermaid code, and the error checklist.
+full custom Mermaid syntax rules, the previously generated Mermaid code,
+and the error checklist.
 
 Follows the same Claude prompting best practices as single_prompt_template:
 - XML tags to delimit each section unambiguously
@@ -14,9 +15,9 @@ Follows the same Claude prompting best practices as single_prompt_template:
 - Numbered task steps with explicit self-verify gate before writing output
 - Positive-framing output instructions (state what to do, not what to avoid)
 - No-preamble constraint: first character of the response must be `<`
-- Anti-modification guard: correct only identified errors — do not add,
-  remove, or rename states, transitions, or events beyond what the error
-  check requires
+- Scoped modification guard: only add/change what the error checks require;
+  states may not be added or removed, but missing transitions, guards, and
+  actions grounded in the system description may be added
 """
 
 
@@ -110,15 +111,70 @@ Two legal patterns for targeting a history state:
 </example>
 </examples>
 </error>
+
+<error id="2" name="Missing transitions implied by the system description">
+Re-read the system description and compare every event, condition, or \
+behavioral path it describes against the transitions in your diagram. A \
+transition is missing when the description clearly states that one state \
+can lead to another under some event or condition but no corresponding \
+`SourceState --> TargetState : event` line exists in the diagram. Missing \
+transitions cause the machine to get stuck or behave incorrectly at runtime \
+— the parser accepts the diagram but the modeled behavior is wrong. Add \
+every transition that is grounded in the system description and absent from \
+your output.
+
+<examples>
+<example type="incorrect – error recovery transition omitted">
+    state Processing
+    state Done
+    state Error
+    [*] --> Processing
+    Processing --> Done : success
+    ← description says errors can be retried, but Processing --> Error and Error --> Processing are missing
+</example>
+
+<example type="correct – all described transitions present">
+    state Processing
+    state Done
+    state Error
+    [*] --> Processing
+    Processing --> Done : success
+    Processing --> Error : failure
+    Error --> Processing : retry
+</example>
+</examples>
+</error>
+
+<error id="3" name="Incomplete transition labels — missing guards or actions described in the system">
+Re-read the system description for each transition in your diagram. A \
+guard is missing when the description states a condition that must be true \
+for the transition to fire but no `[condition]` appears on that transition \
+line. An action is missing when the description states that an activity \
+occurs when a transition fires but no `/ action` appears on that line. \
+Omitting guards makes the machine fire unconditionally where it should not; \
+omitting actions loses behavior that the system requires. Add every guard \
+and action that is explicitly described and absent from your output.
+
+<examples>
+<example type="incorrect – guard and action omitted">
+    Idle --> Active : start
+    ← description says transition only fires when authorized, and door must lock on entry
+</example>
+
+<example type="correct – guard and action present">
+    Idle --> Active : start [authorized] / lockDoor()
+</example>
+</examples>
+</error>
 </common_errors>
 
 <task>
 Work through the following steps in order. Place your review in <thinking> \
 tags, then write the corrected diagram in step 3.
 
-1. Check your previous output against each error in <common_errors> \
-   (error 1). State explicitly whether it is present in your output \
-   and, if so, identify the exact composite states affected.
+1. Check your previous output against each error in <common_errors> in order \
+   (errors 1, 2, 3). For each error, state explicitly whether it is present \
+   and, if so, identify every affected state or transition.
 2. List every correction you will make. If no errors are found, state \
    that explicitly and confirm the diagram is correct as-is.
 3. Output the corrected (or confirmed-correct) diagram using the exact \
@@ -134,8 +190,8 @@ tags, then write the corrected diagram in step 3.
 - Write plain Mermaid code inside the solution tags — no markdown fences \
   (```), no comments, no extra text.
 - Nothing may appear after the closing </mermaid_code_solution> tag.
-- Preserve the semantic content of your previous diagram exactly — do not \
-  add, remove, or rename states, transitions, or events beyond what is \
-  required to fix the errors identified in step 1.
+- Do not add, remove, or rename states beyond what error 1 requires. \
+  You may add missing transitions, guards, and actions when they are \
+  explicitly grounded in the system description (errors 2 and 3).
 </output_instructions>
 """
