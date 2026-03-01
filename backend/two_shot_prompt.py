@@ -15,7 +15,6 @@ from resources.prompts.single_prompt.single_prompt_template import build_single_
 from resources.prompts.single_prompt.refinement_prompt_template import (
     build_refinement_prompt,
 )
-from resources.prompts.single_prompt.custom_mermaid_syntax import mermaid_syntax
 from resources.state_machine_descriptions import *
 from resources.n_shot_examples_single_prompt_mermaid import (
     get_n_shot_examples,
