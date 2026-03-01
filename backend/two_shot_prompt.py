@@ -21,51 +21,6 @@ from resources.n_shot_examples_single_prompt_mermaid import (
     n_shot_examples,
 )
 
-def _sanitize_shot1_for_render(mermaid_code: str) -> str:
-    """
-    Apply minimal sanitization to shot1 mermaid before rendering.
-
-    Shot1 often contains LLM output quality issues that the refinement fixes:
-    - Unicode arrows (→) instead of valid Mermaid arrows (-->)
-    - Commentary text leaked after the closing brace inside the solution tags
-
-    This cleans just enough to produce a comparison PNG without modifying
-    output_shot1.mmd, which preserves the raw LLM output for analysis.
-    """
-    import re
-
-    # Replace unicode right-arrows with valid Mermaid transition arrows
-    sanitized = mermaid_code.replace("\u2192", "-->")
-
-    # Truncate at the first line that cannot be valid Mermaid state diagram syntax.
-    # LLMs sometimes append prose commentary ("Wait, I have...", "Note that...")
-    # after the closing brace. Any such line causes a hard JS parser failure.
-    mermaid_line_re = re.compile(
-        r"^\s*("
-        r"$"                                   # blank line
-        r"|stateDiagram-v2"                    # diagram header
-        r"|state\s"                            # state declaration
-        r"|\[\*\]"                             # initial pseudostate
-        r"|[a-zA-Z_][a-zA-Z0-9_]*\s*-->"      # transition (StateName -->)
-        r"|--\s*$"                             # parallel region separator
-        r"|note\s"                             # note block start
-        r"|end\s+note"                         # note block end
-        r"|\}"                                 # closing brace
-        r"|\{"                                 # opening brace (inline composite)
-        r")"
-    )
-
-    lines = sanitized.split("\n")
-    cleaned = []
-    for line in lines:
-        if mermaid_line_re.match(line):
-            cleaned.append(line)
-        else:
-            break  # stop at first non-Mermaid line (prose commentary)
-
-    return "\n".join(cleaned).strip()
-
-
 
 def run_two_shot_prompt(
     system_prompt, model="anthropic/claude-3.5-sonnet", system_name=None
@@ -189,7 +144,7 @@ def process_two_shot_attempt(
         try:
             shot1_diagram_path = os.path.join(shot1_dir, "output_shot1")
             create_single_prompt_gsm_diagram_with_sherpa(
-                _sanitize_shot1_for_render(shot1_mermaid), shot1_diagram_path
+                shot1_mermaid, shot1_diagram_path
             )
         except Exception as e:
             with open(paths["log_file_path"], "a") as f:
