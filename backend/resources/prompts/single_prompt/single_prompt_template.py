@@ -69,9 +69,9 @@ conventions, and syntax patterns. Treat them as the gold standard for your outpu
 </problem_description>
 
 <task>
-Work through the following steps in order. Place your analysis for steps 1–7 \
+Work through the following steps in order. Place your analysis for steps 1–6 \
 inside <thinking> tags so it is clearly separated from the final diagram. \
-Then write the diagram in step 8.
+Then write the diagram in step 7.
 
 1. Derive implicit knowledge — list facts that are implied but not stated \
    explicitly (e.g., default values, symmetric behaviours, unstated \
@@ -85,15 +85,8 @@ Then write the diagram in step 8.
    they are separated.
 6. Extract history states — identify where re-entry must resume the last \
    active substate and where history connectors are required.
-7. Self-verify — before writing any code, go through your findings from \
-   steps 1–6 and confirm: every state is declared before it is referenced; \
-   transitions to a history state (H) occur only from the composite state \
-   itself or from states outside the composite when the history state is \
-   defined for external re-entry; every composite \
-   state has an initial pseudostate; no syntax rule from \
-   <mermaid_syntax_rules> is violated. Correct any issues you find.
-8. Assemble the final Mermaid diagram using the verified information from \
-   steps 1–7. Enclose the diagram code in the exact tags shown — nothing \
+7. Assemble the final Mermaid diagram using the verified information from \
+   steps 1–6. Enclose the diagram code in the exact tags shown — nothing \
    else may appear after the closing tag:
    <mermaid_code_solution>YOUR_MERMAID_CODE_HERE</mermaid_code_solution>
 </task>
@@ -102,7 +95,7 @@ Then write the diagram in step 8.
 - Begin your response immediately with `<thinking>` tags — the very first \
   character of your response must be `<`. Any text before the opening \
   `<thinking>` tag is a violation.
-- Place your analysis (steps 1–7) inside <thinking>...</thinking> tags.
+- Place your analysis (steps 1–6) inside <thinking>...</thinking> tags.
 - The Mermaid code inside <mermaid_code_solution> must follow every rule \
   in <mermaid_syntax_rules> and match the patterns in <examples>.
 - Write plain Mermaid code inside the solution tags — no markdown fences \
