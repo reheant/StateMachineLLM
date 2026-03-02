@@ -47,12 +47,17 @@ def build_refinement_prompt(
             standalone user message to the LLM.
     """
     return f"""<instructions>
-You previously generated a Mermaid stateDiagram-v2 state machine for the \
-system description below. Review your output against the syntax rules in \
-<mermaid_syntax> and the checklist in <common_errors>. The parser that \
-consumes your output enforces each rule mechanically — any violation causes \
-a hard failure regardless of how semantically correct the diagram is. \
-Correct every issue you find, then output the final diagram.
+The diagram in <previous_output> is your first attempt at modeling the system \
+in <system_description>. First drafts commonly have structural gaps: \
+multi-step processes collapsed into single transitions, states that should be \
+grouped into composites left flat, missing history states, and incomplete \
+transition labels. Treat the previous output as a starting point, not a \
+finished product. Use <system_description> as your ground truth — if any \
+described behavior is not fully and accurately captured in the diagram, \
+restructure it until it is. The checklist in <common_errors> identifies the \
+most common failure patterns; work through each one critically. The diagram \
+you output must also conform to the syntax rules in <mermaid_syntax>, which \
+the downstream parser enforces mechanically.
 </instructions>
 
 <system_description>
