@@ -94,6 +94,7 @@ Two legal patterns for targeting a history state:
         [*] --> Step1
         Step1 --> Step2 : next
     }}
+    state Suspended
     Active --> Suspended : interrupt
     Suspended --> Active : resume    ← resumes from Step1 every time, ignoring prior progress
 </example>
@@ -106,6 +107,7 @@ Two legal patterns for targeting a history state:
         [*] --> Step1
         Step1 --> Step2 : next
     }}
+    state Suspended
     Active --> Suspended : interrupt
     Suspended --> H : resume    ← resumes from whichever substate was active
 </example>
@@ -166,6 +168,7 @@ and action that is explicitly described and absent from your output.
 </example>
 </examples>
 </error>
+
 </common_errors>
 
 <task>
