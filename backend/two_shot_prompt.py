@@ -165,7 +165,7 @@ def process_two_shot_attempt(
             f.write(f"=== Shot 2 Refinement Prompt (sent to LLM) ===\n{refinement_prompt}\n\n")
 
         second_answer = call_openrouter_llm(
-            refinement_prompt, max_tokens=6000, temperature=0.01, model=model
+            refinement_prompt, max_tokens=6000, temperature=0.3, model=model
         )
 
         with open(paths["log_file_path"], "a") as f:
