@@ -169,6 +169,85 @@ and action that is explicitly described and absent from your output.
 </examples>
 </error>
 
+<error id="4" name="Multi-step behavioral sequences collapsed into a single transition">
+When the system description describes a behavior that unfolds in multiple \
+distinct phases — where the system waits for input, waits for a timer, or \
+offers a cancellable intermediate step — each phase must be a separate state. \
+Collapsing these phases into a single transition loses intermediate behavior \
+that the model must capture.
+
+Signs that a process needs intermediate states:
+- The description uses "then" between distinct phases of a process.
+- A phase exists where the system waits for the user to act before proceeding.
+- A timed waiting phase exists (the system waits X seconds before something fires).
+- A step can be cancelled or reversed before the process completes.
+
+Re-read every described process and verify that each distinct phase is \
+represented as a state, not folded into a guard or event label on a single \
+transition.
+
+<examples>
+<example type="incorrect – multi-step process collapsed into one transition">
+    state Active
+    state Off
+    Active --> Off : triggerAction [after5s]
+    ← description says: user triggers action → system enters a waiting phase \
+with a confirmation message → user confirms → completes (cancellable during the wait)
+</example>
+
+<example type="correct – intermediate waiting phase modeled as its own state">
+    state Active
+    state PendingConfirmation
+    state Off
+    Active --> PendingConfirmation : triggerAction
+    PendingConfirmation --> Off : confirmed
+    PendingConfirmation --> Active : cancel
+</example>
+</examples>
+</error>
+
+<error id="5" name="Flat structure where composite states are implied">
+When a set of states all share the same external transitions (every state in \
+the group exits on the same event to the same target), or when the description \
+refers to them collectively as a named process or mode, they belong inside a \
+composite state. Leaving them flat duplicates the shared transitions on every \
+state and loses the hierarchical structure the description implies.
+
+Signs that states should be grouped into a composite:
+- Multiple states all exit on the same event to the same target state.
+- The description names a process or operational mode that contains several \
+  internal phases.
+- A group of states all represent sub-steps of a single described operation.
+
+Group the states into a composite, declare a single shared external transition \
+on the composite, and declare an initial pseudostate inside it.
+
+<examples>
+<example type="incorrect – substates flat, each repeating the same shared exit">
+    state StepA
+    state StepB
+    state StepC
+    [*] --> StepA
+    StepA --> StepB : next
+    StepB --> StepC : next
+    StepA --> Idle : interrupt
+    StepB --> Idle : interrupt
+    StepC --> Idle : interrupt
+</example>
+
+<example type="correct – substates grouped in a composite with one shared exit">
+    state Process {{
+        state StepA
+        state StepB
+        state StepC
+        [*] --> StepA
+        StepA --> StepB : next
+        StepB --> StepC : next
+    }}
+    Process --> Idle : interrupt
+</example>
+</examples>
+</error>
 </common_errors>
 
 <task>
@@ -176,10 +255,10 @@ Work through the following steps in order. Place your review in <thinking> \
 tags, then write the corrected diagram in step 3.
 
 1. Check your previous output against each error in <common_errors> in order \
-   (errors 1, 2, 3). For each error, state explicitly whether it is present \
-   and, if so, identify every affected state or transition.
-2. List every correction you will make. If no errors are found, state \
-   that explicitly and confirm the diagram is correct as-is.
+   (errors 1, 2, 3, 4, 5). For each error, state explicitly whether it is \
+   present and, if so, identify every affected state or transition.
+2. List every correction and addition you will make. If no errors are found, \
+   state that explicitly and confirm the diagram is correct as-is.
 3. Output the corrected (or confirmed-correct) diagram using the exact \
    tags shown — nothing else may appear after the closing tag:
    <mermaid_code_solution>YOUR_MERMAID_CODE_HERE</mermaid_code_solution>
@@ -193,8 +272,8 @@ tags, then write the corrected diagram in step 3.
 - Write plain Mermaid code inside the solution tags — no markdown fences \
   (```), no comments, no extra text.
 - Nothing may appear after the closing </mermaid_code_solution> tag.
-- Do not add, remove, or rename states beyond what error 1 requires. \
-  You may add missing transitions, guards, and actions when they are \
-  explicitly grounded in the system description (errors 2 and 3).
+- You may add states, intermediate phases, composite structures, transitions, \
+  guards, and actions whenever they are grounded in the system description. \
+  Do not invent behavior that has no basis in the description.
 </output_instructions>
 """
