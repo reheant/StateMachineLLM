@@ -140,16 +140,19 @@ def process_two_shot_attempt(
         with open(shot1_mmd_path, "w") as f:
             f.write(shot1_mermaid)
 
-        # Render shot 1 — best effort; failure does not abort the two-shot process
+        # Render shot 1 — must succeed before proceeding to shot 2
         try:
             shot1_diagram_path = os.path.join(shot1_dir, "output_shot1")
-            create_single_prompt_gsm_diagram_with_sherpa(
+            success = create_single_prompt_gsm_diagram_with_sherpa(
                 shot1_mermaid, shot1_diagram_path
             )
+            if not success:
+                raise Exception("Shot 1 diagram rendering failed")
         except Exception as e:
             with open(paths["log_file_path"], "a") as f:
-                f.write(f"Shot 1 rendering failed (non-fatal): {str(e)}\n\n")
-            print(f"Shot 1 rendering failed (non-fatal): {str(e)}")
+                f.write(f"Shot 1 rendering failed: {str(e)}\n\n")
+            print(f"Shot 1 rendering failed: {str(e)}")
+            return "False"
 
         with open(paths["log_file_path"], "a") as f:
             f.write(f"=== Shot 1 (Initial) ===\n{shot1_mermaid}\n\n")
