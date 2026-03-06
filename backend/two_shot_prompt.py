@@ -116,7 +116,7 @@ def process_two_shot_attempt(
         )
 
         # Log raw response so extraction failures can be diagnosed
-        with open(paths["log_file_path"], "a") as f:
+        with open(paths["llm_log_path"], "a") as f:
             f.write(f"=== Shot 1 Raw LLM Response ===\n{first_answer}\n\n")
 
         try:
@@ -127,7 +127,7 @@ def process_two_shot_attempt(
             )
         except Exception as e:
             error = "Shot 1: Failed to extract Mermaid code from LLM response"
-            with open(paths["log_file_path"], "a") as f:
+            with open(paths["llm_log_path"], "a") as f:
                 f.write(f"{error}\nError: {str(e)}\n\n")
             print(f"{error}: {str(e)}")
             return "False"
@@ -149,26 +149,26 @@ def process_two_shot_attempt(
             if not success:
                 raise Exception("Shot 1 diagram rendering failed")
         except Exception as e:
-            with open(paths["log_file_path"], "a") as f:
+            with open(paths["llm_log_path"], "a") as f:
                 f.write(f"Shot 1 rendering failed: {str(e)}\n\n")
             print(f"Shot 1 rendering failed: {str(e)}")
             return "False"
 
-        with open(paths["log_file_path"], "a") as f:
+        with open(paths["llm_log_path"], "a") as f:
             f.write(f"=== Shot 1 (Initial) ===\n{shot1_mermaid}\n\n")
 
         # --- Shot 2: Refinement ---
         print("Running Shot 2: Refinement")
         refinement_prompt = build_refinement_prompt(shot1_mermaid, system_prompt, mermaid_syntax)
 
-        with open(paths["log_file_path"], "a") as f:
+        with open(paths["llm_log_path"], "a") as f:
             f.write(f"=== Shot 2 Refinement Prompt (sent to LLM) ===\n{refinement_prompt}\n\n")
 
         second_answer = call_openrouter_llm(
             refinement_prompt, max_tokens=6000, temperature=0.3, model=model
         )
 
-        with open(paths["log_file_path"], "a") as f:
+        with open(paths["llm_log_path"], "a") as f:
             f.write(f"=== Shot 2 Raw LLM Response ===\n{second_answer}\n\n")
 
         try:
@@ -177,12 +177,12 @@ def process_two_shot_attempt(
             )
         except Exception as e:
             error = "Shot 2: Failed to extract Mermaid code from LLM response"
-            with open(paths["log_file_path"], "a") as f:
+            with open(paths["llm_log_path"], "a") as f:
                 f.write(f"{error}\nError: {str(e)}\n\n")
             print(f"{error}: {str(e)}")
             return "False"
 
-        with open(paths["log_file_path"], "a") as f:
+        with open(paths["llm_log_path"], "a") as f:
             f.write(f"=== Shot 2 (Refined, Final) ===\n{shot2_mermaid}\n\n")
 
         # --- Render shot 2 ---
@@ -211,13 +211,17 @@ def process_two_shot_attempt(
                     indent=2,
                 )
 
-            with open(paths["log_file_path"], "a") as f:
+            with open(paths["llm_log_path"], "a") as f:
                 f.write(
                     f"{error}\nError: {str(e)}\nTraceback:\n{full_traceback}\n\n"
                 )
 
             print(f"{error}: {str(e)}")
             return "False"
+
+        # Write the final mermaid code to output_two_shot_prompt.txt
+        with open(paths["log_file_path"], "w") as f:
+            f.write(shot2_mermaid)
 
         return shot2_mermaid
 
@@ -230,7 +234,7 @@ def process_two_shot_attempt(
         print(error_msg, file=sys.stderr)
         print(error_msg)
         try:
-            with open(paths["log_file_path"], "a") as f:
+            with open(paths["llm_log_path"], "a") as f:
                 f.write(f"=== UNEXPECTED ERROR ===\n{error_msg}\n\n")
         except Exception:
             pass
