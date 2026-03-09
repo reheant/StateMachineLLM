@@ -1198,7 +1198,7 @@ def setup_file_paths(
         file_prefix = f"output_{file_type}"
         log_file_name = f"{file_prefix}.txt"
 
-        return {
+        result = {
             "log_base_dir": output_base_dir,
             "log_file_path": os.path.join(output_base_dir, log_file_name),
             "generated_umple_code_path": os.path.join(
@@ -1211,6 +1211,12 @@ def setup_file_paths(
             "diagram_base_dir": output_base_dir,
             "diagram_file_path": os.path.join(output_base_dir, file_prefix),
         }
+
+        # For two_shot_prompt, add a separate llm_log_path for full interaction log
+        if file_type == "two_shot_prompt":
+            result["llm_log_path"] = os.path.join(output_base_dir, "LLM_log.txt")
+
+        return result
     else:
         # Keep existing behavior for other file types (event_driven, simple_linear)
         # Setup directories
