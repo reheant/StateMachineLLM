@@ -104,7 +104,7 @@ Syntax: `SourceState --> TargetState : event`
 
 <parallel_regions>
 Use parallel regions to model concurrent activities that proceed independently.
-Separate regions with `--` inside a parent composite state.
+Declare each region with the `region` keyword inside a parent composite state.
 Each region is self-contained: declare its own states and its own initial pseudostate
 (`[*] --> Substate`) - missing either causes a parse error for that region.
 Cross-region transitions must reference explicit substate names.
@@ -116,14 +116,13 @@ each region exactly as you would at the top level.
     stateDiagram-v2
     [*] --> ParallelController
     state ParallelController {{
-        state RegionA {{
+        region RegionA {{
             state Substate1
             state Substate2
             [*] --> Substate1
             Substate1 --> Substate2 : event1
         }}
-        --
-        state RegionWithComposite {{
+        region RegionWithComposite {{
             [*] --> CompositeState
             state CompositeState {{
                 state Substate3

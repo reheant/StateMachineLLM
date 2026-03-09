@@ -54,21 +54,20 @@ n_shot_examples = {
         "mermaid_code_solution": """stateDiagram-v2
 
     state SpaManager {
-        --
-        state Jacuzzi {
-            
+        region Jacuzzi {
+
             State JacuzziOff
-            
+
             [*] --> JacuzziOff
 
             JacuzziOff --> JacuzziOn : on
 
             state JacuzziOn {
-                
+
                 State Level1
-                
+
                 [*] --> Level1
-                
+
                 State Level2
                 State Level3
 
@@ -80,45 +79,41 @@ n_shot_examples = {
             }
 
             JacuzziOn --> H : setPattern(PatternType type)
-            
+
             JacuzziOn --> JacuzziOff : off
-            
-            State Paused 
-            
+
+            State Paused
+
             JacuzziOn --> Paused : pause
             Paused --> H : after2min
             Paused --> JacuzziOff : off
 
         }
-        --
-        state Sauna {
+        region Sauna {
             State SaunaOff
             [*] --> SaunaOff
 
             SaunaOff --> SaunaOn : on
 
             state SaunaOn {
-                --
-                state Heater {
+                region Heater {
                     State Heat
                     [*] --> Heat
-                    
+
                     State Idle
 
                     Heat --> Idle : [temp>=90]
                     Idle --> Heat : [temp < 85]
                 }
-                --
-                state Fan {
+                region Fan {
                     State FanOff
                     [*] --> FanOff
-                    
+
                     State FanOn
                     FanOff --> FanOn : [humidity > 0.40 && exceedTime>3]
                     FanOn --> FanOff : after5min
                 }
-                --
-                state Water {
+                region Water {
                     State WaterIdle
                     [*] --> WaterIdle
 
@@ -135,8 +130,7 @@ n_shot_examples = {
         "mermaid_code_solution": """stateDiagram-v2
        
     state DishwasherOn {
-        --
-        state Door {
+        region Door {
             State Closed
             State Open
             State Locked
@@ -147,8 +141,7 @@ n_shot_examples = {
             Open --> Closed : close
             Locked --> Closed : unlock
         }
-        --
-        state Washer {
+        region Washer {
             State Idle
             [*] --> Idle
             Idle --> Idle : selectProgram(n) [n >= 1] / [r=n]
@@ -194,15 +187,13 @@ n_shot_examples = {
         state On {
             
             state GameSetup {
-                --
-                state TimingSelection {
+                region TimingSelection {
                     state TimingSelectionState
                     [*] --> TimingSelectionState
                     TimingSelectionState --> TimingSelectionState : plus / {incrTimingProgram()}
                     TimingSelectionState --> TimingSelectionState : minus / {decrTimingProgram()}
                 }
-                --
-                state WhiteKingStatus {
+                region WhiteKingStatus {
                     state WhiteKingOnLeft
                     state WhiteKingOnRight
                     [*] --> WhiteKingOnLeft
@@ -379,8 +370,7 @@ n_shot_examples = {
         state Arrived
 
         state Active {
-            --
-            state TrainControl {
+            region TrainControl {
                 state Emergency
                 [*] --> TrainMovement
                 TrainMovement --> Emergency : emergency / estop
@@ -427,16 +417,14 @@ n_shot_examples = {
                     
             }
 
-            --
-            state SDS {
+            region SDS {
                 state SDSActive
                 [*] --> SDSActive
 
                 SDSActive --> SDSActive : after1sec [hasSegmentChanged()] / setCs and enteringSegment()
                 SDSActive --> SDSActive : after1sec [!hasSegmentChanged()]
             }
-            --
-            state MDS {
+            region MDS {
                 state Stopped
                 state Moving
                 [*] --> Stopped
@@ -446,8 +434,7 @@ n_shot_examples = {
                 Moving --> Moving : after1sec [speed > 0]
                 Moving --> Stopped : after1sec [speed == 0] / stopped()
             }
-            --
-            state ODS {
+            region ODS {
                 state ODSActive
                 [*] --> ODSActive
 
