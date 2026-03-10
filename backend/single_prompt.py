@@ -2,6 +2,7 @@ import subprocess
 import sys
 import os
 import time
+import logging
 
 sys.path.append(os.path.dirname(__file__))
 sys.path.append(os.path.join(os.path.dirname(__file__), "resources"))
@@ -25,6 +26,8 @@ from resources.n_shot_examples_single_prompt_mermaid import (
     n_shot_examples,
 )
 from resources.prompts.single_prompt.single_prompt_template import build_single_prompt
+
+logger = logging.getLogger(__name__)
 
 # Default description if not ran with Chainlit
 description = chess_clock_fall_2019
@@ -108,20 +111,20 @@ def run_single_prompt(
     )
 
     # Prepare the list of example to provide to the LLM (N shot prompting)
-    n_shot_examples_single_prompt = list(n_shot_examples.keys())[
-        :4
-    ]  # Extract all the examples available
-    for n_shot_example in n_shot_examples_single_prompt:
-        # Remove an example if it is identical to the one being analyzed by the SMF
-        # Otherwise, if no examples are identical to the one being analyzed we remove
-        # the last example to have a consistent number of examples used for all systems analyzed
-        # (N-shot prompting with fixed N)
-        if (
-            n_shot_examples[n_shot_example]["system_description"] == system_prompt
-            or n_shot_example == n_shot_examples_single_prompt[-1]
-        ):
+    n_shot_examples_single_prompt = list(
+        n_shot_examples.keys()
+    )  # Extract all the examples available
+    for n_shot_example in list(n_shot_examples_single_prompt):
+        # Remove the example if it is identical to the one being analyzed by the SMF.
+        if n_shot_examples[n_shot_example]["system_description"] == system_prompt:
             n_shot_examples_single_prompt.remove(n_shot_example)
             break
+
+    n_shot_examples_msg = (
+        f"N-shot examples used: {', '.join(n_shot_examples_single_prompt)}"
+    )
+    logger.info(n_shot_examples_msg)
+    print(n_shot_examples_msg, flush=True)
 
     prompt = build_single_prompt(
         mermaid_syntax=mermaid_syntax,
