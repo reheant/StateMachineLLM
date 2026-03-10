@@ -1869,6 +1869,10 @@ def create_single_prompt_gsm_diagram_with_sherpa(
                         insert_index + 1,
                         f'\t"{root_marker}" -> "{root_initial_state}" [lhead={root_cluster}]',
                     )
+                    # Hide the internal pytransitions point node that causes the stray dot
+                    new_body.append(
+                        f'\t"{root_initial_state}" [style=invis width=0 height=0 label=""]'
+                    )
                 else:
                     new_body.insert(
                         insert_index + 1, f'\t"{root_marker}" -> "{root_initial_state}"'
