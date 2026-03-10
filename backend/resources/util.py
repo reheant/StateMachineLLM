@@ -1853,9 +1853,30 @@ def create_single_prompt_gsm_diagram_with_sherpa(
                     insert_index,
                     f'\t"{root_marker}" [fillcolor=black color=black height=0.15 label="" shape=point width=0.15]',
                 )
-                new_body.insert(
-                    insert_index + 1, f'\t"{root_marker}" -> "{root_initial_state}"'
-                )
+
+                # If the root initial state is a composite state (has a cluster),
+                # use lhead so the arrow stops at the cluster boundary instead of
+                # piercing into it. compound=true is already set by fix_hierarchical_state_transitions.
+                root_cluster = f"cluster_{root_initial_state}"
+                cluster_names_in_graph = [
+                    re.search(r"subgraph\s+(\S+)", l).group(1)
+                    for l in new_body
+                    if "subgraph" in l and re.search(r"subgraph\s+(\S+)", l)
+                ]
+                if root_cluster in cluster_names_in_graph:
+                    # Target is composite: clip arrowhead at the cluster border via lhead.
+                    new_body.insert(
+                        insert_index + 1,
+                        f'\t"{root_marker}" -> "{root_initial_state}" [lhead={root_cluster}]',
+                    )
+                    # Hide the internal pytransitions point node that causes the stray dot
+                    new_body.append(
+                        f'\t"{root_initial_state}" [style=invis width=0 height=0 label=""]'
+                    )
+                else:
+                    new_body.insert(
+                        insert_index + 1, f'\t"{root_marker}" -> "{root_initial_state}"'
+                    )
 
             # Replace the graph body
             graph.body = new_body
