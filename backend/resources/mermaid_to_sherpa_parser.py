@@ -26,12 +26,6 @@ except Exception as e:
     print(f"Error importing mermaid_parser: {e}", file=sys.stderr)
     raise
 
-
-def debug_print(msg):
-    """Print debug message to stderr (unbuffered)"""
-    print(f"[HISTORY DEBUG] {msg}", file=sys.stderr, flush=True)
-
-
 def parse_mermaid_with_library(mermaid_code: str):
     """
     Parse Mermaid stateDiagram-v2 using mermaid-parser-py StateDiagramConverter
@@ -40,25 +34,12 @@ def parse_mermaid_with_library(mermaid_code: str):
     Returns: (states_list, transitions_list, hierarchical_dict, initial_state, parallel_regions,
               state_annotations, root_initial_state, nested_initial_states, state_declarations_map)
     """
-    debug_print("=== PARSING MERMAID CODE ===")
-
     # Use StateDiagramConverter instead of raw MermaidParser
     converter = StateDiagramConverter()
     result = converter.convert(mermaid_code)
 
     # Get the state declarations map for debugging
     state_declarations_map = getattr(converter, "state_declarations_map", {})
-
-    debug_print(
-        f"Converter returned {len(result.states)} states, {len(result.transitions)} transitions"
-    )
-
-    # Print state declarations map for debugging
-    if state_declarations_map:
-        debug_print("State Declarations Map (from raw mermaid scan):")
-        for state_name, parent_id in sorted(state_declarations_map.items()):
-            parent_str = parent_id if parent_id else "ROOT"
-            debug_print(f"  {state_name} -> {parent_str}")
 
     # Track states and their hierarchical relationships
     # Use scoped_id as the unique key to handle same-named states in different scopes
@@ -77,14 +58,6 @@ def parse_mermaid_with_library(mermaid_code: str):
     history_transitions_map = getattr(
         result, "history_transitions", {}
     )  # (from, trigger) -> composite
-
-    # Debug output for history states
-    debug_print(
-        f"History states map from converter: {list(history_states_map.keys()) if history_states_map else 'EMPTY'}"
-    )
-    debug_print(
-        f"History transitions map: {history_transitions_map if history_transitions_map else 'EMPTY'}"
-    )
 
     # Step 1: Build state mappings from converter output
     for state in result.states:
@@ -150,9 +123,6 @@ def parse_mermaid_with_library(mermaid_code: str):
     for region_id, actual_parent in region_to_parent.items():
         if region_id in hierarchical_states:
             children = hierarchical_states[region_id]
-            debug_print(
-                f"Remapping children {children} from region '{region_id}' to parent '{actual_parent}'"
-            )
             if actual_parent not in hierarchical_states:
                 hierarchical_states[actual_parent] = []
             for child in children:
@@ -164,9 +134,6 @@ def parse_mermaid_with_library(mermaid_code: str):
     # The converter now extracts root_initial_state and initial_states for us
     root_initial_state = getattr(result, "root_initial_state", None)
     nested_initial_states = getattr(result, "initial_states", {})
-
-    debug_print(f"Root initial state from converter: {root_initial_state}")
-    debug_print(f"Nested initial states from converter: {nested_initial_states}")
 
     # Use root_initial_state if available
     if root_initial_state:
@@ -262,9 +229,6 @@ def parse_mermaid_with_library(mermaid_code: str):
                     visited_path.add(parent)
                     current = parent
                 full_path = "_".join(path_parts)
-                debug_print(
-                    f"Resolved unqualified transition target '{end_formatted}' -> '{full_path}'"
-                )
                 end_formatted = full_path
 
         # Check if this is a history transition (destination is a HistoryState)
@@ -287,10 +251,6 @@ def parse_mermaid_with_library(mermaid_code: str):
                     end_formatted = f"{composite_full_path}_H"
                 else:
                     end_formatted = f"{parent_composite}_H"
-                debug_print(
-                    f"Transition {start_formatted} -> {end_formatted} (history of {parent_composite})"
-                )
-
         trans = {
             "trigger": trigger if trigger else "auto",
             "source": start_formatted,
@@ -315,12 +275,6 @@ def parse_mermaid_with_library(mermaid_code: str):
 
     # Step 4: Build states list in Sherpa NESTED format (not flat!)
     # Sherpa needs a nested structure where children are objects within their parent's children array
-
-    # Debug: Print hierarchical structure
-    debug_print(f"Hierarchical states: {hierarchical_states}")
-    debug_print(
-        f"History states to add H: {list(history_states_map.keys()) if history_states_map else 'NONE'}"
-    )
 
     # Step 3b: Remove duplicate child references from hierarchical_states
     # The mermaid-parser-py converter sometimes creates reference states when transitions
@@ -393,18 +347,9 @@ def parse_mermaid_with_library(mermaid_code: str):
             for parent, depth in parent_depths[1:]:
                 if not is_ancestor(parent, deepest_parent, hierarchical_states):
                     # parent is not an ancestor of deepest_parent → different branch → different state
-                    debug_print(
-                        f"Keeping '{state_name}' in '{parent}' — not a cross-reference "
-                        f"('{parent}' is not an ancestor of '{deepest_parent}')"
-                    )
                     continue
                 if state_name in hierarchical_states.get(parent, []):
                     hierarchical_states[parent].remove(state_name)
-                    debug_print(
-                        f"Removed duplicate '{state_name}' from '{parent}' (kept in '{deepest_parent}')"
-                    )
-
-    debug_print(f"Hierarchical states after deduplication: {hierarchical_states}")
 
     # Create a lookup for parallel region info by parent state
     parallel_info_by_state = {p["parent"]: p["regions"] for p in parallel_regions}
@@ -465,7 +410,6 @@ def parse_mermaid_with_library(mermaid_code: str):
             # Add history pseudo-state "H" if this composite state has history
             if state_id in history_states_map:
                 nested_children.append("H")
-                debug_print(f"Added 'H' to parallel state: {state_id}")
 
             # Return state with parallel structure
             # When 'initial' is a LIST, transitions library renders parallel regions
@@ -491,7 +435,6 @@ def parse_mermaid_with_library(mermaid_code: str):
             # Add history pseudo-state "H" if this composite state has history
             if state_id in history_states_map:
                 nested_children.append("H")
-                debug_print(f"Added 'H' to composite state: {state_id}")
 
             result = {"name": state_id, "children": nested_children}
 
@@ -513,9 +456,6 @@ def parse_mermaid_with_library(mermaid_code: str):
             # Simple state (leaf node) - BUT check if it needs history pseudo-state
             if state_id in history_states_map:
                 # Convert simple state to composite with H pseudo-state
-                debug_print(
-                    f"Converting simple state '{state_id}' to composite (needs history)"
-                )
                 return {"name": state_id, "children": ["H"]}
             else:
                 # Regular simple state
@@ -573,9 +513,6 @@ def parse_mermaid_with_library(mermaid_code: str):
                 if structure_key in seen_structures:
                     # This is a duplicate - mark it for removal
                     indices_to_remove.add(i)
-                    debug_print(
-                        f"Found duplicate state '{state_name}' - removing duplicate"
-                    )
                 else:
                     seen_structures[structure_key] = i
                     # Recursively deduplicate children
@@ -599,8 +536,6 @@ def parse_mermaid_with_library(mermaid_code: str):
         return [state for i, state in enumerate(states) if i not in indices_to_remove]
 
     states_list = deduplicate_states(states_list)
-    debug_print(f"States after deduplication: {len(states_list)} root states")
-
     # Step 5: Set initial state if not found
     if not initial_state and states_list:
         # Use first state
@@ -632,9 +567,6 @@ def parse_mermaid_with_library(mermaid_code: str):
                     ]
                     if child_initial in child_names:
                         state["initial"] = child_initial
-                        debug_print(
-                            f"Set initial state for '{state_name}': '{child_initial}'"
-                        )
                 # Recurse into children
                 apply_nested_initial_states(
                     state.get("children", []), initial_states_map
@@ -653,9 +585,6 @@ def parse_mermaid_with_library(mermaid_code: str):
             if bare_id == parent_id and parent_id in hierarchical_states:
                 normalized = re.sub(r"_region_\d+", "", scoped_id)
                 remapped_initial_states[normalized] = child_id
-                debug_print(
-                    f"Remapped initial state key '{parent_id}' -> '{normalized}'"
-                )
                 found = True
                 break
         if not found:
@@ -667,7 +596,6 @@ def parse_mermaid_with_library(mermaid_code: str):
     state_notes = getattr(result, "state_notes", {})
     state_annotations = []
     if state_notes:
-        debug_print(f"Found state notes: {state_notes}")
         for state_id, notes_list in sorted(state_notes.items()):
             for note_text in notes_list:
                 # Parse each line of the note for entry/exit/do actions
@@ -698,7 +626,6 @@ def parse_mermaid_with_library(mermaid_code: str):
                     else:
                         # Generic note — still include it
                         state_annotations.append(f"{state_id}: {line}")
-        debug_print(f"Built {len(state_annotations)} annotations: {state_annotations}")
 
     return (
         states_list,
