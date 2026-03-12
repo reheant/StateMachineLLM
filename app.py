@@ -774,6 +774,8 @@ async def start():
             \n 5. 🥖 <b>Automatic Bread Maker</b>: A programmable bread maker with different courses, crust options, and delayed start features
             \n 6. 🔪 <b>Thermomix TM6</b>: An all-in-one kitchen appliance with guided recipe steps and ingredient processing
             \n 7. 🚆 <b>Train Automation System</b>: An advanced system managing driverless trains across a rail network with traffic signals and stations
+            \n 8. ⌚ <b>Wumple Watch</b>: A multifunctional watch with timekeeping, alarm, and countdown modes with backlight and flash alert features
+            \n 9. 🛒 <b>SSC7 Self-Checkout</b>: A supermarket self-service checkout system with scanning, weighing, payment, and staff override features
             """,
             actions=[
                 cl.Action(
@@ -817,6 +819,18 @@ async def start():
                     value="ATAS_fall_2022",
                     payload={},
                     label="🚆 Train Automation System",
+                ),
+                cl.Action(
+                    name="WUMPLE_fall_2023_Version_A",
+                    value="WUMPLE_fall_2023_Version_A",
+                    payload={},
+                    label="⌚ Wumple Watch",
+                ),
+                cl.Action(
+                    name="SSC7_fall_2024_Version_A",
+                    value="SSC7_fall_2024_Version_A",
+                    payload={},
+                    label="🛒 SSC7 Self-Checkout",
                 ),
             ],
         ).send()
