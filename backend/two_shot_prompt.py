@@ -1,5 +1,6 @@
 import os
 import sys
+import logging
 
 sys.path.append(os.path.dirname(__file__))
 sys.path.append(os.path.join(os.path.dirname(__file__), "resources"))
@@ -20,6 +21,8 @@ from resources.n_shot_examples_single_prompt_mermaid import (
     get_n_shot_examples,
     n_shot_examples,
 )
+
+logger = logging.getLogger(__name__)
 
 
 def run_two_shot_prompt(
@@ -50,14 +53,19 @@ def run_two_shot_prompt(
     )
 
     # Prepare n-shot examples (same logic as single_prompt)
-    n_shot_examples_list = list(n_shot_examples.keys())[:4]
-    for n_shot_example in n_shot_examples_list:
-        if (
-            n_shot_examples[n_shot_example]["system_description"] == system_prompt
-            or n_shot_example == n_shot_examples_list[-1]
-        ):
+    n_shot_examples_list = list(n_shot_examples.keys())
+    found = False
+    for n_shot_example in list(n_shot_examples_list):
+        if n_shot_examples[n_shot_example]["system_description"] == system_prompt:
             n_shot_examples_list.remove(n_shot_example)
+            found = True
             break
+    if not found:
+        n_shot_examples_list = n_shot_examples_list[1:]  # skip first ("printer_winter_2017")
+
+    n_shot_examples_msg = f"N-shot examples used: {', '.join(n_shot_examples_list)}"
+    logger.info(n_shot_examples_msg)
+    print(n_shot_examples_msg, flush=True)
 
     first_prompt = build_single_prompt(
         mermaid_syntax=mermaid_syntax,
