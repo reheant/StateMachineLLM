@@ -114,11 +114,15 @@ def run_single_prompt(
     n_shot_examples_single_prompt = list(
         n_shot_examples.keys()
     )  # Extract all the examples available
+    found = False
     for n_shot_example in list(n_shot_examples_single_prompt):
         # Remove the example if it is identical to the one being analyzed by the SMF.
         if n_shot_examples[n_shot_example]["system_description"] == system_prompt:
             n_shot_examples_single_prompt.remove(n_shot_example)
+            found = True
             break
+    if not found:
+        n_shot_examples_single_prompt = n_shot_examples_single_prompt[1:]  # skip first ("printer_winter_2017")
 
     n_shot_examples_msg = (
         f"N-shot examples used: {', '.join(n_shot_examples_single_prompt)}"

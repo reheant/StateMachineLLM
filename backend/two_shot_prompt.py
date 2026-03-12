@@ -54,10 +54,14 @@ def run_two_shot_prompt(
 
     # Prepare n-shot examples (same logic as single_prompt)
     n_shot_examples_list = list(n_shot_examples.keys())
+    found = False
     for n_shot_example in list(n_shot_examples_list):
         if n_shot_examples[n_shot_example]["system_description"] == system_prompt:
             n_shot_examples_list.remove(n_shot_example)
+            found = True
             break
+    if not found:
+        n_shot_examples_list = n_shot_examples_list[1:]  # skip first ("printer_winter_2017")
 
     n_shot_examples_msg = f"N-shot examples used: {', '.join(n_shot_examples_list)}"
     logger.info(n_shot_examples_msg)
