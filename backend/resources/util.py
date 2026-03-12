@@ -101,7 +101,6 @@ def call_openrouter_llm(
         )
 
 
-
 # **************** HTML TABLE UTILITY FUNCTIONS ****************
 
 
@@ -1700,6 +1699,25 @@ def create_single_prompt_gsm_diagram_with_sherpa(
         state_declarations_map,
     ) = parse_mermaid_with_library(mermaid_code)
 
+    def _collect_parallel_composite_paths(states, prefix=""):
+        """Collect full state paths for composites whose initial is a list (parallel)."""
+        paths = set()
+        for st in states:
+            if not isinstance(st, dict):
+                continue
+            name = st.get("name")
+            if not name:
+                continue
+            full_name = f"{prefix}_{name}" if prefix else name
+            if isinstance(st.get("initial"), list):
+                paths.add(full_name)
+            paths.update(
+                _collect_parallel_composite_paths(st.get("children", []), full_name)
+            )
+        return paths
+
+    parallel_composite_paths = _collect_parallel_composite_paths(states_list)
+
     # Parser Debug Output
     print("\nParser Debug Output:")
     print("─" * 60)
@@ -1879,6 +1897,45 @@ def create_single_prompt_gsm_diagram_with_sherpa(
                     )
 
             # Replace the graph body
+            # Hide orphan point nodes (internal pytransitions initial markers with no edges).
+            # These appear as stray dots inside composites when a composite has no explicit
+            # initial transition at that level (for example, region-only composites).
+            point_node_re = re.compile(
+                r'^\s*"?([A-Za-z_][A-Za-z0-9_]*)"?\s*\[.*\bshape=point\b.*\]'
+            )
+            edge_re = re.compile(
+                r'^\s*("?[A-Za-z_][A-Za-z0-9_]*"?)\s*->\s*("?[A-Za-z_][^\s\[]*"?)'
+            )
+
+            point_nodes = set()
+            nodes_with_edges = set()
+
+            for body_line in new_body:
+                m_node = point_node_re.match(body_line)
+                if m_node:
+                    point_nodes.add(m_node.group(1))
+
+                m_edge = edge_re.match(body_line)
+                if m_edge:
+                    src = m_edge.group(1).strip('"')
+                    dst = m_edge.group(2).strip('"')
+                    nodes_with_edges.add(src)
+                    nodes_with_edges.add(dst)
+
+            orphan_point_nodes = point_nodes - nodes_with_edges
+            for node_name in sorted(orphan_point_nodes):
+                new_body.append(
+                    f'\t"{node_name}" [style=invis width=0 height=0 label=""]'
+                )
+
+            # Hide internal point nodes for parallel composites. These nodes are an
+            # implementation detail of pytransitions and can appear as a stray dot in
+            # region-based composites that don't use a single [*] initial pseudostate.
+            for node_name in sorted(parallel_composite_paths):
+                new_body.append(
+                    f'\t"{node_name}" [style=invis width=0 height=0 label=""]'
+                )
+
             graph.body = new_body
 
         except Exception as e:

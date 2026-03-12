@@ -76,6 +76,11 @@ def run_two_shot_prompt(
         system_prompt=system_prompt,
     )
 
+    # Save shot 1 prompt so every run has a prompt artifact with the outputs.
+    shot1_prompt_path = os.path.join(paths["log_base_dir"], "prompt_shot1.txt")
+    with open(shot1_prompt_path, "w") as f:
+        f.write(first_prompt)
+
     print(f"Running Two-Shot Prompt Generation with {model}")
 
     success = False
@@ -85,7 +90,9 @@ def run_two_shot_prompt(
         if i > 0:
             print(f"Retrying (attempt {i+1}/{max_attempts})...")
 
-        result = process_two_shot_attempt(first_prompt, system_prompt, paths, model)
+        result = process_two_shot_attempt(
+            first_prompt, system_prompt, paths, model, attempt_index=i + 1
+        )
 
         if result != "False":
             success = True
@@ -103,6 +110,7 @@ def process_two_shot_attempt(
     system_prompt: str,
     paths: dict,
     model: str = "anthropic/claude-3.5-sonnet",
+    attempt_index: int = 1,
 ) -> str:
     """
     Execute one full two-shot attempt: initial generation followed by refinement.
@@ -167,10 +175,21 @@ def process_two_shot_attempt(
 
         # --- Shot 2: Refinement ---
         print("Running Shot 2: Refinement")
-        refinement_prompt = build_refinement_prompt(shot1_mermaid, system_prompt, mermaid_syntax)
+        refinement_prompt = build_refinement_prompt(
+            shot1_mermaid, system_prompt, mermaid_syntax
+        )
+
+        # Save shot 2 prompt separately for traceability across retries.
+        shot2_prompt_path = os.path.join(
+            paths["log_base_dir"], f"prompt_shot2_attempt_{attempt_index}.txt"
+        )
+        with open(shot2_prompt_path, "w") as f:
+            f.write(refinement_prompt)
 
         with open(paths["log_file_path"], "a") as f:
-            f.write(f"=== Shot 2 Refinement Prompt (sent to LLM) ===\n{refinement_prompt}\n\n")
+            f.write(
+                f"=== Shot 2 Refinement Prompt (sent to LLM) ===\n{refinement_prompt}\n\n"
+            )
 
         second_answer = call_openrouter_llm(
             refinement_prompt, max_tokens=6000, temperature=0.3, model=model
@@ -220,9 +239,7 @@ def process_two_shot_attempt(
                 )
 
             with open(paths["log_file_path"], "a") as f:
-                f.write(
-                    f"{error}\nError: {str(e)}\nTraceback:\n{full_traceback}\n\n"
-                )
+                f.write(f"{error}\nError: {str(e)}\nTraceback:\n{full_traceback}\n\n")
 
             print(f"{error}: {str(e)}")
             return "False"
