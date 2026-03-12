@@ -132,6 +132,11 @@ def run_single_prompt(
         system_prompt=system_prompt,
     )
 
+    # Persist the exact prompt used for this run next to the generated outputs.
+    prompt_file_path = os.path.join(paths["log_base_dir"], "prompt_single.txt")
+    with open(prompt_file_path, "w") as file:
+        file.write(prompt)
+
     print(f"Running Single Prompt Generation with {model}")
 
     success = False
