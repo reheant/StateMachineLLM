@@ -101,7 +101,6 @@ def call_openrouter_llm(
         )
 
 
-
 # **************** HTML TABLE UTILITY FUNCTIONS ****************
 
 
@@ -1210,11 +1209,12 @@ def setup_file_paths(
             "umple_jar_path": os.path.join(base_dir, "resources", "umple.jar"),
             "diagram_base_dir": output_base_dir,
             "diagram_file_path": os.path.join(output_base_dir, file_prefix),
+            "llm_log_path": os.path.join(output_base_dir, "LLM_log.txt"),
+            "grading_prompt_path": os.path.join(output_base_dir, "grading_prompt.txt"),
+            "grading_output_path": os.path.join(output_base_dir, "grading_output.txt"),
+            "grading_csv_path": os.path.join(output_base_dir, "grading_results.csv"),
+            "grading_tsv_path": os.path.join(output_base_dir, "grading_results.tsv"),
         }
-
-        # For two_shot_prompt, add a separate llm_log_path for full interaction log
-        if file_type == "two_shot_prompt":
-            result["llm_log_path"] = os.path.join(output_base_dir, "LLM_log.txt")
 
         return result
     else:

@@ -75,6 +75,7 @@ export function RunForm({ onComplete, onHistoryRefresh }: Props) {
   const [examples, setExamples] = useState<Example[]>([]);
   const [generating, setGenerating] = useState(false);
   const [logs, setLogs] = useState<string[]>([]);
+  const [enableAutoGrading, setEnableAutoGrading] = useState(true);
 
   // Mermaid sandbox state
   const [mermaidCode, setMermaidCode] = useState("");
@@ -125,7 +126,13 @@ async function handleExampleChange(key: string) {
     const res = await fetch("/api/generate", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ strategy, model, system_name: name, description: desc }),
+      body: JSON.stringify({
+        strategy,
+        model,
+        system_name: name,
+        description: desc,
+        enable_auto_grading: enableAutoGrading,
+      }),
     });
 
     if (!res.ok || !res.body) {
@@ -312,6 +319,32 @@ async function handleExampleChange(key: string) {
                 </button>
               ))}
             </div>
+          </div>
+
+          <div className="flex items-center justify-between rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 py-3">
+            <div className="flex flex-col">
+              <span className="text-sm font-semibold text-white/70">Automatic grading</span>
+              <span className="text-xs text-white/30">Run grading prompt and LLM evaluation after generation</span>
+            </div>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={enableAutoGrading}
+              onClick={() => setEnableAutoGrading((prev) => !prev)}
+              className={cn(
+                "relative h-7 w-12 rounded-full border transition-all duration-200",
+                enableAutoGrading
+                  ? "border-orange-400/40 bg-orange-500/80"
+                  : "border-white/[0.15] bg-white/[0.08]"
+              )}
+            >
+              <span
+                className={cn(
+                  "absolute top-1 h-5 w-5 rounded-full bg-white shadow-md transition-all duration-200",
+                  enableAutoGrading ? "left-6" : "left-0.5"
+                )}
+              />
+            </button>
           </div>
 
           {/* Input content */}

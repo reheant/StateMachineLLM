@@ -13,6 +13,11 @@ export interface Artifacts {
   mmd: string | null;
   txt: string | null;
   llm_log: string | null;
+  grading_prompt: string | null;
+  grading_output: string | null;
+  ground_truth_csv: string | null;
+  grading_csv: string | null;
+  grading_tsv: string | null;
 }
 
 export interface Example {
