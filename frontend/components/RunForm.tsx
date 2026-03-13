@@ -307,7 +307,7 @@ async function handleExampleChange(key: string) {
     <div className="flex flex-col bg-background">
 
       <div className="flex flex-col px-6 py-10">
-      <div className="mx-auto w-full max-w-2xl flex flex-col gap-10">
+      <div className="mx-auto w-full max-w-5xl flex flex-col gap-10">
         <div className="flex flex-col items-center gap-1.5 text-center">
           <h1 className="text-5xl font-black tracking-tight bg-gradient-to-br from-orange-300 via-orange-400 to-orange-600 bg-clip-text text-transparent">Tracer</h1>
           <p className="text-sm text-white/30">Generate a state machine diagram from any system description.</p>
