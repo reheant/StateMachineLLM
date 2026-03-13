@@ -260,6 +260,24 @@ async function handleExampleChange(key: string) {
     setGradingMermaid(true);
     setMermaidError(null);
 
+    const recoverFromHistory = async (): Promise<Run | null> => {
+      try {
+        const historyRes = await fetch("/api/history", { cache: "no-store" });
+        if (!historyRes.ok) return null;
+
+        const runs = (await historyRes.json()) as Run[];
+        const recovered = runs.find(
+          (r) =>
+            r.strategy === "automatic_grader" &&
+            r.folder.includes(`/${gradingExampleKey}/`)
+        );
+
+        return recovered ?? null;
+      } catch {
+        return null;
+      }
+    };
+
     try {
       const res = await fetch("/api/automatic-grade", {
         method: "POST",
@@ -267,6 +285,13 @@ async function handleExampleChange(key: string) {
         body: JSON.stringify({ mermaid_code: code, example_key: gradingExampleKey, model }),
       });
       if (!res.ok) {
+        const recoveredRun = await recoverFromHistory();
+        if (recoveredRun) {
+          onHistoryRefresh();
+          onComplete(recoveredRun);
+          return;
+        }
+
         const err = await res.json().catch(() => ({ detail: "Automatic grading failed." }));
         setMermaidError(err.detail ?? "Automatic grading failed.");
         return;
@@ -286,7 +311,13 @@ async function handleExampleChange(key: string) {
       };
       onComplete(run);
     } catch {
-      setMermaidError("Network error — is the server running?");
+      const recoveredRun = await recoverFromHistory();
+      if (recoveredRun) {
+        onHistoryRefresh();
+        onComplete(recoveredRun);
+        return;
+      }
+      setMermaidError("Network error while grading. If artifacts were created, open the latest automatic grader run in History.");
     } finally {
       setGradingMermaid(false);
     }

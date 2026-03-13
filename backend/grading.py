@@ -67,46 +67,100 @@ def _append_log(path: Optional[str], text: str) -> None:
 
 
 def _extract_rows_from_grading_response(grading_response: str) -> list[dict[str, str]]:
-    """Extract tabular grading rows from <grading_report> XML output."""
+    """Extract tabular grading rows from <grading_report> XML output using regex."""
     rows: list[dict[str, str]] = []
 
+    # Extract XML block
     match = re.search(
         r"<grading_report>.*?</grading_report>", grading_response, re.DOTALL
     )
     if not match:
+        print("[DEBUG] No XML block found in response")
         return rows
 
-    try:
-        root = ET.fromstring(match.group(0))
-    except ET.ParseError:
-        return rows
+    xml_text = match.group(0)
+    print(f"[DEBUG] Found XML block of length {len(xml_text)}")
 
-    atomic_components = root.find("atomic_components")
-    if atomic_components is not None:
-        for item in atomic_components.findall("item"):
-            rows.append(
-                {
-                    "section": "atomic_components",
-                    "category_or_type": (item.findtext("type") or "").strip(),
-                    "element": (item.findtext("element") or "").strip(),
-                    "score": (item.findtext("score") or "").strip(),
-                    "justification": (item.findtext("justification") or "").strip(),
-                }
+    # Extract atomic_components items using regex
+    atomic_pattern = r"<item>(.*?)</item>"
+    atomic_section_match = re.search(
+        r"<atomic_components>(.*?)</atomic_components>", xml_text, re.DOTALL
+    )
+
+    if atomic_section_match:
+        atomic_section = atomic_section_match.group(1)
+        for item_match in re.finditer(atomic_pattern, atomic_section, re.DOTALL):
+            item_content = item_match.group(1)
+
+            type_match = re.search(r"<type>(.*?)</type>", item_content, re.DOTALL)
+            element_match = re.search(
+                r"<element>(.*?)</element>", item_content, re.DOTALL
+            )
+            score_match = re.search(r"<score>(.*?)</score>", item_content, re.DOTALL)
+            just_match = re.search(
+                r"<justification>(.*?)</justification>", item_content, re.DOTALL
             )
 
-    additional_elements = root.find("additional_elements")
-    if additional_elements is not None:
-        for item in additional_elements.findall("item"):
-            rows.append(
-                {
-                    "section": "additional_elements",
-                    "category_or_type": (item.findtext("category") or "").strip(),
-                    "element": "",
-                    "score": (item.findtext("score") or "").strip(),
-                    "justification": (item.findtext("justification") or "").strip(),
-                }
+            type_val = (type_match.group(1) if type_match else "").strip()
+            element_val = (element_match.group(1) if element_match else "").strip()
+            score_val = (score_match.group(1) if score_match else "").strip()
+            just_val = (just_match.group(1) if just_match else "").strip()
+
+            # Only add non-empty items
+            if element_val or score_val:
+                rows.append(
+                    {
+                        "section": "atomic_components",
+                        "category_or_type": type_val,
+                        "element": element_val,
+                        "score": score_val,
+                        "justification": just_val,
+                    }
+                )
+
+        print(
+            f"[DEBUG] Extracted {len([r for r in rows if r['section'] == 'atomic_components'])} atomic components"
+        )
+
+    # Extract additional_elements items using regex
+    additional_section_match = re.search(
+        r"<additional_elements>(.*?)</additional_elements>", xml_text, re.DOTALL
+    )
+
+    if additional_section_match:
+        additional_section = additional_section_match.group(1)
+        for item_match in re.finditer(atomic_pattern, additional_section, re.DOTALL):
+            item_content = item_match.group(1)
+
+            category_match = re.search(
+                r"<category>(.*?)</category>", item_content, re.DOTALL
+            )
+            score_match = re.search(r"<score>(.*?)</score>", item_content, re.DOTALL)
+            just_match = re.search(
+                r"<justification>(.*?)</justification>", item_content, re.DOTALL
             )
 
+            category_val = (category_match.group(1) if category_match else "").strip()
+            score_val = (score_match.group(1) if score_match else "").strip()
+            just_val = (just_match.group(1) if just_match else "").strip()
+
+            # Only add additional elements with a score
+            if score_val:
+                rows.append(
+                    {
+                        "section": "additional_elements",
+                        "category_or_type": category_val,
+                        "element": "",
+                        "score": score_val,
+                        "justification": just_val,
+                    }
+                )
+
+        print(
+            f"[DEBUG] Extracted {len([r for r in rows if r['section'] == 'additional_elements'])} additional elements"
+        )
+
+    print(f"[DEBUG] Total rows extracted: {len(rows)}")
     return rows
 
 
