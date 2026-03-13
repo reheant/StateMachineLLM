@@ -1,13 +1,238 @@
-.watermark {
-    display: none !important;
+/* ============================================================
+   Sherpa — Chainlit custom stylesheet
+   ============================================================ */
+
+/* ---------- Hide chainlit watermark ---------- */
+.watermark { display: none !important; }
+
+/* ---------- Google Font ---------- */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+:root {
+  --accent:       #6C8EF5;
+  --accent-dim:   #3D5BD9;
+  --bg-deep:      #0F1117;
+  --bg-card:      #1A1D27;
+  --bg-hover:     #22263A;
+  --border:       #2C3050;
+  --text-primary: #E8EAF6;
+  --text-muted:   #8892B0;
+  --success:      #4ADE80;
+  --warn:         #FACC15;
+  --error:        #F87171;
+  --radius:       10px;
 }
 
+/* ---------- Root / body ---------- */
+body, #root {
+  font-family: 'Inter', system-ui, sans-serif !important;
+  background: var(--bg-deep) !important;
+  color: var(--text-primary) !important;
+}
+
+/* ---------- Header ---------- */
+header, [class*="Header"], [class*="header"] {
+  background: var(--bg-card) !important;
+  border-bottom: 1px solid var(--border) !important;
+  backdrop-filter: blur(8px);
+}
+
+/* ---------- Sidebar / chat list ---------- */
+[class*="Sidebar"], [class*="sidebar"], [class*="ThreadList"] {
+  background: var(--bg-card) !important;
+  border-right: 1px solid var(--border) !important;
+}
+
+/* ---------- Chat message area ---------- */
+[class*="MessageContainer"], [class*="message-container"],
+main > div > div {
+  background: transparent !important;
+}
+
+/* ---------- Individual messages ---------- */
+[class*="MessageContent"], [class*="message-content"],
+[class*="Step"] > div {
+  background: var(--bg-card) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: var(--radius) !important;
+  padding: 14px 18px !important;
+  color: var(--text-primary) !important;
+  line-height: 1.65 !important;
+  font-size: 0.92rem !important;
+}
+
+/* ---------- Step elements ---------- */
+[class*="StepContainer"], [class*="step-container"] {
+  border-left: 2px solid var(--accent-dim) !important;
+  margin-left: 8px !important;
+  padding-left: 12px !important;
+}
+
+[class*="StepHeader"], [class*="step-header"] {
+  color: var(--accent) !important;
+  font-weight: 600 !important;
+  font-size: 0.85rem !important;
+  letter-spacing: 0.02em !important;
+}
+
+/* ---------- Action buttons (AskActionMessage) ---------- */
+[class*="ActionButton"], [class*="action-button"],
+button[class*="Mui"][class*="outlined"],
+button[class*="Mui"][class*="contained"] {
+  border-radius: 8px !important;
+  font-family: 'Inter', sans-serif !important;
+  font-weight: 500 !important;
+  font-size: 0.875rem !important;
+  padding: 8px 18px !important;
+  transition: all 0.18s ease !important;
+  letter-spacing: 0.01em !important;
+}
+
+/* Primary action buttons */
+button.MuiButton-contained,
+button[class*="ActionButton"][class*="contained"] {
+  background: var(--accent) !important;
+  color: #fff !important;
+  border: none !important;
+  box-shadow: 0 2px 8px rgba(108,142,245,0.35) !important;
+}
+
+button.MuiButton-contained:hover,
+button[class*="ActionButton"][class*="contained"]:hover {
+  background: var(--accent-dim) !important;
+  box-shadow: 0 4px 14px rgba(108,142,245,0.5) !important;
+  transform: translateY(-1px) !important;
+}
+
+/* Outlined / secondary buttons */
+button.MuiButton-outlined,
+button[class*="ActionButton"][class*="outlined"] {
+  background: var(--bg-hover) !important;
+  border: 1px solid var(--border) !important;
+  color: var(--text-primary) !important;
+}
+
+button.MuiButton-outlined:hover,
+button[class*="ActionButton"][class*="outlined"]:hover {
+  background: var(--bg-hover) !important;
+  border-color: var(--accent) !important;
+  color: var(--accent) !important;
+  transform: translateY(-1px) !important;
+}
+
+/* Chip-style action buttons */
+[class*="Chip"], [class*="chip"] {
+  background: var(--bg-hover) !important;
+  border: 1px solid var(--border) !important;
+  color: var(--text-primary) !important;
+  border-radius: 8px !important;
+  font-family: 'Inter', sans-serif !important;
+  font-weight: 500 !important;
+  transition: all 0.18s ease !important;
+}
+
+[class*="Chip"]:hover, [class*="chip"]:hover {
+  border-color: var(--accent) !important;
+  color: var(--accent) !important;
+  background: var(--bg-card) !important;
+}
+
+/* ---------- Input box ---------- */
+[class*="InputArea"], [class*="input-area"],
+[class*="TextField"], [class*="MuiInputBase"] {
+  background: var(--bg-card) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: var(--radius) !important;
+  color: var(--text-primary) !important;
+}
+
+[class*="InputArea"]:focus-within,
+[class*="MuiInputBase"]:focus-within {
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 3px rgba(108,142,245,0.15) !important;
+}
+
+textarea, input[type="text"] {
+  color: var(--text-primary) !important;
+  font-family: 'Inter', sans-serif !important;
+}
+
+/* ---------- Send button ---------- */
+button[type="submit"],
+[class*="SendButton"], [class*="send-button"] {
+  background: var(--accent) !important;
+  color: #fff !important;
+  border-radius: 8px !important;
+  transition: all 0.18s ease !important;
+}
+
+button[type="submit"]:hover {
+  background: var(--accent-dim) !important;
+  transform: scale(1.04) !important;
+}
+
+/* ---------- Code blocks ---------- */
+pre, code {
+  background: #0D1117 !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 6px !important;
+  font-size: 0.83rem !important;
+  color: #C9D1D9 !important;
+}
+
+pre {
+  padding: 12px 16px !important;
+  overflow-x: auto;
+}
+
+/* ---------- Markdown tables ---------- */
+table {
+  border-collapse: collapse !important;
+  width: 100% !important;
+  font-size: 0.875rem !important;
+  margin: 8px 0 !important;
+}
 
 table th {
-    background-color: #a86508;
+  background: var(--accent-dim) !important;
+  color: #fff !important;
+  padding: 8px 12px !important;
+  text-align: left !important;
+  font-weight: 600 !important;
 }
 
+table td {
+  background: var(--bg-card) !important;
+  color: var(--text-primary) !important;
+  padding: 7px 12px !important;
+  border-bottom: 1px solid var(--border) !important;
+}
 
-table td:nth-child(2) {
-    background-color: #FFD700;
+table tr:hover td {
+  background: var(--bg-hover) !important;
+}
+
+/* ---------- Scrollbars ---------- */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--accent-dim); }
+
+/* ---------- Avatar / icons ---------- */
+[class*="Avatar"], [class*="avatar"] {
+  background: var(--accent-dim) !important;
+  color: #fff !important;
+  font-weight: 700 !important;
+}
+
+/* ---------- Dividers ---------- */
+hr, [class*="Divider"], [class*="divider"] {
+  border-color: var(--border) !important;
+}
+
+/* ---------- Toasts / snackbars ---------- */
+[class*="Snackbar"], [class*="snackbar"], [class*="Alert"] {
+  background: var(--bg-card) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: var(--radius) !important;
 }
