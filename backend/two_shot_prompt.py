@@ -61,7 +61,9 @@ def run_two_shot_prompt(
             found = True
             break
     if not found:
-        n_shot_examples_list = n_shot_examples_list[1:]  # skip first ("printer_winter_2017")
+        n_shot_examples_list = n_shot_examples_list[
+            1:
+        ]  # skip first ("printer_winter_2017")
 
     n_shot_examples_msg = f"N-shot examples used: {', '.join(n_shot_examples_list)}"
     logger.info(n_shot_examples_msg)
@@ -156,6 +158,10 @@ def process_two_shot_attempt(
         with open(shot1_mmd_path, "w") as f:
             f.write(shot1_mermaid)
 
+        shot1_txt_path = os.path.join(shot1_dir, "generated_mermaid_code_shot1.txt")
+        with open(shot1_txt_path, "w") as f:
+            f.write(shot1_mermaid)
+
         # Render shot 1 — must succeed before proceeding to shot 2
         try:
             shot1_diagram_path = os.path.join(shot1_dir, "output_shot1")
@@ -202,6 +208,14 @@ def process_two_shot_attempt(
             shot2_mermaid = mermaidCodeSearch(
                 second_answer, paths["generated_mermaid_code_path"]
             )
+
+            # Mirror the final Mermaid output into a stable filename for downstream use.
+            mermaid_code_path = os.path.join(
+                os.path.dirname(paths["generated_mermaid_code_path"]),
+                "generated_mermaid_code.txt",
+            )
+            with open(mermaid_code_path, "w") as f:
+                f.write(shot2_mermaid)
         except Exception as e:
             error = "Shot 2: Failed to extract Mermaid code from LLM response"
             with open(paths["log_file_path"], "a") as f:
