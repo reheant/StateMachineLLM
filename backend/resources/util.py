@@ -46,7 +46,7 @@ def choose_model():
             print("Invalid input. Please enter a number (1, 2, 3, or 4).")
 
 
-def call_llm(prompt, max_tokens=1200, temperature=0.7):
+def call_llm(prompt, max_tokens=15000, temperature=0.7):
     """
     The call_llm function calls the specified LLM with a specified prompt,
     max_tokens, and temperature, and returns the string response of the LLM
@@ -61,7 +61,7 @@ def call_llm(prompt, max_tokens=1200, temperature=0.7):
 
 
 def call_openrouter_llm(
-    prompt, max_tokens=1500, temperature=0.7, model="anthropic/claude-3.5-sonnet"
+    prompt, max_tokens=15000, temperature=0.7, model="anthropic/claude-3.5-sonnet"
 ):
     """
     Call OpenRouter API for LLM requests specifically for single prompt technique

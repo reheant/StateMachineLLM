@@ -197,7 +197,7 @@ def run_automatic_grading(
 
     grading_response = call_openrouter_llm(
         grading_prompt,
-        max_tokens=5000,
+        max_tokens=15000,
         temperature=0.0,
         model=model,
     )

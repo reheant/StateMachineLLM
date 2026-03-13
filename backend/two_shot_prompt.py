@@ -141,7 +141,7 @@ def process_two_shot_attempt(
         # --- Shot 1: Initial generation ---
         print("Running Shot 1: Initial Mermaid generation")
         first_answer = call_openrouter_llm(
-            first_prompt, max_tokens=6000, temperature=0.01, model=model
+            first_prompt, max_tokens=15000, temperature=0.01, model=model
         )
 
         # Log raw response so extraction failures can be diagnosed
@@ -198,7 +198,7 @@ def process_two_shot_attempt(
             )
 
         second_answer = call_openrouter_llm(
-            refinement_prompt, max_tokens=6000, temperature=0.3, model=model
+            refinement_prompt, max_tokens=15000, temperature=0.3, model=model
         )
 
         with open(paths["llm_log_path"], "a") as f:
