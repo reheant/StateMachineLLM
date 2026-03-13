@@ -21,6 +21,16 @@ const STRATEGY_CONFIG: Record<string, { label: string; badge: string; accent: st
     badge: "bg-sky-400/15 text-sky-300",
     accent: "bg-gradient-to-b from-sky-300 to-sky-500",
   },
+  mermaid_compiler: {
+    label: "Compiler",
+    badge: "bg-emerald-400/15 text-emerald-300",
+    accent: "bg-gradient-to-b from-emerald-300 to-emerald-500",
+  },
+  automatic_grader: {
+    label: "Grader",
+    badge: "bg-amber-400/15 text-amber-300",
+    accent: "bg-gradient-to-b from-amber-300 to-amber-500",
+  },
 };
 
 function cleanName(raw: string): string {

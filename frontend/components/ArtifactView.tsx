@@ -134,7 +134,14 @@ export function ArtifactView({ run, onNewRun }: Props) {
       .catch(() => setError("Failed to load artifacts."));
   }, [run.folder]);
 
-  const strategyLabel = run.strategy === "single_prompt" ? "Single Prompt" : "Two-Shot";
+  const strategyLabel =
+    run.strategy === "single_prompt"
+      ? "Single Prompt"
+      : run.strategy === "two_shot_prompt"
+      ? "Two-Shot Prompt"
+      : run.strategy === "mermaid_compiler"
+      ? "Mermaid Compiler"
+      : "Automatic Grader";
 
   if (error)
     return <p className="p-10 text-sm text-red-400">{error}</p>;

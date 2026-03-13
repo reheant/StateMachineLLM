@@ -349,7 +349,9 @@ def run_test_entry_exit_annotations():
         return False
 
 
-def process_custom_mermaid(mermaid_code, system_name="CustomMermaid"):
+def process_custom_mermaid(
+    mermaid_code, system_name="CustomMermaid", file_type="single_prompt"
+):
     """
     Process user-provided Mermaid code (bypasses LLM).
 
@@ -367,14 +369,27 @@ def process_custom_mermaid(mermaid_code, system_name="CustomMermaid"):
     """
     import re
 
-    # Clean up common UI artifacts
-    cleaned_code = mermaid_code
+    # Clean up common UI artifacts and markdown code fences.
+    cleaned_code = mermaid_code or ""
     cleaned_code = cleaned_code.replace("Raw code", "")
-    cleaned_code = cleaned_code.strip("'\"")
+    cleaned_code = re.sub(
+        r"^```(?:mermaid)?\s*", "", cleaned_code.strip(), flags=re.IGNORECASE
+    )
+    cleaned_code = re.sub(r"\s*```$", "", cleaned_code, flags=re.IGNORECASE)
+    cleaned_code = cleaned_code.strip("'\"\n\r\t ")
+
+    if cleaned_code.lower().startswith("mermaid\n"):
+        cleaned_code = cleaned_code.split("\n", 1)[1]
+
+    # If users paste transitions only, inject the required header.
+    if "statediagram" not in cleaned_code.lower():
+        cleaned_code = f"stateDiagram-v2\n{cleaned_code}"
+
     cleaned_code = re.sub(r"\n\s*\n\s*\n", "\n\n", cleaned_code)
 
     paths = setup_file_paths(
         os.path.dirname(__file__),
+        file_type=file_type,
         system_name=system_name,
         model_name="custom-input",
     )

@@ -1,5 +1,9 @@
 export interface Run {
-  strategy: "single_prompt" | "two_shot_prompt";
+  strategy:
+    | "single_prompt"
+    | "two_shot_prompt"
+    | "mermaid_compiler"
+    | "automatic_grader";
   date: string;
   time: string;
   model: string;
@@ -25,4 +29,5 @@ export interface Example {
   icon: string;
   label: string;
   blurb: string;
+  description?: string;
 }

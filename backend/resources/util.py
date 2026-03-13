@@ -1154,8 +1154,13 @@ def setup_file_paths(
         dict: Dictionary containing all necessary file paths
     """
 
-    # For single_prompt and two_shot_prompt, organize files in timestamped folders
-    if file_type in ("single_prompt", "two_shot_prompt"):
+    # For generation/compiler/grader runs, organize files in timestamped folders
+    if file_type in (
+        "single_prompt",
+        "two_shot_prompt",
+        "mermaid_compiler",
+        "automatic_grader",
+    ):
         # Create date and time parts separately
         date_folder = time.strftime("%Y_%m_%d")  # e.g., 2026_01_30
         time_folder = time.strftime("%H_%M_%S")  # e.g., 16_38_49

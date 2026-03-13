@@ -4,11 +4,18 @@ import csv
 import xml.etree.ElementTree as ET
 from typing import Optional
 
-from resources.util import call_openrouter_llm
-from resources.prompts.single_prompt.grading_prompt_template import (
-    build_grading_prompt,
-)
-from resources import state_machine_descriptions as sm_descriptions
+try:
+    from backend.resources.util import call_openrouter_llm
+    from backend.resources.prompts.single_prompt.grading_prompt_template import (
+        build_grading_prompt,
+    )
+    from backend.resources import state_machine_descriptions as sm_descriptions
+except ImportError:
+    from resources.util import call_openrouter_llm
+    from resources.prompts.single_prompt.grading_prompt_template import (
+        build_grading_prompt,
+    )
+    from resources import state_machine_descriptions as sm_descriptions
 
 
 def _slugify(value: str) -> str:
