@@ -92,7 +92,7 @@ export function RunForm({ onComplete, onHistoryRefresh }: Props) {
     logsEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [logs]);
 
-  async function handleExampleChange(key: string) {
+async function handleExampleChange(key: string) {
     setExampleKey(key);
     const ex = examples.find((e) => e.key === key);
     if (!ex) return;
@@ -226,35 +226,12 @@ export function RunForm({ onComplete, onHistoryRefresh }: Props) {
   return (
     <div className="flex flex-col bg-background">
 
-      {/* Hero header */}
-      <div className="relative overflow-hidden border-b border-white/[0.06] px-10 py-10">
-        {/* Glow orbs */}
-        <div className="pointer-events-none absolute -top-16 -left-8 h-56 w-56 rounded-full bg-orange-500/10 blur-3xl" />
-        <div className="pointer-events-none absolute -bottom-8 right-1/3 h-32 w-48 rounded-full bg-orange-500/8 blur-2xl" />
-        <div className="flex flex-col items-center text-center gap-4">
-          {/* Large hero logo */}
-          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-orange-400 via-orange-500 to-orange-600 shadow-2xl shadow-orange-500/30">
-            <svg viewBox="0 0 32 32" fill="none" className="h-8 w-8" aria-hidden="true">
-              <path d="M22 4L28 10L11 27H5V21L22 4Z" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" fill="white" fillOpacity="0.15" />
-              <path d="M18 8L24 14" stroke="white" strokeWidth="2.5" strokeLinecap="round" />
-            </svg>
-          </div>
-          <div>
-            <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-orange-400/70">
-              Tracer · New Run
-            </p>
-            <h1 className="mt-1 text-3xl font-bold tracking-tight text-white">
-              Generate a diagram
-            </h1>
-            <p className="mt-1.5 text-sm text-white/45">
-              Describe any system — Tracer traces its states for you.
-            </p>
-          </div>
-        </div>
-      </div>
-
       <div className="flex flex-col px-6 py-10">
       <div className="mx-auto w-full max-w-2xl flex flex-col gap-10">
+        <div className="flex flex-col items-center gap-1.5 text-center">
+          <h1 className="text-5xl font-black tracking-tight bg-gradient-to-br from-orange-300 via-orange-400 to-orange-600 bg-clip-text text-transparent">Tracer</h1>
+          <p className="text-sm text-white/30">Generate a state machine diagram from any system description.</p>
+        </div>
 
         {/* Step 1 — Strategy */}
         <div className="flex flex-col gap-4">
@@ -291,87 +268,92 @@ export function RunForm({ onComplete, onHistoryRefresh }: Props) {
           </div>
         </div>
 
-        {/* Step 2 — Model */}
-        <div className="flex flex-col gap-4">
+        {/* Step 2 — Parameters */}
+        <div className="flex flex-col gap-5">
           <div className="flex items-center gap-2.5">
             <StepNumber n={2} />
-            <span className="text-xs font-semibold uppercase tracking-widest text-white/30">Model</span>
+            <span className="text-xs font-semibold uppercase tracking-widest text-white/30">Parameters</span>
           </div>
-          <Select value={model} onValueChange={(v) => v && setModel(v)}>
-            <SelectTrigger className="h-11 rounded-xl border-white/[0.08] bg-white/[0.03] text-sm text-white/70 focus:ring-orange-500/20">
-              <SelectValue>{MODEL_LABELS[model] ?? model}</SelectValue>
-            </SelectTrigger>
-            <SelectContent className="border-white/10 bg-[oklch(0.30_0.035_258)] text-white/80">
-              {Object.entries(MODELS).map(([group, options]) => (
-                <SelectGroup key={group}>
-                  <SelectLabel className="text-white/30">{group}</SelectLabel>
-                  {options.map((opt) => (
-                    <SelectItem key={opt.value} value={opt.value} className="focus:bg-white/10 focus:text-white">
-                      {opt.label}
-                    </SelectItem>
-                  ))}
-                </SelectGroup>
+
+          {/* Model + Input tab bar — same row */}
+          <div className="flex items-center gap-2">
+            <Select value={model} onValueChange={(v) => v && setModel(v)}>
+              <SelectTrigger className="h-11 w-56 shrink-0 rounded-2xl border-white/[0.08] bg-white/[0.03] text-sm text-white/70 focus:ring-orange-500/20">
+                <SelectValue>{MODEL_LABELS[model] ?? model}</SelectValue>
+              </SelectTrigger>
+              <SelectContent className="border-white/10 bg-[oklch(0.30_0.035_258)] text-white/80">
+                {Object.entries(MODELS).map(([group, options]) => (
+                  <SelectGroup key={group}>
+                    <SelectLabel className="text-white/30">{group}</SelectLabel>
+                    {options.map((opt) => (
+                      <SelectItem key={opt.value} value={opt.value} className="focus:bg-white/10 focus:text-white">
+                        {opt.label}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                ))}
+              </SelectContent>
+            </Select>
+
+            {/* Tab bar */}
+            <div className="flex flex-1 overflow-hidden rounded-2xl border border-white/[0.07] bg-white/[0.03] p-1">
+              {(["example", "custom", "mermaid"] as const).map((tab) => (
+                <button
+                  key={tab}
+                  onClick={() => handleInputTabChange(tab)}
+                  className={cn(
+                    "flex-1 rounded-xl px-3 py-1.5 text-sm font-medium transition-all",
+                    inputTab === tab
+                      ? "bg-white/[0.08] text-white/80"
+                      : "text-white/30 hover:text-white/55"
+                  )}
+                >
+                  {tab === "example" ? "Example" : tab === "custom" ? "Custom" : "Mermaid"}
+                </button>
               ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        {/* Step 3 — Input */}
-        <div className="flex flex-col gap-4">
-          <div className="flex items-center gap-2.5">
-            <StepNumber n={3} />
-            <span className="text-xs font-semibold uppercase tracking-widest text-white/30">Input</span>
+            </div>
           </div>
 
-          {/* Tab bar */}
-          <div className="flex overflow-hidden rounded-lg border border-white/[0.07] bg-white/[0.03] p-0.5">
-            {(["example", "custom", "mermaid"] as const).map((tab) => (
-              <button
-                key={tab}
-                onClick={() => handleInputTabChange(tab)}
-                className={cn(
-                  "flex-1 rounded-md px-3 py-1.5 text-xs font-medium transition-all",
-                  inputTab === tab
-                    ? "bg-white/[0.08] text-white/80"
-                    : "text-white/25 hover:text-white/50"
-                )}
-              >
-                {tab === "example" ? "Example" : tab === "custom" ? "Custom" : "Mermaid"}
-              </button>
-            ))}
-          </div>
+          {/* Input content */}
+          <div className="flex flex-col gap-3">
 
           {/* Example tab */}
           {inputTab === "example" && (
             <div className="flex flex-col gap-3">
-              <Select value={exampleKey} onValueChange={(v) => v && handleExampleChange(v)}>
-                <SelectTrigger className="h-11 rounded-xl border-white/[0.08] bg-white/[0.03] text-sm text-white/60 focus:ring-orange-500/20">
-                  <SelectValue placeholder="Choose an example system…">
-                    {exampleKey
-                      ? (() => {
-                          const ex = examples.find((e) => e.key === exampleKey);
-                          return ex ? `${ex.icon} ${ex.label}` : exampleKey;
-                        })()
-                      : undefined}
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent className="border-white/10 bg-[oklch(0.30_0.035_258)] text-white/80">
+              {/* Inline example pills */}
+              {examples.length > 0 && (
+                <div className="grid grid-cols-3 gap-2">
                   {examples.map((ex) => (
-                    <SelectItem key={ex.key} value={ex.key} className="focus:bg-white/10 focus:text-white">
-                      {ex.icon} {ex.label}
-                    </SelectItem>
+                    <button
+                      key={ex.key}
+                      onClick={() => handleExampleChange(ex.key)}
+                      className={cn(
+                        "flex items-center gap-2.5 rounded-2xl border px-4 py-3 text-left transition-all duration-150",
+                        exampleKey === ex.key
+                          ? "border-orange-400/30 bg-orange-400/10 ring-1 ring-orange-400/20"
+                          : "border-white/[0.07] bg-white/[0.03] hover:border-white/[0.12] hover:bg-white/[0.05]"
+                      )}
+                    >
+                      <span className="text-lg leading-none">{ex.icon}</span>
+                      <span className={cn(
+                        "text-[13px] font-semibold leading-snug",
+                        exampleKey === ex.key ? "text-orange-200" : "text-white/55"
+                      )}>
+                        {ex.label}
+                      </span>
+                    </button>
                   ))}
-                </SelectContent>
-              </Select>
+                </div>
+              )}
               <Textarea
                 placeholder={
                   !exampleKey
-                    ? "Select an example to auto-fill…"
+                    ? "Select an example above to auto-fill…"
                     : "Describe the system behaviour in detail…"
                 }
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                className="min-h-48 resize-none rounded-xl border-white/[0.08] bg-white/[0.03] font-sans text-sm text-white/70 leading-relaxed placeholder:text-white/20 focus:border-orange-500/30 focus:ring-orange-500/10"
+                className="min-h-[6rem] max-h-[22rem] resize-none overflow-y-auto rounded-xl border-white/[0.08] bg-white/[0.03] font-sans text-sm text-white/70 leading-relaxed placeholder:text-white/20 focus:border-orange-500/30 focus:ring-orange-500/10"
               />
             </div>
           )}
@@ -422,7 +404,7 @@ export function RunForm({ onComplete, onHistoryRefresh }: Props) {
                 className={cn(
                   "group relative flex w-full items-center justify-center gap-2.5 overflow-hidden rounded-xl py-3.5 text-sm font-semibold transition-all duration-200",
                   canRender
-                    ? "bg-gradient-to-r from-orange-400 to-yellow-300 text-[oklch(0.118_0.004_285)] shadow-lg shadow-orange-400/40 hover:shadow-orange-300/50 hover:from-orange-300 hover:to-yellow-200 active:scale-[0.99]"
+                    ? "bg-orange-500/90 text-white shadow-lg shadow-orange-500/20 hover:bg-orange-400/90 active:scale-[0.99]"
                     : "cursor-not-allowed bg-white/[0.04] text-white/20"
                 )}
               >
@@ -435,7 +417,8 @@ export function RunForm({ onComplete, onHistoryRefresh }: Props) {
               </button>
             </div>
           )}
-        </div>
+          </div>{/* end Input */}
+        </div>{/* end Parameters */}
 
         {/* Generate button — only for Example/Custom tabs */}
         {inputTab !== "mermaid" && (
@@ -445,7 +428,7 @@ export function RunForm({ onComplete, onHistoryRefresh }: Props) {
             className={cn(
               "group relative flex w-full items-center justify-center gap-2.5 overflow-hidden rounded-xl py-3.5 text-sm font-semibold transition-all duration-200",
               canGenerate
-                ? "bg-gradient-to-r from-orange-400 to-yellow-300 text-[oklch(0.118_0.004_285)] shadow-lg shadow-orange-400/40 hover:shadow-orange-300/50 hover:from-orange-300 hover:to-yellow-200 active:scale-[0.99]"
+                ? "bg-orange-500/90 text-white shadow-lg shadow-orange-500/20 hover:bg-orange-400/90 active:scale-[0.99]"
                 : "cursor-not-allowed bg-white/[0.04] text-white/20"
             )}
           >

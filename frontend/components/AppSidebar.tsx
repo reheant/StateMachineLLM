@@ -52,7 +52,7 @@ export function AppSidebar({ selectedRun, onSelectRun, onNewRun, refreshToken, l
       {/* Brand header */}
       <SidebarHeader className="p-0">
         <div className="relative overflow-hidden px-5 pt-5 pb-5">
-          <div className="pointer-events-none absolute -top-8 -left-8 h-32 w-32 rounded-full bg-orange-500/12 blur-2xl" />
+          <div className="pointer-events-none absolute -top-8 -left-8 h-32 w-32 rounded-full bg-orange-500/6 blur-2xl" />
           <div className="relative flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-orange-400 via-orange-500 to-orange-600 shadow-lg shadow-orange-500/30">
@@ -63,7 +63,7 @@ export function AppSidebar({ selectedRun, onSelectRun, onNewRun, refreshToken, l
                 </svg>
               </div>
               <div>
-                <p className="text-xl font-bold tracking-tight text-white">Tracer</p>
+                <p className="text-xl font-black tracking-tight bg-gradient-to-br from-orange-300 via-orange-400 to-orange-600 bg-clip-text text-transparent">Tracer</p>
                 <p className="text-[11px] leading-tight text-orange-400/50">Trace your system.</p>
               </div>
             </div>
@@ -80,7 +80,7 @@ export function AppSidebar({ selectedRun, onSelectRun, onNewRun, refreshToken, l
         <div className="mx-4 border-t border-white/[0.06]" />
       </SidebarHeader>
 
-      <SidebarContent className="flex flex-col overflow-hidden pt-3">
+      <SidebarContent className="flex min-h-0 flex-col pt-3">
         <div className="px-4 pb-3">
           <p className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-white/25">
             History
