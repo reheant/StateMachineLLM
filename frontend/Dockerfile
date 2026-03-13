@@ -2,6 +2,9 @@ FROM node:20-alpine
 
 WORKDIR /app
 
+ARG BACKEND_URL=http://localhost:8000
+ENV BACKEND_URL=$BACKEND_URL
+
 # Install dependencies first (better layer caching)
 COPY StateMachineLLM/frontend/package*.json ./
 RUN npm ci

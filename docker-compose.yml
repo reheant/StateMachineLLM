@@ -31,6 +31,8 @@ services:
     build:
       context: ..
       dockerfile: StateMachineLLM/frontend/Dockerfile
+      args:
+        BACKEND_URL: http://backend:8000
     container_name: tracer-frontend
     ports:
       - "3000:3000"

@@ -149,6 +149,11 @@ def _find_latest_run_folder(strategy: str) -> str | None:
 # API routes
 # ---------------------------------------------------------------------------
 
+@app.get("/health")
+def healthcheck():
+    return {"status": "ok"}
+
+
 @app.get("/api/examples")
 def get_examples():
     return [
