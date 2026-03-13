@@ -37,11 +37,11 @@ RUN mkdir -p /app/.chainlit \
     /app/backend/resources/single_prompt_log \
     /app/backend/resources/single_prompt_outputs
 
-# Expose Chainlit default port
+# Expose FastAPI port
 EXPOSE 8000
 
 # Set environment variables
 ENV PYTHONUNBUFFERED=1
 
-# Run the application
-CMD ["chainlit", "run", "app.py", "-w", "--host", "0.0.0.0", "--port", "8000"]
+# Run the FastAPI backend
+CMD ["uvicorn", "server:app", "--host", "0.0.0.0", "--port", "8000"]

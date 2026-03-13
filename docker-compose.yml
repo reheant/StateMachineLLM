@@ -1,13 +1,12 @@
 services:
-  statemachine-llm:
+  backend:
     build:
       context: ..
       dockerfile: StateMachineLLM/Dockerfile
-    container_name: statemachine-llm
+    container_name: tracer-backend
     ports:
       - "8000:8000"
     environment:
-      # Load from .env file
       - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - DEBUG=${DEBUG:-False}
@@ -15,14 +14,11 @@ services:
     env_file:
       - .env
     volumes:
-      # Mount output directories to persist generated files
       - ./backend/resources/event_driven_log:/app/backend/resources/event_driven_log
       - ./backend/resources/single_prompt_log:/app/backend/resources/single_prompt_log
       - ./backend/resources/single_prompt_outputs:/app/backend/resources/single_prompt_outputs
       - ./backend/resources/event_driven_diagrams:/app/backend/resources/event_driven_diagrams
       - ./backend/resources/single_prompt_diagrams:/app/backend/resources/single_prompt_diagrams
-      - ./.chainlit:/app/.chainlit
-      - ./.files:/app/.files
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
@@ -30,3 +26,17 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
+
+  frontend:
+    build:
+      context: ..
+      dockerfile: StateMachineLLM/frontend/Dockerfile
+    container_name: tracer-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - BACKEND_URL=http://backend:8000
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped

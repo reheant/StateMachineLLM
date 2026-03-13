@@ -59,16 +59,18 @@ docker-compose up --build
 ```
 
 This will:
-- Build the Docker image with all dependencies (including mermaid-parser-py)
-- Start the application
-- Expose it on http://localhost:8000
+- Build both the backend (FastAPI) and frontend (Next.js) images
+- Start both services
+- Expose the backend on http://localhost:8000 and the frontend on http://localhost:3000
 
 ### 4. Access the Application
 
 Open your browser and navigate to:
 ```
-http://localhost:8000
+http://localhost:3000
 ```
+
+> The backend API is available at http://localhost:8000 but you interact with the app through the frontend on port 3000.
 
 ## Common Commands
 
