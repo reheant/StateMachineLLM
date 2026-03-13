@@ -78,7 +78,7 @@ export function RunForm({ onComplete, onHistoryRefresh }: Props) {
   const [examples, setExamples] = useState<Example[]>([]);
   const [generating, setGenerating] = useState(false);
   const [logs, setLogs] = useState<string[]>([]);
-  const [enableAutoGrading, setEnableAutoGrading] = useState(true);
+  const [enableAutoGrading, setEnableAutoGrading] = useState(false);
 
   // Mermaid sandbox state
   const [mermaidCode, setMermaidCode] = useState("");
