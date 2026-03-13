@@ -30,43 +30,29 @@ You are a professor who specializes in state machine modeling and evaluation.
 </documents>
 
 <instructions>
-Your task is to grade the student's state machine against the atomic components listed in the ground truth CSV.
+Your task is to complete the provided ground-truth grading sheet CSV.
 
-1. Evaluate every row that is not part of the "additional elements" section using these scores only:
-     - 1: The concept is correctly represented. Names/syntax may differ, but the same behavior is clearly present.
-     - 0.5: The concept is partially represented (incomplete or only partly correct).
-     - 0: The concept is not represented.
+1. Keep the CSV structure exactly the same:
+     - Same header
+     - Same row order
+     - Same values in non-grading columns
 
-2. Use semantic equivalence, not exact naming or syntax. If the underlying behavior exists, score 1.
+2. Fill only the grading column and notes/justification column for each row.
 
-3. Evaluate rows that belong to "additional elements" differently:
-     - Use integers only: 0, 1, 2, 3, ...
+3. For rows where Element is "additional elements" (case-insensitive):
+     - Use integers only in the grading column: 0, 1, 2, 3, ...
      - Add 1 only when an element in that category should fundamentally not be modeled at all.
      - Do not add values for style preferences, optimization opportunities, or simplifications.
 
-4. Ground your grading in the system description as source-of-truth behavior.
+4. For all other rows, grading must be one of: 0, 0.5, 1.
+     - 1: The concept is correctly represented.
+     - 0.5: The concept is partially represented.
+     - 0: The concept is not represented.
 
-5. Keep justifications concise and concrete.
+5. Use semantic equivalence, not exact naming or syntax. Ground grading in the system description as source-of-truth behavior.
 
-6. Return output in this exact XML structure and do not add any preamble text:
-<grading_report>
-    <atomic_components>
-        <item>
-            <type>...</type>
-            <element>...</element>
-            <score>0|0.5|1</score>
-            <justification>...</justification>
-        </item>
-        ...
-    </atomic_components>
-    <additional_elements>
-        <item>
-            <category>...</category>
-            <score>0|1|2|...</score>
-            <justification>...</justification>
-        </item>
-        ...
-    </additional_elements>
-</grading_report>
+6. Keep notes concise and concrete.
+
+7. Return CSV only. Do not include XML, markdown fences, commentary, or any text before/after the CSV.
 </instructions>
 """

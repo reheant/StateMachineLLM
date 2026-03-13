@@ -1,7 +1,7 @@
 import os
 import re
 import csv
-import xml.etree.ElementTree as ET
+import io
 from typing import Optional
 
 try:
@@ -66,112 +66,54 @@ def _append_log(path: Optional[str], text: str) -> None:
         f.write(text)
 
 
-def _extract_rows_from_grading_response(grading_response: str) -> list[dict[str, str]]:
-    """Extract tabular grading rows from <grading_report> XML output using regex."""
-    rows: list[dict[str, str]] = []
+def _normalize_header(value: str) -> str:
+    return re.sub(r"[^a-z0-9]+", "", value.lower())
 
-    # Extract XML block
-    match = re.search(
-        r"<grading_report>.*?</grading_report>", grading_response, re.DOTALL
+
+def _extract_csv_text_from_response(
+    grading_response: str, expected_headers: list[str]
+) -> str:
+    """Extract CSV text from an LLM response, tolerating markdown fences and preamble."""
+    # Prefer fenced CSV blocks if present.
+    fenced_match = re.search(
+        r"```(?:csv)?\s*(.*?)\s*```", grading_response, re.DOTALL | re.IGNORECASE
     )
-    if not match:
-        print("[DEBUG] No XML block found in response")
-        return rows
-
-    xml_text = match.group(0)
-    print(f"[DEBUG] Found XML block of length {len(xml_text)}")
-
-    # Extract atomic_components items using regex
-    atomic_pattern = r"<item>(.*?)</item>"
-    atomic_section_match = re.search(
-        r"<atomic_components>(.*?)</atomic_components>", xml_text, re.DOTALL
+    candidate = (
+        fenced_match.group(1).strip() if fenced_match else grading_response.strip()
     )
 
-    if atomic_section_match:
-        atomic_section = atomic_section_match.group(1)
-        for item_match in re.finditer(atomic_pattern, atomic_section, re.DOTALL):
-            item_content = item_match.group(1)
+    lines = candidate.splitlines()
+    if not lines:
+        return ""
 
-            type_match = re.search(r"<type>(.*?)</type>", item_content, re.DOTALL)
-            element_match = re.search(
-                r"<element>(.*?)</element>", item_content, re.DOTALL
-            )
-            score_match = re.search(r"<score>(.*?)</score>", item_content, re.DOTALL)
-            just_match = re.search(
-                r"<justification>(.*?)</justification>", item_content, re.DOTALL
-            )
+    expected = [_normalize_header(h) for h in expected_headers if h is not None]
+    if not expected:
+        return candidate
 
-            type_val = (type_match.group(1) if type_match else "").strip()
-            element_val = (element_match.group(1) if element_match else "").strip()
-            score_val = (score_match.group(1) if score_match else "").strip()
-            just_val = (just_match.group(1) if just_match else "").strip()
+    # If there is extra text before the table, keep content from the header line onward.
+    for idx, line in enumerate(lines):
+        normalized_cells = [_normalize_header(cell) for cell in line.split(",")]
+        if len(normalized_cells) >= len(expected) and all(
+            normalized_cells[i] == expected[i] for i in range(len(expected))
+        ):
+            return "\n".join(lines[idx:]).strip()
 
-            # Only add non-empty items
-            if element_val or score_val:
-                rows.append(
-                    {
-                        "section": "atomic_components",
-                        "category_or_type": type_val,
-                        "element": element_val,
-                        "score": score_val,
-                        "justification": just_val,
-                    }
-                )
-
-        print(
-            f"[DEBUG] Extracted {len([r for r in rows if r['section'] == 'atomic_components'])} atomic components"
-        )
-
-    # Extract additional_elements items using regex
-    additional_section_match = re.search(
-        r"<additional_elements>(.*?)</additional_elements>", xml_text, re.DOTALL
-    )
-
-    if additional_section_match:
-        additional_section = additional_section_match.group(1)
-        for item_match in re.finditer(atomic_pattern, additional_section, re.DOTALL):
-            item_content = item_match.group(1)
-
-            category_match = re.search(
-                r"<category>(.*?)</category>", item_content, re.DOTALL
-            )
-            score_match = re.search(r"<score>(.*?)</score>", item_content, re.DOTALL)
-            just_match = re.search(
-                r"<justification>(.*?)</justification>", item_content, re.DOTALL
-            )
-
-            category_val = (category_match.group(1) if category_match else "").strip()
-            score_val = (score_match.group(1) if score_match else "").strip()
-            just_val = (just_match.group(1) if just_match else "").strip()
-
-            # Only add additional elements with a score
-            if score_val:
-                rows.append(
-                    {
-                        "section": "additional_elements",
-                        "category_or_type": category_val,
-                        "element": "",
-                        "score": score_val,
-                        "justification": just_val,
-                    }
-                )
-
-        print(
-            f"[DEBUG] Extracted {len([r for r in rows if r['section'] == 'additional_elements'])} additional elements"
-        )
-
-    print(f"[DEBUG] Total rows extracted: {len(rows)}")
-    return rows
+    return candidate
 
 
-def _write_structured_grading_files(paths: dict, rows: list[dict[str, str]]) -> None:
-    fieldnames = [
-        "section",
-        "category_or_type",
-        "element",
-        "score",
-        "justification",
+def _read_csv_rows(csv_text: str) -> tuple[list[str], list[dict[str, str]]]:
+    reader = csv.DictReader(io.StringIO(csv_text))
+    fieldnames = reader.fieldnames or []
+    rows = [
+        {key: (value if value is not None else "") for key, value in row.items()}
+        for row in reader
     ]
+    return fieldnames, rows
+
+
+def _write_structured_grading_files(
+    paths: dict, rows: list[dict[str, str]], fieldnames: list[str]
+) -> None:
 
     csv_path = paths.get("grading_csv_path")
     tsv_path = paths.get("grading_tsv_path")
@@ -187,6 +129,48 @@ def _write_structured_grading_files(paths: dict, rows: list[dict[str, str]]) -> 
             writer = csv.DictWriter(f, fieldnames=fieldnames, delimiter="\t")
             writer.writeheader()
             writer.writerows(rows)
+
+
+def _pick_column(fieldnames: list[str], keywords: tuple[str, ...]) -> Optional[str]:
+    normalized = {name: _normalize_header(name) for name in fieldnames}
+    for keyword in keywords:
+        norm_keyword = _normalize_header(keyword)
+        for original, norm_name in normalized.items():
+            if norm_keyword in norm_name:
+                return original
+    return None
+
+
+def _validate_completed_grading_rows(
+    ground_truth_rows: list[dict[str, str]],
+    completed_rows: list[dict[str, str]],
+    fieldnames: list[str],
+) -> tuple[bool, str]:
+    if len(ground_truth_rows) != len(completed_rows):
+        return (
+            False,
+            f"Row count mismatch: expected {len(ground_truth_rows)}, got {len(completed_rows)}",
+        )
+
+    score_col = _pick_column(fieldnames, ("grading", "rater"))
+    notes_col = _pick_column(fieldnames, ("notes", "justification", "comment"))
+
+    mutable_columns = {col for col in (score_col, notes_col) if col}
+    immutable_columns = [col for col in fieldnames if col not in mutable_columns]
+
+    for idx, (gt_row, llm_row) in enumerate(
+        zip(ground_truth_rows, completed_rows), start=1
+    ):
+        for col in immutable_columns:
+            if (gt_row.get(col, "") or "").strip() != (
+                llm_row.get(col, "") or ""
+            ).strip():
+                return (
+                    False,
+                    f"Unexpected change in row {idx}, column '{col}'.",
+                )
+
+    return True, ""
 
 
 def run_automatic_grading(
@@ -260,23 +244,42 @@ def run_automatic_grading(
         with open(paths["grading_output_path"], "w") as f:
             f.write(grading_response)
 
-    rows = _extract_rows_from_grading_response(grading_response)
-    if not rows:
-        rows = [
-            {
-                "section": "raw_response",
-                "category_or_type": "unparsed",
-                "element": "",
-                "score": "",
-                "justification": grading_response.strip(),
-            }
-        ]
+    gt_fieldnames, gt_rows = _read_csv_rows(ground_truth_csv)
+    response_csv_text = _extract_csv_text_from_response(grading_response, gt_fieldnames)
+    response_fieldnames, response_rows = _read_csv_rows(response_csv_text)
+
+    rows = response_rows
+    fieldnames = response_fieldnames if response_fieldnames else gt_fieldnames
+
+    fieldnames_match = [_normalize_header(h) for h in fieldnames] == [
+        _normalize_header(h) for h in gt_fieldnames
+    ]
+
+    rows_are_valid = False
+    validation_error = ""
+    if fieldnames_match and rows:
+        rows_are_valid, validation_error = _validate_completed_grading_rows(
+            gt_rows, rows, gt_fieldnames
+        )
+    else:
+        validation_error = "Header mismatch or no rows parsed from CSV response."
+
+    if not rows_are_valid:
+        rows = gt_rows
+        fieldnames = gt_fieldnames
+        if rows:
+            notes_col = _pick_column(fieldnames, ("notes", "justification", "comment"))
+            if notes_col:
+                rows[0][
+                    notes_col
+                ] = f"Automatic grading response parse/validation failed: {validation_error}"
         _append_log(
             paths.get("llm_log_path"),
-            "Structured grading export used fallback row: unable to parse <grading_report> XML.\n\n",
+            "Structured grading export used fallback rows from ground truth CSV. "
+            f"Reason: {validation_error}\n\n",
         )
 
-    _write_structured_grading_files(paths, rows)
+    _write_structured_grading_files(paths, rows, fieldnames)
 
     _append_log(paths.get("llm_log_path"), "=== Automatic Grading Response ===\n")
     _append_log(paths.get("llm_log_path"), grading_response + "\n\n")
