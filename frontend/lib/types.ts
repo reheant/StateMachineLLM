@@ -18,6 +18,7 @@ export interface Artifacts {
   txt: string | null;
   shot1_png?: string | null;
   shot1_mmd?: string | null;
+  shot1_txt?: string | null;
   llm_log: string | null;
   grading_prompt: string | null;
   grading_output: string | null;

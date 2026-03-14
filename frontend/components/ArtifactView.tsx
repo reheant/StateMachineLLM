@@ -163,6 +163,7 @@ export function ArtifactView({ run, onNewRun }: Props) {
       : run.strategy === "mermaid_compiler"
       ? "Mermaid Compiler"
       : "Automatic Grader";
+  const isTwoShot = run.strategy === "two_shot_prompt";
 
   if (error)
     return <p className="p-10 text-sm text-red-400">{error}</p>;
@@ -228,9 +229,30 @@ export function ArtifactView({ run, onNewRun }: Props) {
           )}
 
           {/* Collapsible files */}
-          {(artifacts.mmd || artifacts.llm_log || artifacts.txt || artifacts.grading_prompt || artifacts.grading_output || artifacts.ground_truth_csv || artifacts.grading_csv || artifacts.grading_tsv) && (
+          {(artifacts.mmd || artifacts.llm_log || artifacts.txt || artifacts.shot1_mmd || artifacts.shot1_png || artifacts.shot1_txt || artifacts.grading_prompt || artifacts.grading_output || artifacts.ground_truth_csv || artifacts.grading_csv || artifacts.grading_tsv) && (
             <div className="overflow-hidden rounded-2xl border border-white/[0.07] bg-white/[0.02] divide-y divide-white/[0.05]">
-              {artifacts.mmd && (
+              {isTwoShot && artifacts.txt && (
+                <CollapsibleSection title="Shot 2 Mermaid code" badge=".txt">
+                  <FileContent path={artifacts.txt} />
+                </CollapsibleSection>
+              )}
+              {isTwoShot && artifacts.shot1_png && (
+                <CollapsibleSection title="Shot 1 diagram" badge=".png">
+                  <div className="overflow-hidden rounded-xl border border-white/[0.06] bg-black/20">
+                    <img
+                      src={imageUrl(artifacts.shot1_png)}
+                      alt={`${run.system} shot 1 state machine`}
+                      className="w-full"
+                    />
+                  </div>
+                </CollapsibleSection>
+              )}
+              {isTwoShot && artifacts.shot1_txt && (
+                <CollapsibleSection title="Shot 1 Mermaid code" badge=".txt">
+                  <FileContent path={artifacts.shot1_txt} />
+                </CollapsibleSection>
+              )}
+              {!isTwoShot && artifacts.mmd && (
                 <CollapsibleSection title="Mermaid source" badge=".mmd">
                   <FileContent path={artifacts.mmd} />
                 </CollapsibleSection>
@@ -270,7 +292,7 @@ export function ArtifactView({ run, onNewRun }: Props) {
                   <FileContent path={artifacts.llm_log} />
                 </CollapsibleSection>
               )}
-              {artifacts.txt && !artifacts.mmd && (
+              {!isTwoShot && artifacts.txt && !artifacts.mmd && (
                 <CollapsibleSection title="Raw output" badge=".txt">
                   <FileContent path={artifacts.txt} />
                 </CollapsibleSection>

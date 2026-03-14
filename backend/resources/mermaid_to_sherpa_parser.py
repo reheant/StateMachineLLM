@@ -356,6 +356,8 @@ def parse_mermaid_with_library(mermaid_code: str):
 
     def build_nested_state(state_id):
         """Recursively build nested state structure, including history pseudo-states"""
+        invalid_child_names = {"", ".", "spec", "--"}
+
         # Check if this state has parallel regions
         if state_id in parallel_info_by_state:
             regions = parallel_info_by_state[state_id]
@@ -384,9 +386,18 @@ def parse_mermaid_with_library(mermaid_code: str):
                     nested_child = build_nested_state(child_id)
                     if nested_child not in nested_children:
                         nested_children.append(nested_child)
-                        # If this child is a composite state (dict), track it as a parallel region child
+                        # Track direct children so we can set an explicit parallel initial list
+                        # and avoid renderer placeholders for region-only composites.
                         if isinstance(nested_child, dict):
-                            parallel_region_children.append(nested_child["name"])
+                            child_name = nested_child.get("name", "")
+                        else:
+                            child_name = nested_child
+                        if (
+                            isinstance(child_name, str)
+                            and child_name not in invalid_child_names
+                            and child_name not in parallel_region_children
+                        ):
+                            parallel_region_children.append(child_name)
 
             # Also add any children that were remapped from region IDs to this parent
             # These were added to hierarchical_states but aren't in region["states"]
@@ -403,9 +414,17 @@ def parse_mermaid_with_library(mermaid_code: str):
                     nested_child = build_nested_state(child_id)
                     if nested_child not in nested_children:
                         nested_children.append(nested_child)
-                        # If this child is a composite state (dict), track it as a parallel region child
+                        # Track direct children so we can set an explicit parallel initial list.
                         if isinstance(nested_child, dict):
-                            parallel_region_children.append(nested_child["name"])
+                            child_name = nested_child.get("name", "")
+                        else:
+                            child_name = nested_child
+                        if (
+                            isinstance(child_name, str)
+                            and child_name not in invalid_child_names
+                            and child_name not in parallel_region_children
+                        ):
+                            parallel_region_children.append(child_name)
 
             # Add history pseudo-state "H" if this composite state has history
             if state_id in history_states_map:
@@ -428,6 +447,8 @@ def parse_mermaid_with_library(mermaid_code: str):
             # This is a regular composite state - build it with nested children
             nested_children = []
             for child_id in hierarchical_states[state_id]:
+                if child_id in invalid_child_names:
+                    continue
                 # Recursively build each child (might also be composite)
                 nested_child = build_nested_state(child_id)
                 nested_children.append(nested_child)

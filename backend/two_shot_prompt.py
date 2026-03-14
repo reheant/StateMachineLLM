@@ -92,7 +92,9 @@ def run_two_shot_prompt(
         if i > 0:
             print(f"Retrying (attempt {i+1}/{max_attempts})...")
 
-        result = process_two_shot_attempt(first_prompt, system_prompt, paths, model)
+        result = process_two_shot_attempt(
+            first_prompt, system_prompt, paths, model
+        )
 
         if result != "False":
             success = True
@@ -169,6 +171,10 @@ def process_two_shot_attempt(
         with open(shot1_mmd_path, "w") as f:
             f.write(shot1_mermaid)
 
+        shot1_txt_path = os.path.join(shot1_dir, "output_shot1.txt")
+        with open(shot1_txt_path, "w") as f:
+            f.write(shot1_mermaid)
+
         # Render shot 1 — must succeed before proceeding to shot 2
         try:
             shot1_diagram_path = os.path.join(shot1_dir, "output_shot1")
@@ -193,9 +199,7 @@ def process_two_shot_attempt(
         )
 
         with open(paths["llm_log_path"], "a") as f:
-            f.write(
-                f"=== Shot 2 Refinement Prompt (sent to LLM) ===\n{refinement_prompt}\n\n"
-            )
+            f.write(f"=== Shot 2 Refinement Prompt (sent to LLM) ===\n{refinement_prompt}\n\n")
 
         second_answer = call_openrouter_llm(
             refinement_prompt, max_tokens=15000, temperature=0.3, model=model
@@ -245,13 +249,19 @@ def process_two_shot_attempt(
                 )
 
             with open(paths["llm_log_path"], "a") as f:
-                f.write(f"{error}\nError: {str(e)}\nTraceback:\n{full_traceback}\n\n")
+                f.write(
+                    f"{error}\nError: {str(e)}\nTraceback:\n{full_traceback}\n\n"
+                )
 
             print(f"{error}: {str(e)}")
             return "False"
 
-        # Write the final mermaid code to output_two_shot_prompt.txt
+        # Write the final Mermaid code in .txt form as well.
         with open(paths["log_file_path"], "w") as f:
+            f.write(shot2_mermaid)
+
+        final_txt_path = os.path.join(paths["log_base_dir"], "output_shot2.txt")
+        with open(final_txt_path, "w") as f:
             f.write(shot2_mermaid)
 
         return shot2_mermaid

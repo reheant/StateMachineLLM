@@ -339,6 +339,7 @@ def get_artifacts(folder: str = Query(...)):
         "txt": None,
         "shot1_png": None,
         "shot1_mmd": None,
+        "shot1_txt": None,
         "llm_log": None,
         "grading_prompt": None,
         "grading_output": None,
@@ -374,6 +375,8 @@ def get_artifacts(folder: str = Query(...)):
                 files["shot1_png"] = str(f)
             elif f.suffix == ".mmd":
                 files["shot1_mmd"] = str(f)
+            elif f.suffix == ".txt":
+                files["shot1_txt"] = str(f)
 
     return files
 
