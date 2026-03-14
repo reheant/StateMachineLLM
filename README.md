@@ -18,13 +18,15 @@ Our solution embeds a state machine within the LLM decision-making process to:
 
 ## Technologies Used
 
-- **Programming Languages:** 
-  - Python
+- **Programming Languages:**
+  - Python, TypeScript
 
 - **Libraries and Frameworks:**
   - Sherpa (LLM task automation library)
-  - Chainlit (Web UI framework)
-  - AI suite (Unified interface to multiple Generative AI providers.)
+  - Chainlit (Web UI framework — legacy)
+  - **Tracer** (Next.js 16 + React 19 web UI — current)
+  - FastAPI (Backend API server)
+  - AI suite (Unified interface to multiple Generative AI providers)
   - Mermaid (Diagram generation)
 
 - **Development Tools:**
@@ -129,9 +131,35 @@ export OPENAI_API_KEY='your-api-key'
 chainlit run app.py -w
 ```
 
-### Frontend Setup
+### Tracer Frontend (Current UI)
 
-After completing the setup, launch http://localhost:8000 in your browser
+The Next.js web UI lives in `frontend/`. It requires the FastAPI backend running on port 8000.
+
+```bash
+# Terminal 1 — backend
+uvicorn server:app --reload --port 8000
+
+# Terminal 2 — frontend
+cd frontend
+npm install
+npm run dev
+```
+
+Then open **http://localhost:3000** in your browser.
+
+> See [`frontend/README.md`](frontend/README.md) for full frontend documentation.
+
+---
+
+### Chainlit UI (Legacy)
+
+The original Chainlit interface is still available:
+
+```bash
+chainlit run app.py -w
+```
+
+Then open **http://localhost:8000** in your browser.
 
 
 ## Usage

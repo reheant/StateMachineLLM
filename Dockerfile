@@ -6,10 +6,12 @@ WORKDIR /app
 
 # Install system dependencies including Node.js for mermaid-parser-py
 RUN apt-get update && apt-get install -y \
+    ca-certificates \
     graphviz \
     git \
     build-essential \
     curl \
+    && update-ca-certificates \
     && curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
     && apt-get install -y nodejs \
     && rm -rf /var/lib/apt/lists/*
@@ -22,6 +24,9 @@ RUN pip install --no-cache-dir -e /app/mermaid-parser-py/
 
 # Copy StateMachineLLM requirements
 COPY StateMachineLLM/requirements.txt /app/requirements.txt
+
+# Refresh pip tooling before resolving the Python dependency graph.
+RUN pip install --no-cache-dir --upgrade pip setuptools wheel
 
 # Install other Python dependencies (skip the mermaid-parser line)
 RUN grep -v "mermaid-parser-py" requirements.txt > requirements_docker.txt && \
@@ -37,11 +42,11 @@ RUN mkdir -p /app/.chainlit \
     /app/backend/resources/single_prompt_log \
     /app/backend/resources/single_prompt_outputs
 
-# Expose Chainlit default port
+# Expose FastAPI port
 EXPOSE 8000
 
 # Set environment variables
 ENV PYTHONUNBUFFERED=1
 
-# Run the application
-CMD ["chainlit", "run", "app.py", "-w", "--host", "0.0.0.0", "--port", "8000"]
+# Run the FastAPI backend
+CMD ["uvicorn", "server:app", "--host", "0.0.0.0", "--port", "8000"]

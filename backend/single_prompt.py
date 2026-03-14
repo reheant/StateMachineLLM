@@ -26,6 +26,7 @@ from resources.n_shot_examples_single_prompt_mermaid import (
     n_shot_examples,
 )
 from resources.prompts.single_prompt.single_prompt_template import build_single_prompt
+from grading import run_automatic_grading
 
 logger = logging.getLogger(__name__)
 
@@ -91,7 +92,10 @@ def choose_openrouter_model():
 
 
 def run_single_prompt(
-    system_prompt, model="anthropic/claude-3.5-sonnet", system_name=None
+    system_prompt,
+    model="anthropic/claude-3.5-sonnet",
+    system_name=None,
+    enable_auto_grading=True,
 ):
     """
     the run_single_prompt initiates the Single Prompt State Machine Framework
@@ -99,6 +103,7 @@ def run_single_prompt(
         system_prompt: The system description to generate a state machine for
         model: The OpenRouter model to use
         system_name: Optional name for the system (used for organizing output folders)
+        enable_auto_grading: Whether automatic grading is executed after a successful run
     Returns:
         bool: True if generation succeeded, False if all attempts failed
     """
@@ -122,7 +127,9 @@ def run_single_prompt(
             found = True
             break
     if not found:
-        n_shot_examples_single_prompt = n_shot_examples_single_prompt[1:]  # skip first ("printer_winter_2017")
+        n_shot_examples_single_prompt = n_shot_examples_single_prompt[
+            1:
+        ]  # skip first ("printer_winter_2017")
 
     n_shot_examples_msg = (
         f"N-shot examples used: {', '.join(n_shot_examples_single_prompt)}"
@@ -157,6 +164,20 @@ def run_single_prompt(
 
         if result != "False":
             success = True
+            if enable_auto_grading:
+                try:
+                    run_automatic_grading(
+                        student_mermaid_code=result,
+                        system_prompt=system_prompt,
+                        system_name=system_name,
+                        model=model,
+                        paths=paths,
+                        base_dir=os.path.dirname(__file__),
+                    )
+                except Exception as e:
+                    print(f"Automatic grading failed: {str(e)}")
+            else:
+                print("Automatic grading disabled")
             break
         elif i < max_attempts - 1:
             print(f"Attempt failed, retrying...")
@@ -182,7 +203,7 @@ def process_mermaid_attempt_openrouter(
     try:
         # Call LLM
         answer = call_openrouter_llm(
-            prompt, max_tokens=6000, temperature=0.01, model=model
+            prompt, max_tokens=15000, temperature=0.01, model=model
         )
 
         # Extract Mermaid code
@@ -333,7 +354,9 @@ def run_test_entry_exit_annotations():
         return False
 
 
-def process_custom_mermaid(mermaid_code, system_name="CustomMermaid"):
+def process_custom_mermaid(
+    mermaid_code, system_name="CustomMermaid", file_type="single_prompt"
+):
     """
     Process user-provided Mermaid code (bypasses LLM).
 
@@ -351,14 +374,27 @@ def process_custom_mermaid(mermaid_code, system_name="CustomMermaid"):
     """
     import re
 
-    # Clean up common UI artifacts
-    cleaned_code = mermaid_code
+    # Clean up common UI artifacts and markdown code fences.
+    cleaned_code = mermaid_code or ""
     cleaned_code = cleaned_code.replace("Raw code", "")
-    cleaned_code = cleaned_code.strip("'\"")
+    cleaned_code = re.sub(
+        r"^```(?:mermaid)?\s*", "", cleaned_code.strip(), flags=re.IGNORECASE
+    )
+    cleaned_code = re.sub(r"\s*```$", "", cleaned_code, flags=re.IGNORECASE)
+    cleaned_code = cleaned_code.strip("'\"\n\r\t ")
+
+    if cleaned_code.lower().startswith("mermaid\n"):
+        cleaned_code = cleaned_code.split("\n", 1)[1]
+
+    # If users paste transitions only, inject the required header.
+    if "statediagram" not in cleaned_code.lower():
+        cleaned_code = f"stateDiagram-v2\n{cleaned_code}"
+
     cleaned_code = re.sub(r"\n\s*\n\s*\n", "\n\n", cleaned_code)
 
     paths = setup_file_paths(
         os.path.dirname(__file__),
+        file_type=file_type,
         system_name=system_name,
         model_name="custom-input",
     )

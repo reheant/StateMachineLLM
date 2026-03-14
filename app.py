@@ -6,197 +6,264 @@ import asyncio
 
 import backend.resources.state_machine_descriptions
 from backend.resources.llm_tracker import llm
-from backend.event_driven_smf.event_driven_smf import run_event_driven_smf
-from backend.simple_linear_smf.simple_linear_smf import run_simple_linear_smf
 from backend.single_prompt import run_single_prompt, run_test_entry_exit_annotations
 from backend.two_shot_prompt import run_two_shot_prompt
 
 
+# ---------------------------------------------------------------------------
+# Model helpers
+# ---------------------------------------------------------------------------
+
 def convert_to_openrouter_model(chat_profile):
-    """Convert Chainlit chat profile to OpenRouter model name"""
     if not chat_profile:
-        return "anthropic/claude-3.5-sonnet"  # default
+        return "anthropic/claude-3.5-sonnet"
 
     profile_to_openrouter = {
-        # Anthropic
         "anthropic:claude-3-5-sonnet-20241022": "anthropic/claude-3.5-sonnet",
         "anthropic:claude-4-5-sonnet": "anthropic/claude-4.5-sonnet",
         "anthropic:claude-sonnet-4": "anthropic/claude-sonnet-4",
-        # OpenAI
         "openai:gpt-4o": "openai/gpt-4o",
         "openai:gpt-4o-mini": "openai/gpt-4o-mini",
         "openai:gpt-4-turbo": "openai/gpt-4-turbo",
         "openai:o1": "openai/o1",
         "openai:o1-mini": "openai/o1-mini",
-        # Google
         "google:gemini-2-0-flash-exp": "google/gemini-2.0-flash-exp",
         "google:gemini-1-5-pro-001": "google/gemini-pro-1.5",
         "google:gemini-1-5-flash": "google/gemini-flash-1.5",
-        # Meta
         "meta:llama-3-3-70b-instruct": "meta-llama/llama-3.3-70b-instruct",
         "meta:llama-3-1-405b-instruct": "meta-llama/llama-3.1-405b-instruct",
         "meta:llama-3-1-70b-instruct": "meta-llama/llama-3.1-70b-instruct",
         "meta:llama-3-2-3b-instruct": "meta-llama/llama-3.2-3b-instruct",
-        # Qwen
         "qwen:qwq-32b": "qwen/qwq-32b",
         "qwen:qwen-2-5-72b-instruct": "qwen/qwen-2.5-72b-instruct",
-        # Legacy
         "groq:llama-3.2-3b-preview": "meta-llama/llama-3.2-3b-instruct",
     }
 
     return profile_to_openrouter.get(chat_profile, "anthropic/claude-3.5-sonnet")
 
 
+# ---------------------------------------------------------------------------
+# Chat profiles
+# ---------------------------------------------------------------------------
+
 @cl.set_chat_profiles
 async def chat_profile():
     return [
-        # Anthropic Models
-        cl.ChatProfile(
-            name="anthropic:claude-4-5-sonnet",
-            markdown_description="The underlying LLM model is Anthropic's **Claude 4.5 Sonnet**.",
-            icon="https://picsum.photos/203",
-        ),
-        cl.ChatProfile(
-            name="anthropic:claude-3-5-sonnet-20241022",
-            markdown_description="The underlying LLM model is Anthropic's **Claude 3.5 Sonnet**.",
-            icon="https://picsum.photos/203",
-        ),
-        cl.ChatProfile(
-            name="anthropic:claude-sonnet-4",
-            markdown_description="The underlying LLM model is Anthropic's **Claude Sonnet 4**.",
-            icon="https://picsum.photos/203",
-        ),
-        # OpenAI Models
-        cl.ChatProfile(
-            name="openai:gpt-4o",
-            markdown_description="The underlying LLM model is OpenAI's **GPT-4o**.",
-            icon="https://picsum.photos/202",
-        ),
-        cl.ChatProfile(
-            name="openai:gpt-4o-mini",
-            markdown_description="The underlying LLM model is OpenAI's **GPT-4o Mini**.",
-            icon="https://picsum.photos/202",
-        ),
-        cl.ChatProfile(
-            name="openai:gpt-4-turbo",
-            markdown_description="The underlying LLM model is OpenAI's **GPT-4 Turbo**.",
-            icon="https://picsum.photos/202",
-        ),
-        cl.ChatProfile(
-            name="openai:o1",
-            markdown_description="The underlying LLM model is OpenAI's **o1** (reasoning model).",
-            icon="https://picsum.photos/202",
-        ),
-        cl.ChatProfile(
-            name="openai:o1-mini",
-            markdown_description="The underlying LLM model is OpenAI's **o1-mini** (reasoning model).",
-            icon="https://picsum.photos/202",
-        ),
-        # Google Models
-        cl.ChatProfile(
-            name="google:gemini-2-0-flash-exp",
-            markdown_description="The underlying LLM model is Google's **Gemini 2.0 Flash** (experimental).",
-            icon="https://picsum.photos/205",
-        ),
-        cl.ChatProfile(
-            name="google:gemini-1-5-pro-001",
-            markdown_description="The underlying LLM model is Google's **Gemini 1.5 Pro**.",
-            icon="https://picsum.photos/205",
-        ),
-        cl.ChatProfile(
-            name="google:gemini-1-5-flash",
-            markdown_description="The underlying LLM model is Google's **Gemini 1.5 Flash**.",
-            icon="https://picsum.photos/205",
-        ),
-        # Meta Models
-        cl.ChatProfile(
-            name="meta:llama-3-3-70b-instruct",
-            markdown_description="The underlying LLM model is Meta's **Llama 3.3 70B Instruct**.",
-            icon="https://picsum.photos/204",
-        ),
-        cl.ChatProfile(
-            name="meta:llama-3-1-405b-instruct",
-            markdown_description="The underlying LLM model is Meta's **Llama 3.1 405B Instruct**.",
-            icon="https://picsum.photos/204",
-        ),
-        cl.ChatProfile(
-            name="meta:llama-3-1-70b-instruct",
-            markdown_description="The underlying LLM model is Meta's **Llama 3.1 70B Instruct**.",
-            icon="https://picsum.photos/204",
-        ),
-        cl.ChatProfile(
-            name="meta:llama-3-2-3b-instruct",
-            markdown_description="The underlying LLM model is Meta's **Llama 3.2 3B Instruct**.",
-            icon="https://picsum.photos/204",
-        ),
-        # Qwen Models
-        cl.ChatProfile(
-            name="qwen:qwq-32b",
-            markdown_description="The underlying LLM model is Qwen's **QwQ 32B**.",
-            icon="https://picsum.photos/200",
-        ),
-        cl.ChatProfile(
-            name="qwen:qwen-2-5-72b-instruct",
-            markdown_description="The underlying LLM model is Qwen's **Qwen 2.5 72B Instruct**.",
-            icon="https://picsum.photos/201",
-        ),
+        cl.ChatProfile(name="anthropic:claude-4-5-sonnet",       markdown_description="**Claude 4.5 Sonnet** (Anthropic)", icon="https://picsum.photos/203"),
+        cl.ChatProfile(name="anthropic:claude-3-5-sonnet-20241022", markdown_description="**Claude 3.5 Sonnet** (Anthropic)", icon="https://picsum.photos/203"),
+        cl.ChatProfile(name="anthropic:claude-sonnet-4",          markdown_description="**Claude Sonnet 4** (Anthropic)",    icon="https://picsum.photos/203"),
+        cl.ChatProfile(name="openai:gpt-4o",                      markdown_description="**GPT-4o** (OpenAI)",                icon="https://picsum.photos/202"),
+        cl.ChatProfile(name="openai:gpt-4o-mini",                 markdown_description="**GPT-4o Mini** (OpenAI)",           icon="https://picsum.photos/202"),
+        cl.ChatProfile(name="openai:gpt-4-turbo",                 markdown_description="**GPT-4 Turbo** (OpenAI)",           icon="https://picsum.photos/202"),
+        cl.ChatProfile(name="openai:o1",                          markdown_description="**o1** — reasoning (OpenAI)",        icon="https://picsum.photos/202"),
+        cl.ChatProfile(name="openai:o1-mini",                     markdown_description="**o1-mini** — reasoning (OpenAI)",   icon="https://picsum.photos/202"),
+        cl.ChatProfile(name="google:gemini-2-0-flash-exp",        markdown_description="**Gemini 2.0 Flash** (Google)",      icon="https://picsum.photos/205"),
+        cl.ChatProfile(name="google:gemini-1-5-pro-001",          markdown_description="**Gemini 1.5 Pro** (Google)",        icon="https://picsum.photos/205"),
+        cl.ChatProfile(name="google:gemini-1-5-flash",            markdown_description="**Gemini 1.5 Flash** (Google)",      icon="https://picsum.photos/205"),
+        cl.ChatProfile(name="meta:llama-3-3-70b-instruct",        markdown_description="**Llama 3.3 70B** (Meta)",           icon="https://picsum.photos/204"),
+        cl.ChatProfile(name="meta:llama-3-1-405b-instruct",       markdown_description="**Llama 3.1 405B** (Meta)",          icon="https://picsum.photos/204"),
+        cl.ChatProfile(name="meta:llama-3-1-70b-instruct",        markdown_description="**Llama 3.1 70B** (Meta)",           icon="https://picsum.photos/204"),
+        cl.ChatProfile(name="meta:llama-3-2-3b-instruct",         markdown_description="**Llama 3.2 3B** (Meta)",            icon="https://picsum.photos/204"),
+        cl.ChatProfile(name="qwen:qwq-32b",                       markdown_description="**QwQ 32B** (Qwen)",                 icon="https://picsum.photos/200"),
+        cl.ChatProfile(name="qwen:qwen-2-5-72b-instruct",         markdown_description="**Qwen 2.5 72B** (Qwen)",            icon="https://picsum.photos/201"),
     ]
 
 
-@cl.on_message
-async def run_conversation(message: cl.Message):
-    # Check if we're in custom Mermaid mode
-    mode = cl.user_session.get("mode")
+# ---------------------------------------------------------------------------
+# Example catalogue
+# ---------------------------------------------------------------------------
 
-    if mode == "custom_mermaid":
-        # Handle custom Mermaid input - no LLM call
-        user_mermaid = message.content.strip()
+EXAMPLES = [
+    ("printer_winter_2017",             "🖨️",  "Printer System",          "office printer with card authentication, print/scan, and error handling"),
+    ("spa_manager_winter_2018",         "🧖",  "Spa Manager",             "sauna & Jacuzzi control with temperature regulation and water jets"),
+    ("dishwasher_winter_2019",          "✨",  "Smart Dishwasher",        "automated dishwasher with multiple programs, drying, and door safety"),
+    ("chess_clock_fall_2019",           "🕰️",  "Digital Chess Clock",     "tournament chess clock with multiple timing modes and player controls"),
+    ("automatic_bread_maker_fall_2020", "🥖",  "Automatic Bread Maker",   "programmable bread maker with crust options and delayed start"),
+    ("thermomix_fall_2021",             "🔪",  "Thermomix TM6",           "guided recipe steps and ingredient processing"),
+    ("ATAS_fall_2022",                  "🚆",  "Train Automation System", "driverless trains across a rail network with signals and stations"),
+    ("WUMPLE_fall_2023_Version_A",      "⌚",  "Wumple Watch",            "timekeeping, alarm, and countdown modes with backlight and flash alerts"),
+    ("SSC7_fall_2024_Version_A",        "🛒",  "SSC7 Self-Checkout",      "supermarket self-checkout with scanning, weighing, payment, and staff override"),
+]
 
-        # Check for exit command
-        if user_mermaid.lower() in ["exit", "quit", "stop"]:
-            await cl.Message(
-                content="👋 Exiting custom Mermaid mode. Start a new chat to begin again."
-            ).send()
-            cl.user_session.set("mode", None)
-            return
 
-        await cl.Message(content="🔄 Processing your Mermaid code...").send()
-
-        # Clear the old diagram path to prevent showing stale cached images
-        cl.user_session.set("diagram_path", None)
-
-        # Process the Mermaid code without calling LLM
-        async with cl.Step(name="Rendering Diagram") as render_step:
-            stdout_capture = io.StringIO()
-            with contextlib.redirect_stdout(stdout_capture):
-                from backend.single_prompt import process_custom_mermaid
-
-                success, diagram_path = await asyncio.to_thread(
-                    process_custom_mermaid, user_mermaid, "CustomMermaid"
-                )
-            cl.user_session.set("generation_success", success)
-            cl.user_session.set("diagram_path", diagram_path)
-            render_step.output = stdout_capture.getvalue()
-
-        if success:
-            await display_image()
-            await cl.Message(
-                content="✅ **Diagram rendered successfully!**\n\n📝 *Send another Mermaid diagram to test, or type 'exit' to end the session.*"
-            ).send()
+def _system_display_name(preset: str) -> str:
+    """Convert preset variable name to a readable display name."""
+    words = []
+    for part in preset.split("_"):
+        if part.isupper() or part.isdigit():
+            words.append(part)
         else:
-            await cl.Message(
-                content="❌ Failed to render the diagram. Check the output above for details.\n\n📝 *Try again with corrected Mermaid code, or type 'exit' to end.*"
+            words.append(part.capitalize())
+    return " ".join(words)
+
+
+# ---------------------------------------------------------------------------
+# Entry point
+# ---------------------------------------------------------------------------
+
+@cl.on_chat_start
+async def start():
+    cl.user_session.set("diagram_path", None)
+    llm.update_llm(cl.user_session.get("chat_profile"))
+    await setup_flow()
+
+
+# ---------------------------------------------------------------------------
+# Flow helpers (re-callable)
+# ---------------------------------------------------------------------------
+
+async def setup_flow():
+    """Strategy selection → input selection. Called on start and after 'Switch Mode'."""
+    strategy_step = await cl.AskActionMessage(
+        content=(
+            "**Welcome to Sherpa 🏔️**\n\n"
+            "Choose your generation strategy:"
+        ),
+        actions=[
+            cl.Action(name="single_prompt",  value="single_prompt",  payload={}, label="🚀 Single Prompt"),
+            cl.Action(name="two_shot_prompt", value="two_shot_prompt", payload={}, label="🔁 Two-Shot Prompt"),
+        ],
+    ).send()
+
+    if strategy_step:
+        cl.user_session.set("generation_strategy", strategy_step["name"])
+
+    await show_input_selection()
+
+
+async def show_input_selection():
+    """Input mode selection. Called after strategy is set."""
+    step1 = await cl.AskActionMessage(
+        content="How would you like to provide input?",
+        actions=[
+            cl.Action(name="custom",         value="custom",         payload={}, label="✍️ Describe Your Own System"),
+            cl.Action(name="example",        value="example",        payload={}, label="🤖 Use One of Our Examples"),
+            cl.Action(name="show_history",   value="show_history",   payload={}, label="📚 View History"),
+            cl.Action(name="custom_mermaid", value="custom_mermaid", payload={}, label="🎨 Test Custom Mermaid"),
+            cl.Action(name="dev_tests",      value="dev_tests",      payload={}, label="🧪 Developer Tests"),
+        ],
+    ).send()
+
+    step1_value = step1.get("name") if step1 else None
+
+    if step1_value == "show_history":
+        await show_history()
+        await show_input_selection()  # loop back so user can pick next action
+        return
+
+    if step1_value == "example":
+        description = await pick_and_run_example()
+        if description:
+            await post_run_loop()
+
+    elif step1_value == "custom_mermaid":
+        cl.user_session.set("mode", "custom_mermaid")
+        cl.user_session.set("generation_strategy", "single_prompt")
+        await cl.Message(
+            content=(
+                "🎨 **Test Custom Mermaid Code**\n\n"
+                "Paste your Mermaid state diagram below. "
+                "You can keep pasting diagrams — type `exit` to leave this mode."
+            )
+        ).send()
+        mermaid_input = await cl.AskUserMessage(content="Paste your Mermaid code:", timeout=300).send()
+        if mermaid_input:
+            await _process_custom_mermaid(mermaid_input["output"])
+
+    elif step1_value == "dev_tests":
+        await run_dev_tests()
+
+    else:  # custom
+        cl.user_session.set("system_name", "Custom")
+        await cl.Message(
+            content="Describe any process, workflow, or behavior you'd like to model."
+        ).send()
+
+
+async def pick_and_run_example() -> str | None:
+    """Show example picker, set session state, run the grading. Returns description or None."""
+    description_lines = "\n".join(
+        f"**{emoji} {name}** — {blurb}"
+        for _, emoji, name, blurb in EXAMPLES
+    )
+    actions = [
+        cl.Action(name=preset, value=preset, payload={}, label=f"{emoji} {name}")
+        for preset, emoji, name, _ in EXAMPLES
+    ]
+
+    step2 = await cl.AskActionMessage(
+        content=f"Choose an example:\n\n{description_lines}",
+        actions=actions,
+    ).send()
+
+    if not step2:
+        return None
+
+    system_preset = step2.get("name")
+    description = getattr(backend.resources.state_machine_descriptions, system_preset)
+    cl.user_session.set("system_name", _system_display_name(system_preset))
+
+    await _run_grading(description)
+    return description
+
+
+async def post_run_loop():
+    """
+    Shown after every completed grading run.
+    Loops until the user wants to type a new custom description (on_message takes over).
+    """
+    while True:
+        action = await cl.AskActionMessage(
+            content="**Run complete ✅  What next?**",
+            actions=[
+                cl.Action(name="new_custom",   value="new_custom",   payload={}, label="✍️ New Custom Input"),
+                cl.Action(name="new_example",  value="new_example",  payload={}, label="🤖 Use An Example"),
+                cl.Action(name="switch_mode",  value="switch_mode",  payload={}, label="🔀 Switch Mode"),
+                cl.Action(name="show_history", value="show_history", payload={}, label="📚 View History"),
+            ],
+        ).send()
+
+        name = action.get("name") if action else None
+
+        if name == "show_history":
+            await show_history()
+
+        elif name == "new_example":
+            await pick_and_run_example()
+
+        elif name == "switch_mode":
+            strategy_step = await cl.AskActionMessage(
+                content="Choose strategy:",
+                actions=[
+                    cl.Action(name="single_prompt",   value="single_prompt",   payload={}, label="🚀 Single Prompt"),
+                    cl.Action(name="two_shot_prompt",  value="two_shot_prompt",  payload={}, label="🔁 Two-Shot Prompt"),
+                ],
             ).send()
+            if strategy_step:
+                cl.user_session.set("generation_strategy", strategy_step["name"])
+            # Stay in loop — user can now pick new_example or new_custom
 
-        return  # Don't proceed to normal LLM flow
+        elif name == "new_custom":
+            cl.user_session.set("system_name", "Custom")
+            await cl.Message(content="Describe your system below.").send()
+            return  # Let on_message fire for the user's next message
 
-    # Normal flow for other modes
-    await message.send()  # Print the problem description as is
-    final_answer = cl.Message(content="", author="Sherpa Output")
-    await final_answer.send()
+        else:
+            return  # Timeout — exit loop gracefully
 
-    # Get the chosen generation strategy
-    strategy = cl.user_session.get("generation_strategy", "event_driven")
+
+# ---------------------------------------------------------------------------
+# Core grading runner
+# ---------------------------------------------------------------------------
+
+async def _run_grading(description: str):
+    """Execute one grading cycle: run strategy, stream steps, show mermaid + diagram."""
+    strategy = cl.user_session.get("generation_strategy", "single_prompt")
+    chat_profile = cl.user_session.get("chat_profile")
+    openrouter_model = convert_to_openrouter_model(chat_profile)
+    system_name = cl.user_session.get("system_name", "Custom")
+
+    await cl.Message(content=description, author="Input").send()
 
     stdout_capture = io.StringIO()
     current_step = None
@@ -205,53 +272,31 @@ async def run_conversation(message: cl.Message):
     async def run_and_capture():
         with contextlib.redirect_stdout(stdout_capture):
             if strategy == "single_prompt":
-                # Convert chat profile to OpenRouter model
-                chat_profile = cl.user_session.get("chat_profile")
-                # Get the name of the model for OpenRouter
-                openrouter_model = convert_to_openrouter_model(chat_profile)
-                # Get system name for folder organization
-                system_name = cl.user_session.get("system_name", "Custom")
-                #
                 success = await asyncio.to_thread(
-                    run_single_prompt, message.content, openrouter_model, system_name
+                    run_single_prompt, description, openrouter_model, system_name
                 )
-                cl.user_session.set("generation_success", success)
-            elif strategy == "two_shot_prompt":
-                chat_profile = cl.user_session.get("chat_profile")
-                openrouter_model = convert_to_openrouter_model(chat_profile)
-                system_name = cl.user_session.get("system_name", "Custom")
+            else:  # two_shot_prompt
                 success = await asyncio.to_thread(
-                    run_two_shot_prompt, message.content, openrouter_model, system_name
+                    run_two_shot_prompt, description, openrouter_model, system_name
                 )
-                cl.user_session.set("generation_success", success)
-            elif strategy == "structure_driven":
-                await asyncio.to_thread(run_simple_linear_smf, message.content)
-                cl.user_session.set("generation_success", True)
-            else:  # default to event_driven
-                await asyncio.to_thread(run_event_driven_smf, message.content)
-                cl.user_session.set("generation_success", True)
+        cl.user_session.set("generation_success", success)
 
     task = asyncio.create_task(run_and_capture())
 
     while not task.done():
         await asyncio.sleep(0.1)
-
         stdout_capture.seek(0)
         current_output = stdout_capture.read()
 
         if current_output:
             lines = current_output.splitlines()
             for line in lines:
-                # Check for step indicators
                 is_step_start = line.startswith("Running")
-
                 if is_step_start:
                     if current_step is not None:
-                        step_content = "\n".join(current_step_content)
-                        current_step.output = step_content
+                        current_step.output = "\n".join(current_step_content)
                         await current_step.update()
                         await current_step.__aexit__(None, None, None)
-
                     step_name = (
                         line[8:].replace("...", "").replace("start_", "") + " action"
                         if line.startswith("Running ")
@@ -262,602 +307,323 @@ async def run_conversation(message: cl.Message):
                     current_step_content = [line]
                 elif current_step is not None:
                     current_step_content.append(line)
-
             stdout_capture.truncate(0)
             stdout_capture.seek(0)
 
     if current_step is not None:
-        step_content = "\n".join(current_step_content)
-        current_step.output = step_content
+        current_step.output = "\n".join(current_step_content)
         await current_step.update()
         await current_step.__aexit__(None, None, None)
 
     await task
 
-    step_outputs = []
-    for line in final_answer.content.splitlines():
-        if line.strip():
-            step_outputs.append(line)
-    final_answer.content = "\n".join(step_outputs)
-    await final_answer.update()
-
-    # Display Mermaid code first
-    async with cl.Step(name="Displaying Mermaid Code") as mermaid_step:
+    async with cl.Step(name="Mermaid Code"):
         await display_mermaid_code_from_log()
 
-    # Then display diagram (or error)
-    async with cl.Step(name="Rendering Diagram") as diagram_step:
+    async with cl.Step(name="Diagram"):
         await display_image()
 
 
-async def display_mermaid_code_from_log():
-    """Display the generated Mermaid code from the log directory"""
-    strategy = cl.user_session.get("generation_strategy", "event_driven")
-    # For single_prompt, generated mermaid is written inside a timestamped outputs folder
-    try:
-        if strategy in ("single_prompt", "two_shot_prompt"):
-            outputs_base = os.path.join(
-                os.path.dirname(__file__),
-                "backend",
-                "resources",
-                f"{strategy}_outputs",
+# ---------------------------------------------------------------------------
+# Developer tests
+# ---------------------------------------------------------------------------
+
+async def run_dev_tests():
+    test_choice = await cl.AskActionMessage(
+        content="**🧪 Developer Tests**\n\nThese use hardcoded Mermaid (no LLM call):",
+        actions=[
+            cl.Action(name="test_entry_exit", value="test_entry_exit", payload={}, label="🧪 Entry/Exit Annotations"),
+        ],
+    ).send()
+
+    if not test_choice:
+        return
+
+    cl.user_session.set("generation_strategy", "single_prompt")
+
+    if test_choice.get("name") == "test_entry_exit":
+        await cl.Message(content="🧪 Running: Entry/Exit Annotations…").send()
+        async with cl.Step(name="Running Test") as test_step:
+            stdout_capture = io.StringIO()
+            with contextlib.redirect_stdout(stdout_capture):
+                success = await asyncio.to_thread(run_test_entry_exit_annotations)
+            cl.user_session.set("generation_success", success)
+            test_step.output = stdout_capture.getvalue()
+
+        async with cl.Step(name="Diagram"):
+            await display_image()
+
+
+# ---------------------------------------------------------------------------
+# History
+# ---------------------------------------------------------------------------
+
+async def show_history():
+    """Scan output folders and display a summary table + recent images."""
+    base = os.path.join(os.path.dirname(__file__), "backend", "resources")
+    runs = []
+
+    for strategy in ("single_prompt", "two_shot_prompt"):
+        outputs_dir = os.path.join(base, f"{strategy}_outputs")
+        if not os.path.exists(outputs_dir):
+            continue
+        for date_folder in os.listdir(outputs_dir):
+            date_path = os.path.join(outputs_dir, date_folder)
+            if not os.path.isdir(date_path):
+                continue
+            for model_folder in os.listdir(date_path):
+                model_path = os.path.join(date_path, model_folder)
+                if not os.path.isdir(model_path):
+                    continue
+                for system_folder in os.listdir(model_path):
+                    system_path = os.path.join(model_path, system_folder)
+                    if not os.path.isdir(system_path):
+                        continue
+                    for time_folder in os.listdir(system_path):
+                        time_path = os.path.join(system_path, time_folder)
+                        if not os.path.isdir(time_path):
+                            continue
+                        png_files = [f for f in os.listdir(time_path) if f.endswith(".png")]
+                        png_path = os.path.join(time_path, png_files[0]) if png_files else None
+                        runs.append({
+                            "strategy": strategy,
+                            "date": date_folder,
+                            "model": model_folder,
+                            "system": system_folder,
+                            "time": time_folder,
+                            "png": png_path,
+                            "sort_key": f"{date_folder}_{time_folder}",
+                        })
+
+    if not runs:
+        await cl.Message(content="📚 No history found yet.").send()
+        return
+
+    runs.sort(key=lambda r: r["sort_key"], reverse=True)
+
+    # Build summary table
+    table_rows = []
+    for r in runs[:30]:
+        mode_icon = "🚀" if r["strategy"] == "single_prompt" else "🔁"
+        date_fmt = r["date"].replace("_", "-")
+        time_fmt = r["time"].replace("_", ":")
+        table_rows.append(
+            f"| {date_fmt} {time_fmt} | {mode_icon} {r['strategy'].replace('_', ' ').title()} | {r['model']} | {r['system']} |"
+        )
+
+    table = (
+        "### 📚 Run History (most recent first)\n\n"
+        "| Date & Time | Mode | Model | System |\n"
+        "|-------------|------|-------|--------|\n"
+        + "\n".join(table_rows)
+    )
+    await cl.Message(content=table).send()
+
+    # Show images for the 5 most recent runs that have a PNG
+    recent_with_images = [r for r in runs if r["png"] and os.path.exists(r["png"])][:5]
+    for r in recent_with_images:
+        date_fmt = r["date"].replace("_", "-")
+        time_fmt = r["time"].replace("_", ":")
+        label = f"{date_fmt} {time_fmt} · {r['model']} · {r['system']}"
+        image = cl.Image(path=r["png"], name=os.path.basename(r["png"]), display="inline", size="large")
+        await cl.Message(content=f"**{label}**", elements=[image]).send()
+
+
+# ---------------------------------------------------------------------------
+# Custom Mermaid handler (called from on_message when in custom_mermaid mode)
+# ---------------------------------------------------------------------------
+
+async def _process_custom_mermaid(mermaid_code: str):
+    cl.user_session.set("diagram_path", None)
+    async with cl.Step(name="Rendering Diagram") as render_step:
+        stdout_capture = io.StringIO()
+        with contextlib.redirect_stdout(stdout_capture):
+            from backend.single_prompt import process_custom_mermaid
+            success, diagram_path = await asyncio.to_thread(
+                process_custom_mermaid, mermaid_code, "CustomMermaid"
             )
-            if not os.path.exists(outputs_base):
-                await cl.Message(content="⚠️ No outputs directory found.").send()
-                return None
+        cl.user_session.set("generation_success", success)
+        cl.user_session.set("diagram_path", diagram_path)
+        render_step.output = stdout_capture.getvalue()
 
-            # Find latest date folder
-            date_folders = [
-                d
-                for d in os.listdir(outputs_base)
-                if os.path.isdir(os.path.join(outputs_base, d))
-            ]
-            if not date_folders:
-                await cl.Message(content="⚠️ No output folders found.").send()
-                return None
-
-            latest_date_folder = max(
-                (os.path.join(outputs_base, d) for d in date_folders),
-                key=os.path.getmtime,
-            )
-
-            # Reuse helper from display_image: find deepest folder up to 3 levels
-            def find_deepest_folder(folder_path, depth=0, max_depth=3):
-                if depth >= max_depth:
-                    return folder_path
-                subfolders = [
-                    d
-                    for d in os.listdir(folder_path)
-                    if os.path.isdir(os.path.join(folder_path, d))
-                ]
-                if subfolders:
-                    latest_subfolder = max(
-                        (os.path.join(folder_path, d) for d in subfolders),
-                        key=os.path.getmtime,
-                    )
-                    return find_deepest_folder(latest_subfolder, depth + 1, max_depth)
-                else:
-                    return folder_path
-
-            latest_folder = find_deepest_folder(latest_date_folder)
-
-            # Look for .mmd file in that folder
-            mmd_files = [f for f in os.listdir(latest_folder) if f.endswith(".mmd")]
-            if not mmd_files:
-                await cl.Message(
-                    content="⚠️ No Mermaid (.mmd) file found in latest output folder."
-                ).send()
-                return None
-
-            latest_mmd = os.path.join(latest_folder, sorted(mmd_files)[-1])
-
-        else:
-            # For other strategies, keep legacy behavior: logs folder contains .mmd files
-            if strategy == "structure_driven":
-                log_dir = os.path.join(
-                    os.path.dirname(__file__),
-                    "backend",
-                    "resources",
-                    "simple_linear_log",
-                )
-            else:
-                log_dir = os.path.join(
-                    os.path.dirname(__file__),
-                    "backend",
-                    "resources",
-                    "event_driven_log",
-                )
-
-            if not os.path.exists(log_dir):
-                await cl.Message(content="⚠️ No log directory found.").send()
-                return None
-
-            mmd_files = [f for f in os.listdir(log_dir) if f.endswith(".mmd")]
-            if not mmd_files:
-                await cl.Message(content="⚠️ No Mermaid code generated.").send()
-                return None
-
-            latest_mmd = max(
-                (os.path.join(log_dir, f) for f in mmd_files), key=os.path.getmtime
-            )
-
-        # Read Mermaid code
-        with open(latest_mmd, "r") as f:
-            mermaid_code = f.read()
-
-        # Get relative path for display
-        relative_mmd_path = os.path.relpath(latest_mmd, os.path.dirname(__file__))
-
-        # Display in UI
+    if success:
+        await display_image()
         await cl.Message(
-            content=f"### 📝 Generated Mermaid Code\n\n📁 **Saved to:** `{relative_mmd_path}`\n\n```mermaid\n{mermaid_code}\n```"
+            content="✅ Rendered! Paste another diagram or type `exit` to leave this mode."
+        ).send()
+    else:
+        await cl.Message(
+            content="❌ Render failed. Check the step output above and try again, or type `exit`."
         ).send()
 
-        return latest_mmd
+
+# ---------------------------------------------------------------------------
+# on_message
+# ---------------------------------------------------------------------------
+
+@cl.on_message
+async def run_conversation(message: cl.Message):
+    mode = cl.user_session.get("mode")
+
+    if mode == "custom_mermaid":
+        if message.content.strip().lower() in ("exit", "quit", "stop"):
+            cl.user_session.set("mode", None)
+            await cl.Message(content="Exited custom Mermaid mode.").send()
+            await show_input_selection()
+            return
+        await _process_custom_mermaid(message.content.strip())
+        return
+
+    # Normal grading run triggered by user typing a description
+    await _run_grading(message.content)
+    await post_run_loop()
+
+
+# ---------------------------------------------------------------------------
+# Display helpers
+# ---------------------------------------------------------------------------
+
+def _find_deepest_folder(folder_path, depth=0, max_depth=3):
+    if depth >= max_depth:
+        return folder_path
+    subfolders = [
+        d for d in os.listdir(folder_path)
+        if os.path.isdir(os.path.join(folder_path, d))
+    ]
+    if subfolders:
+        latest = max(
+            (os.path.join(folder_path, d) for d in subfolders),
+            key=os.path.getmtime,
+        )
+        return _find_deepest_folder(latest, depth + 1, max_depth)
+    return folder_path
+
+
+async def display_mermaid_code_from_log():
+    strategy = cl.user_session.get("generation_strategy", "single_prompt")
+    try:
+        outputs_base = os.path.join(
+            os.path.dirname(__file__), "backend", "resources", f"{strategy}_outputs"
+        )
+        if not os.path.exists(outputs_base):
+            await cl.Message(content="⚠️ No outputs directory found.").send()
+            return
+
+        date_folders = [d for d in os.listdir(outputs_base) if os.path.isdir(os.path.join(outputs_base, d))]
+        if not date_folders:
+            await cl.Message(content="⚠️ No output folders found.").send()
+            return
+
+        latest_date_folder = max(
+            (os.path.join(outputs_base, d) for d in date_folders),
+            key=os.path.getmtime,
+        )
+        latest_folder = _find_deepest_folder(latest_date_folder)
+
+        mmd_files = [f for f in os.listdir(latest_folder) if f.endswith(".mmd")]
+        if not mmd_files:
+            await cl.Message(content="⚠️ No .mmd file in latest output folder.").send()
+            return
+
+        latest_mmd = os.path.join(latest_folder, sorted(mmd_files)[-1])
+        with open(latest_mmd) as f:
+            mermaid_code = f.read()
+
+        relative_path = os.path.relpath(latest_mmd, os.path.dirname(__file__))
+        await cl.Message(
+            content=f"### 📝 Generated Mermaid Code\n\n📁 `{relative_path}`\n\n```mermaid\n{mermaid_code}\n```"
+        ).send()
 
     except Exception as e:
-        await cl.Message(content=f"⚠️ Error reading Mermaid code: {str(e)}").send()
-        return None
+        await cl.Message(content=f"⚠️ Error reading Mermaid code: {e}").send()
 
 
 async def display_image():
-    """
-    Display the state machine diagram or error message if rendering failed
-    """
     import json
 
-    # Check if generation was successful
     generation_success = cl.user_session.get("generation_success", True)
-
     if not generation_success:
-        await cl.Message(
-            content="**Error: State machine generation failed after 5 attempts. check logs for more info"
-        ).send()
+        await cl.Message(content="❌ State machine generation failed after 5 attempts. Check logs.").send()
         return
 
-    # Choose the appropriate directory based on strategy
-    strategy = cl.user_session.get("generation_strategy", "event_driven")
+    strategy = cl.user_session.get("generation_strategy", "single_prompt")
+    outputs_directory = os.path.join(
+        os.path.dirname(__file__), "backend", "resources", f"{strategy}_outputs"
+    )
 
-    if strategy in ("single_prompt", "two_shot_prompt"):
-        # Outputs are in timestamped folders under {strategy}_outputs/
-        outputs_directory = os.path.join(
-            os.path.dirname(__file__), "backend", "resources", f"{strategy}_outputs"
-        )
-    elif strategy == "structure_driven":
-        image_directory = os.path.join(
-            os.path.dirname(__file__), "backend", "resources", "simple_linear_diagrams"
-        )
-    else:  # event_driven
-        image_directory = os.path.join(
-            os.path.dirname(__file__), "backend", "resources", "event_driven_diagrams"
-        )
-
-    # Check for error marker files first
+    # Check for error marker files
     try:
-        # Determine which directory to check based on strategy
-        if strategy in ("single_prompt", "two_shot_prompt"):
-            if not os.path.exists(outputs_directory):
-                error_dir = None
-            else:
-                timestamped_folders = [
-                    d
-                    for d in os.listdir(outputs_directory)
-                    if os.path.isdir(os.path.join(outputs_directory, d))
-                ]
-                if timestamped_folders:
-                    latest_folder = max(
-                        (
-                            os.path.join(outputs_directory, d)
-                            for d in timestamped_folders
-                        ),
-                        key=os.path.getmtime,
-                    )
-                    error_dir = latest_folder
-                else:
-                    error_dir = None
-        else:
-            error_dir = image_directory
-
-        if error_dir and os.path.exists(error_dir):
-            error_files = [
-                f for f in os.listdir(error_dir) if f.endswith("_error.json")
+        if os.path.exists(outputs_directory):
+            timestamped_folders = [
+                d for d in os.listdir(outputs_directory)
+                if os.path.isdir(os.path.join(outputs_directory, d))
             ]
-            if error_files:
-                latest_error = max(
-                    (os.path.join(error_dir, f) for f in error_files),
+            if timestamped_folders:
+                latest_folder = max(
+                    (os.path.join(outputs_directory, d) for d in timestamped_folders),
                     key=os.path.getmtime,
                 )
+                error_files = [f for f in os.listdir(latest_folder) if f.endswith("_error.json")]
+                if error_files:
+                    latest_error = max(
+                        (os.path.join(latest_folder, f) for f in error_files),
+                        key=os.path.getmtime,
+                    )
+                    with open(latest_error) as f:
+                        error_data = json.load(f)
 
-                with open(latest_error, "r") as f:
-                    error_data = json.load(f)
-
-                error_msg = f"""### ❌ Diagram Generation Failed
-
-                            **Error Type:** {error_data.get('error_type', 'Unknown').replace('_', ' ').title()}
-
-                            **Error Message:**
-                            ```
-                            {error_data.get('error_message', 'Unknown error occurred')}
-                            ```
-
-                            **Troubleshooting:**
-                            - Check the Mermaid code above for syntax errors
-                            - Look for missing braces, invalid state names, or incorrect transitions
-                            - Common issues: state names starting with numbers, unclosed state blocks, missing commas
-                            """
-                await cl.Message(content=error_msg).send()
-
-                # Delete error file after displaying so it doesn't show again
-                os.remove(latest_error)
-                return
+                    await cl.Message(content=(
+                        f"### ❌ Diagram Generation Failed\n\n"
+                        f"**Error Type:** {error_data.get('error_type', 'Unknown').replace('_', ' ').title()}\n\n"
+                        f"**Error:**\n```\n{error_data.get('error_message', 'Unknown error')}\n```"
+                    )).send()
+                    os.remove(latest_error)
+                    return
     except Exception as e:
-        print(f"Error checking for error files: {str(e)}")
+        print(f"Error checking error files: {e}")
 
-    # Get the path of the most recently created diagram
+    # Find the PNG
     try:
-        # Check if a specific diagram path was stored (e.g., from custom mermaid processing)
-        stored_diagram_path = cl.user_session.get("diagram_path")
-        latest_file = None
-        if stored_diagram_path and os.path.exists(stored_diagram_path):
-            latest_file = stored_diagram_path
-            # Clear it after retrieving so it's not used again for subsequent generations
+        stored_path = cl.user_session.get("diagram_path")
+        if stored_path and os.path.exists(stored_path):
+            latest_file = stored_path
             cl.user_session.set("diagram_path", None)
-        # For single/two-shot prompt, find the most recent folder: date/model_name/system_name/time
-        elif strategy in ("single_prompt", "two_shot_prompt"):
+        else:
             if not os.path.exists(outputs_directory):
                 await cl.Message(content="⚠️ No outputs directory found.").send()
                 return
 
-            # Get all date folders (e.g., 2026_01_30)
             date_folders = [
-                d
-                for d in os.listdir(outputs_directory)
+                d for d in os.listdir(outputs_directory)
                 if os.path.isdir(os.path.join(outputs_directory, d))
             ]
-
             if not date_folders:
                 await cl.Message(content="⚠️ No output folders found.").send()
                 return
 
-            # Get the most recent date folder
             latest_date_folder = max(
                 (os.path.join(outputs_directory, d) for d in date_folders),
                 key=os.path.getmtime,
             )
+            latest_folder = _find_deepest_folder(latest_date_folder)
 
-            # Navigate through model -> system -> time folder structure
-            def find_deepest_folder(folder_path, depth=0, max_depth=3):
-                """Recursively find the deepest (most recently modified) subfolder up to max_depth."""
-                if depth >= max_depth:
-                    return folder_path
-
-                subfolders = [
-                    d
-                    for d in os.listdir(folder_path)
-                    if os.path.isdir(os.path.join(folder_path, d))
-                ]
-
-                if subfolders:
-                    # Get the most recent subfolder
-                    latest_subfolder = max(
-                        (os.path.join(folder_path, d) for d in subfolders),
-                        key=os.path.getmtime,
-                    )
-                    return find_deepest_folder(latest_subfolder, depth + 1, max_depth)
-                else:
-                    return folder_path
-
-            latest_folder = find_deepest_folder(latest_date_folder)
-
-            # Find PNG file in that folder
             png_files = [f for f in os.listdir(latest_folder) if f.endswith(".png")]
             if not png_files:
-                await cl.Message(
-                    content="No PNG images found in the latest output folder."
-                ).send()
+                await cl.Message(content="⚠️ No PNG found in latest output folder.").send()
                 return
 
             latest_file = max(
                 (os.path.join(latest_folder, f) for f in png_files),
                 key=os.path.getmtime,
             )
-        else:
-            # For other strategies, use all files
-            latest_file = max(
-                (os.path.join(image_directory, f) for f in os.listdir(image_directory)),
-                key=os.path.getmtime,
-            )
+
     except ValueError:
-        # Handle the case where the directory is empty
-        await cl.Message(content="No images found in the directory.").send()
+        await cl.Message(content="⚠️ No images found.").send()
         return
 
-    # Attach the most recent file to the message
-    # Use the actual filename to prevent browser caching issues
-    image_name = os.path.basename(latest_file)
-    image = cl.Image(path=latest_file, name=image_name, display="inline", size="large")
-
-    # Get relative path for display
     relative_path = os.path.relpath(latest_file, os.path.dirname(__file__))
-
+    image = cl.Image(path=latest_file, name=os.path.basename(latest_file), display="inline", size="large")
     await cl.Message(
-        content=f"### ✅ State Machine Diagram Generated Successfully\n\n📁 **Saved to:** `{relative_path}`",
+        content=f"### ✅ State Machine Diagram\n\n📁 `{relative_path}`",
         elements=[image],
     ).send()
-
-
-@cl.on_chat_start
-async def start():
-    # Clear any stale diagram paths from previous sessions
-    cl.user_session.set("diagram_path", None)
-
-    llm.update_llm(cl.user_session.get("chat_profile"))
-
-    # First, choose generation strategy
-    strategy_step = await cl.AskActionMessage(
-        content="""
-        <b>Hi there!</b>
-        \nLet's create a state machine diagram!
-        \nFirst, choose your generation strategy:
-        \n 🚀 <b>Single Prompt (OpenRouter)</b>: Fast, direct generation using OpenRouter API
-        \n 🔁 <b>Two-Shot Prompt (OpenRouter)</b>: Generate then self-correct using OpenRouter API
-        \n 🔄 <b>Event-Driven SMF</b>: Multi-step process focusing on events
-        \n 📊 <b>Structure-Driven SMF</b>: Multi-step process focusing on structure
-        """,
-        actions=[
-            cl.Action(
-                name="single_prompt",
-                value="single_prompt",
-                payload={},
-                label="🚀 Single Prompt (OpenRouter)",
-            ),
-            cl.Action(
-                name="two_shot_prompt",
-                value="two_shot_prompt",
-                payload={},
-                label="🔁 Two-Shot Prompt (OpenRouter)",
-            ),
-            cl.Action(
-                name="event_driven",
-                value="event_driven",
-                payload={},
-                label="🔄 Event-Driven SMF",
-            ),
-            cl.Action(
-                name="structure_driven",
-                value="structure_driven",
-                payload={},
-                label="📊 Structure-Driven SMF",
-            ),
-        ],
-    ).send()
-
-    # Store the chosen strategy in user session
-    if strategy_step:
-        strategy_value = strategy_step.get("name")
-        cl.user_session.set("generation_strategy", strategy_value)
-
-    step1 = await cl.AskActionMessage(
-        content="""
-        Now choose your input:
-        \n ✍️ 1. Describe your own system
-        \n 🤖 2. Try one of our examples
-        \n 🎨 3. Test custom Mermaid code
-        \n 🧪 4. Developer tests (for verifying parser features)
-        \nWhat would you like to explore?""",
-        actions=[
-            cl.Action(
-                name="custom",
-                value="custom",
-                payload={},
-                label="✍️ Describe Your Own System",
-            ),
-            cl.Action(
-                name="example",
-                value="example",
-                payload={},
-                label="🤖 Use One Of Our Examples",
-            ),
-            cl.Action(
-                name="custom_mermaid",
-                value="custom_mermaid",
-                payload={},
-                label="🎨 Test Custom Mermaid",
-            ),
-            cl.Action(
-                name="dev_tests",
-                value="dev_tests",
-                payload={},
-                label="🧪 Developer Tests",
-            ),
-        ],
-    ).send()
-
-    # Extract action name from result
-    step1_value = step1.get("name") if step1 else None
-
-    if step1_value == "custom_mermaid":
-        # Set session flag to indicate we're in custom Mermaid mode
-        cl.user_session.set("mode", "custom_mermaid")
-        cl.user_session.set("generation_strategy", "single_prompt")
-
-        await cl.Message(
-            content="🎨 **Test Custom Mermaid Code**\n\nPaste your Mermaid state diagram code to see the parsed and rendered diagram.\n\n💡 *Tip: You can paste multiple Mermaid diagrams in this session - each will be parsed and rendered without calling the LLM.*"
-        ).send()
-
-        # Ask user for Mermaid code
-        mermaid_input = await cl.AskUserMessage(
-            content="Please paste your Mermaid state diagram code:",
-            timeout=300,
-        ).send()
-
-        if mermaid_input:
-            user_mermaid = mermaid_input["output"]
-
-            await cl.Message(content="🔄 Processing your Mermaid code...").send()
-
-            # Clear the old diagram path to prevent showing stale cached images
-            cl.user_session.set("diagram_path", None)
-
-            # Use the same logic as single_prompt but skip LLM call
-            async with cl.Step(name="Rendering Diagram") as render_step:
-                stdout_capture = io.StringIO()
-                with contextlib.redirect_stdout(stdout_capture):
-                    from backend.single_prompt import process_custom_mermaid
-
-                    success, diagram_path = await asyncio.to_thread(
-                        process_custom_mermaid, user_mermaid, "CustomMermaid"
-                    )
-                cl.user_session.set("generation_success", success)
-                cl.user_session.set("diagram_path", diagram_path)
-                render_step.output = stdout_capture.getvalue()
-
-            if success:
-                await display_image()
-                await cl.Message(
-                    content="✅ **Diagram rendered successfully!**\n\n📝 *Send another Mermaid diagram to test, or type 'exit' to end the session.*"
-                ).send()
-            else:
-                await cl.Message(
-                    content="❌ Failed to render the diagram. Check the output above for details.\n\n📝 *Try again with corrected Mermaid code.*"
-                ).send()
-
-    elif step1_value == "dev_tests":
-        # Show available developer tests
-        test_choice = await cl.AskActionMessage(
-            content="""
-            🧪 <b>Developer Tests</b>
-            \nThese tests verify specific parser features using hardcoded mermaid (bypasses LLM):
-            \n 1. <b>Entry/Exit Annotations</b>: Tests rendering of entry/exit/do actions from notes
-            """,
-            actions=[
-                cl.Action(
-                    name="test_entry_exit",
-                    value="test_entry_exit",
-                    payload={},
-                    label="🧪 Entry/Exit Annotations",
-                ),
-            ],
-        ).send()
-
-        if test_choice:
-            test_name = test_choice.get("name")
-            cl.user_session.set(
-                "generation_strategy", "single_prompt"
-            )  # Use single_prompt directory
-
-            if test_name == "test_entry_exit":
-                await cl.Message(
-                    content="🧪 Running Test: Entry/Exit Annotations..."
-                ).send()
-
-                async with cl.Step(name="Running Test") as test_step:
-                    stdout_capture = io.StringIO()
-                    with contextlib.redirect_stdout(stdout_capture):
-                        success = await asyncio.to_thread(
-                            run_test_entry_exit_annotations
-                        )
-                    cl.user_session.set("generation_success", success)
-                    test_step.output = stdout_capture.getvalue()
-
-                async with cl.Step(name="Rendering Diagram") as diagram_step:
-                    await display_image()
-
-    elif step1_value == "example":
-        step2 = await cl.AskActionMessage(
-            content="""
-            Choose one of these interesting examples:
-            \n 1. 🖨️ <b>Printer System</b>: A modern office printer with card authentication, print/scan capabilities, and error handling for paper jams
-            \n 2. 🧖‍♂️ <b>Spa Manager</b>: A control system for saunas and Jacuzzis with temperature regulation and water jet controls
-            \n 3. ✨ <b>Smart Dishwasher</b>: An automated dishwasher with multiple programs, adjustable drying times, and door safety features
-            \n 4. 🕰️ <b>Digital Chess Clock</b>: A tournament chess clock with multiple timing modes and player controls
-            \n 5. 🥖 <b>Automatic Bread Maker</b>: A programmable bread maker with different courses, crust options, and delayed start features
-            \n 6. 🔪 <b>Thermomix TM6</b>: An all-in-one kitchen appliance with guided recipe steps and ingredient processing
-            \n 7. 🚆 <b>Train Automation System</b>: An advanced system managing driverless trains across a rail network with traffic signals and stations
-            \n 8. ⌚ <b>Wumple Watch</b>: A multifunctional watch with timekeeping, alarm, and countdown modes with backlight and flash alert features
-            \n 9. 🛒 <b>SSC7 Self-Checkout</b>: A supermarket self-service checkout system with scanning, weighing, payment, and staff override features
-            """,
-            actions=[
-                cl.Action(
-                    name="printer_winter_2017",
-                    value="printer_winter_2017",
-                    payload={},
-                    label="🖨️ Printer System",
-                ),
-                cl.Action(
-                    name="spa_manager_winter_2018",
-                    value="spa_manager_winter_2018",
-                    payload={},
-                    label="🧖‍♂️ Spa Manager",
-                ),
-                cl.Action(
-                    name="dishwasher_winter_2019",
-                    value="dishwasher_winter_2019",
-                    payload={},
-                    label="✨ Smart Dishwasher",
-                ),
-                cl.Action(
-                    name="chess_clock_fall_2019",
-                    value="chess_clock_fall_2019",
-                    payload={},
-                    label="🕰️ Digital Chess Clock",
-                ),
-                cl.Action(
-                    name="automatic_bread_maker_fall_2020",
-                    value="automatic_bread_maker_fall_2020",
-                    payload={},
-                    label="🥖 Automatic Bread Maker",
-                ),
-                cl.Action(
-                    name="thermomix_fall_2021",
-                    value="thermomix_fall_2021",
-                    payload={},
-                    label="🔪 Thermomix TM6",
-                ),
-                cl.Action(
-                    name="ATAS_fall_2022",
-                    value="ATAS_fall_2022",
-                    payload={},
-                    label="🚆 Train Automation System",
-                ),
-                cl.Action(
-                    name="WUMPLE_fall_2023_Version_A",
-                    value="WUMPLE_fall_2023_Version_A",
-                    payload={},
-                    label="⌚ Wumple Watch",
-                ),
-                cl.Action(
-                    name="SSC7_fall_2024_Version_A",
-                    value="SSC7_fall_2024_Version_A",
-                    payload={},
-                    label="🛒 SSC7 Self-Checkout",
-                ),
-            ],
-        ).send()
-
-        if step2:
-            # Extract action name from result
-            system_preset = step2.get("name")
-            system_description = getattr(
-                backend.resources.state_machine_descriptions, system_preset
-            )
-
-            # Store system name for folder organization (convert snake_case to a readable form)
-            display_words = []
-            for part in system_preset.split("_"):
-                if part.isupper() or part.isdigit():
-                    # Preserve acronyms (e.g., "ATAS") and numeric parts as-is
-                    display_words.append(part)
-                else:
-                    # Capitalize regular words (e.g., "printer" -> "Printer")
-                    display_words.append(part.capitalize())
-            system_display_name = " ".join(display_words)
-            cl.user_session.set("system_name", system_display_name)
-
-            await run_conversation(cl.Message(content=system_description))
-    else:
-        # Set system name to Custom for user-described systems
-        cl.user_session.set("system_name", "Custom")
-        await cl.Message(
-            content="""Tell me about any process, workflow, or behavior you'd like to model. It could be anything from a coffee maker's operations to a complex authentication flow!"""
-        ).send()

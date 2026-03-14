@@ -1,5 +1,10 @@
-# Core UI
+# Core UI (Chainlit kept for reference)
 chainlit>=1.3.0
+
+# FastAPI backend
+fastapi>=0.115.0
+uvicorn[standard]>=0.30.0
+sse-starlette>=2.1.0
 
 # State machine libraries
 sherpa-ai==0.4.0

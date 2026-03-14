@@ -21,12 +21,16 @@ from resources.n_shot_examples_single_prompt_mermaid import (
     get_n_shot_examples,
     n_shot_examples,
 )
+from grading import run_automatic_grading
 
 logger = logging.getLogger(__name__)
 
 
 def run_two_shot_prompt(
-    system_prompt, model="anthropic/claude-3.5-sonnet", system_name=None
+    system_prompt,
+    model="anthropic/claude-3.5-sonnet",
+    system_name=None,
+    enable_auto_grading=True,
 ):
     """
     Run the Two-Shot Prompt State Machine Framework.
@@ -39,6 +43,7 @@ def run_two_shot_prompt(
         system_prompt: The system description to generate a state machine for.
         model: The OpenRouter model to use.
         system_name: Optional name for the system (used for output folder organization).
+        enable_auto_grading: Whether automatic grading is executed after a successful run.
 
     Returns:
         bool: True if the shot 2 diagram rendered successfully, False otherwise.
@@ -78,11 +83,6 @@ def run_two_shot_prompt(
         system_prompt=system_prompt,
     )
 
-    # Save shot 1 prompt so every run has a prompt artifact with the outputs.
-    shot1_prompt_path = os.path.join(paths["log_base_dir"], "prompt_shot1.txt")
-    with open(shot1_prompt_path, "w") as f:
-        f.write(first_prompt)
-
     print(f"Running Two-Shot Prompt Generation with {model}")
 
     success = False
@@ -93,11 +93,25 @@ def run_two_shot_prompt(
             print(f"Retrying (attempt {i+1}/{max_attempts})...")
 
         result = process_two_shot_attempt(
-            first_prompt, system_prompt, paths, model, attempt_index=i + 1
+            first_prompt, system_prompt, paths, model
         )
 
         if result != "False":
             success = True
+            if enable_auto_grading:
+                try:
+                    run_automatic_grading(
+                        student_mermaid_code=result,
+                        system_prompt=system_prompt,
+                        system_name=system_name,
+                        model=model,
+                        paths=paths,
+                        base_dir=os.path.dirname(__file__),
+                    )
+                except Exception as e:
+                    print(f"Automatic grading failed: {str(e)}")
+            else:
+                print("Automatic grading disabled")
             break
         elif i < max_attempts - 1:
             print("Attempt failed, retrying...")
@@ -112,7 +126,6 @@ def process_two_shot_attempt(
     system_prompt: str,
     paths: dict,
     model: str = "anthropic/claude-3.5-sonnet",
-    attempt_index: int = 1,
 ) -> str:
     """
     Execute one full two-shot attempt: initial generation followed by refinement.
@@ -130,11 +143,11 @@ def process_two_shot_attempt(
         # --- Shot 1: Initial generation ---
         print("Running Shot 1: Initial Mermaid generation")
         first_answer = call_openrouter_llm(
-            first_prompt, max_tokens=6000, temperature=0.01, model=model
+            first_prompt, max_tokens=15000, temperature=0.01, model=model
         )
 
         # Log raw response so extraction failures can be diagnosed
-        with open(paths["log_file_path"], "a") as f:
+        with open(paths["llm_log_path"], "a") as f:
             f.write(f"=== Shot 1 Raw LLM Response ===\n{first_answer}\n\n")
 
         try:
@@ -145,7 +158,7 @@ def process_two_shot_attempt(
             )
         except Exception as e:
             error = "Shot 1: Failed to extract Mermaid code from LLM response"
-            with open(paths["log_file_path"], "a") as f:
+            with open(paths["llm_log_path"], "a") as f:
                 f.write(f"{error}\nError: {str(e)}\n\n")
             print(f"{error}: {str(e)}")
             return "False"
@@ -158,7 +171,7 @@ def process_two_shot_attempt(
         with open(shot1_mmd_path, "w") as f:
             f.write(shot1_mermaid)
 
-        shot1_txt_path = os.path.join(shot1_dir, "generated_mermaid_code_shot1.txt")
+        shot1_txt_path = os.path.join(shot1_dir, "output_shot1.txt")
         with open(shot1_txt_path, "w") as f:
             f.write(shot1_mermaid)
 
@@ -171,12 +184,12 @@ def process_two_shot_attempt(
             if not success:
                 raise Exception("Shot 1 diagram rendering failed")
         except Exception as e:
-            with open(paths["log_file_path"], "a") as f:
+            with open(paths["llm_log_path"], "a") as f:
                 f.write(f"Shot 1 rendering failed: {str(e)}\n\n")
             print(f"Shot 1 rendering failed: {str(e)}")
             return "False"
 
-        with open(paths["log_file_path"], "a") as f:
+        with open(paths["llm_log_path"], "a") as f:
             f.write(f"=== Shot 1 (Initial) ===\n{shot1_mermaid}\n\n")
 
         # --- Shot 2: Refinement ---
@@ -185,45 +198,28 @@ def process_two_shot_attempt(
             shot1_mermaid, system_prompt, mermaid_syntax
         )
 
-        # Save shot 2 prompt separately for traceability across retries.
-        shot2_prompt_path = os.path.join(
-            paths["log_base_dir"], f"prompt_shot2_attempt_{attempt_index}.txt"
-        )
-        with open(shot2_prompt_path, "w") as f:
-            f.write(refinement_prompt)
-
-        with open(paths["log_file_path"], "a") as f:
-            f.write(
-                f"=== Shot 2 Refinement Prompt (sent to LLM) ===\n{refinement_prompt}\n\n"
-            )
+        with open(paths["llm_log_path"], "a") as f:
+            f.write(f"=== Shot 2 Refinement Prompt (sent to LLM) ===\n{refinement_prompt}\n\n")
 
         second_answer = call_openrouter_llm(
-            refinement_prompt, max_tokens=6000, temperature=0.3, model=model
+            refinement_prompt, max_tokens=15000, temperature=0.3, model=model
         )
 
-        with open(paths["log_file_path"], "a") as f:
+        with open(paths["llm_log_path"], "a") as f:
             f.write(f"=== Shot 2 Raw LLM Response ===\n{second_answer}\n\n")
 
         try:
             shot2_mermaid = mermaidCodeSearch(
                 second_answer, paths["generated_mermaid_code_path"]
             )
-
-            # Mirror the final Mermaid output into a stable filename for downstream use.
-            mermaid_code_path = os.path.join(
-                os.path.dirname(paths["generated_mermaid_code_path"]),
-                "generated_mermaid_code.txt",
-            )
-            with open(mermaid_code_path, "w") as f:
-                f.write(shot2_mermaid)
         except Exception as e:
             error = "Shot 2: Failed to extract Mermaid code from LLM response"
-            with open(paths["log_file_path"], "a") as f:
+            with open(paths["llm_log_path"], "a") as f:
                 f.write(f"{error}\nError: {str(e)}\n\n")
             print(f"{error}: {str(e)}")
             return "False"
 
-        with open(paths["log_file_path"], "a") as f:
+        with open(paths["llm_log_path"], "a") as f:
             f.write(f"=== Shot 2 (Refined, Final) ===\n{shot2_mermaid}\n\n")
 
         # --- Render shot 2 ---
@@ -252,11 +248,21 @@ def process_two_shot_attempt(
                     indent=2,
                 )
 
-            with open(paths["log_file_path"], "a") as f:
-                f.write(f"{error}\nError: {str(e)}\nTraceback:\n{full_traceback}\n\n")
+            with open(paths["llm_log_path"], "a") as f:
+                f.write(
+                    f"{error}\nError: {str(e)}\nTraceback:\n{full_traceback}\n\n"
+                )
 
             print(f"{error}: {str(e)}")
             return "False"
+
+        # Write the final Mermaid code in .txt form as well.
+        with open(paths["log_file_path"], "w") as f:
+            f.write(shot2_mermaid)
+
+        final_txt_path = os.path.join(paths["log_base_dir"], "output_shot2.txt")
+        with open(final_txt_path, "w") as f:
+            f.write(shot2_mermaid)
 
         return shot2_mermaid
 
@@ -269,7 +275,7 @@ def process_two_shot_attempt(
         print(error_msg, file=sys.stderr)
         print(error_msg)
         try:
-            with open(paths["log_file_path"], "a") as f:
+            with open(paths["llm_log_path"], "a") as f:
                 f.write(f"=== UNEXPECTED ERROR ===\n{error_msg}\n\n")
         except Exception:
             pass
