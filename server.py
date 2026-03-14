@@ -7,9 +7,12 @@ import asyncio
 import contextlib
 import io
 import json
+import logging
 import os
 import queue
 import threading
+import time
+import traceback
 from pathlib import Path
 from typing import Literal
 
@@ -219,36 +222,65 @@ def _scan_runs() -> list[dict]:
     return runs
 
 
-def _find_latest_run_folder(strategy: str) -> str | None:
-    """After generation, find the most-recently modified run folder."""
+def _sanitize_system_name(system_name: str) -> str:
+    safe_system_name = "".join(
+        c if c.isalnum() or c in (" ", "-", "_") else "_" for c in system_name
+    )
+    return safe_system_name.strip().replace(" ", "_")
+
+
+def _has_run_artifacts(run_dir: Path) -> bool:
+    return any(
+        child.is_file()
+        and (
+            child.suffix in {".png", ".mmd", ".txt", ".csv", ".tsv"}
+            or child.name in {"LLM_log.txt", "grading_prompt.txt", "grading_output.txt"}
+        )
+        for child in run_dir.iterdir()
+    )
+
+
+def _find_latest_run_folder(
+    strategy: str,
+    *,
+    system_name: str | None = None,
+    model_name: str | None = None,
+    since: float | None = None,
+) -> str | None:
+    """Find the newest matching top-level run folder for a strategy."""
     outputs_dir = RESOURCES_DIR / f"{strategy}_outputs"
     if not outputs_dir.exists():
         return None
 
+    safe_system_name = _sanitize_system_name(system_name) if system_name else None
     latest_path: Path | None = None
     latest_mtime = 0.0
-    for run_dir in outputs_dir.rglob("*"):
-        if not run_dir.is_dir():
+
+    for date_dir in outputs_dir.iterdir():
+        if not date_dir.is_dir():
             continue
-        # A run folder contains generated artifacts (diagram, mermaid, logs or grading outputs).
-        has_artifacts = any(
-            child.is_file()
-            and (
-                child.suffix in {".png", ".mmd", ".txt", ".csv", ".tsv"}
-                or child.name
-                in {"LLM_log.txt", "grading_prompt.txt", "grading_output.txt"}
-            )
-            for child in run_dir.iterdir()
-        )
-        if not has_artifacts:
-            continue
-        try:
-            mtime = run_dir.stat().st_mtime
-        except OSError:
-            continue
-        if mtime > latest_mtime:
-            latest_mtime = mtime
-            latest_path = run_dir
+        for model_dir in date_dir.iterdir():
+            if not model_dir.is_dir():
+                continue
+            if model_name and model_dir.name != model_name:
+                continue
+            for system_dir in model_dir.iterdir():
+                if not system_dir.is_dir():
+                    continue
+                if safe_system_name and system_dir.name != safe_system_name:
+                    continue
+                for time_dir in system_dir.iterdir():
+                    if not time_dir.is_dir() or not _has_run_artifacts(time_dir):
+                        continue
+                    try:
+                        mtime = time_dir.stat().st_mtime
+                    except OSError:
+                        continue
+                    if since is not None and mtime < since:
+                        continue
+                    if mtime > latest_mtime:
+                        latest_mtime = mtime
+                        latest_path = time_dir
 
     return str(latest_path) if latest_path else None
 
@@ -305,6 +337,8 @@ def get_artifacts(folder: str = Query(...)):
         "png": None,
         "mmd": None,
         "txt": None,
+        "shot1_png": None,
+        "shot1_mmd": None,
         "llm_log": None,
         "grading_prompt": None,
         "grading_output": None,
@@ -332,6 +366,14 @@ def get_artifacts(folder: str = Query(...)):
             files["grading_tsv"] = str(f)
         elif f.suffix == ".txt" and f.name != "LLM_log.txt":
             files["txt"] = str(f)
+
+    shot1_dir = path / "shot1"
+    if shot1_dir.is_dir():
+        for f in shot1_dir.iterdir():
+            if f.suffix == ".png":
+                files["shot1_png"] = str(f)
+            elif f.suffix == ".mmd":
+                files["shot1_mmd"] = str(f)
 
     return files
 
@@ -387,6 +429,23 @@ class _QueueWriter(io.RawIOBase):
             self._buf = ""
 
 
+class _QueueLogHandler(logging.Handler):
+    """Mirror logging output into the SSE progress queue."""
+
+    def __init__(self, q: queue.Queue):
+        super().__init__(level=logging.INFO)
+        self._q = q
+
+    def emit(self, record: logging.LogRecord):
+        try:
+            message = self.format(record).strip()
+        except Exception:
+            self.handleError(record)
+            return
+        if message:
+            self._q.put(("progress", message))
+
+
 @app.post("/api/generate")
 def generate(req: GenerateRequest):
     openrouter_model = PROFILE_TO_OPENROUTER.get(req.model, req.model)
@@ -394,31 +453,68 @@ def generate(req: GenerateRequest):
 
     def _run():
         writer = _QueueWriter(q)
+        log_handler = _QueueLogHandler(q)
+        log_handler.setFormatter(logging.Formatter("%(levelname)s %(name)s: %(message)s"))
+        root_logger = logging.getLogger()
+        previous_root_level = root_logger.level
+        request_started_at = time.time()
         try:
+            root_logger.addHandler(log_handler)
+            if root_logger.getEffectiveLevel() > logging.INFO:
+                root_logger.setLevel(logging.INFO)
             effective_auto_grading = (
                 req.enable_auto_grading and req.input_mode != "custom"
             )
-            with contextlib.redirect_stdout(writer):  # type: ignore[arg-type]
+            with contextlib.redirect_stdout(writer), contextlib.redirect_stderr(
+                writer
+            ):  # type: ignore[arg-type]
                 if req.strategy == "single_prompt":
-                    run_single_prompt(
+                    success = run_single_prompt(
                         req.description,
                         openrouter_model,
                         req.system_name,
                         effective_auto_grading,
                     )
                 else:
-                    run_two_shot_prompt(
+                    success = run_two_shot_prompt(
                         req.description,
                         openrouter_model,
                         req.system_name,
                         effective_auto_grading,
                     )
             writer.flush()
-            folder = _find_latest_run_folder(req.strategy)
+            log_handler.flush()
+            if not success:
+                q.put(("error", "Generation failed before producing artifacts."))
+                return
+
+            model_short_name = (
+                openrouter_model.split("/")[-1]
+                if "/" in openrouter_model
+                else openrouter_model
+            )
+            folder = _find_latest_run_folder(
+                req.strategy,
+                system_name=req.system_name,
+                model_name=model_short_name,
+                since=request_started_at,
+            )
+            if not folder:
+                q.put(("error", "Generation finished without a fresh output folder."))
+                return
             q.put(("complete", {"folder": folder}))
-        except Exception as exc:
+        except BaseException as exc:
+            tb = traceback.format_exc().strip()
+            if tb:
+                for line in tb.splitlines():
+                    if line.strip():
+                        q.put(("progress", line))
             q.put(("error", str(exc)))
         finally:
+            writer.flush()
+            log_handler.flush()
+            root_logger.removeHandler(log_handler)
+            root_logger.setLevel(previous_root_level)
             q.put(None)  # sentinel
 
     threading.Thread(target=_run, daemon=True).start()

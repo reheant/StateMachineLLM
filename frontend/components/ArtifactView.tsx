@@ -123,16 +123,37 @@ function GradingGrid({ path }: { path: string }) {
 }
 
 export function ArtifactView({ run, onNewRun }: Props) {
-  const [artifacts, setArtifacts] = useState<Artifacts | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [artifactsState, setArtifactsState] = useState<{
+    folder: string;
+    artifacts: Artifacts | null;
+    error: string | null;
+  }>({
+    folder: run.folder,
+    artifacts: null,
+    error: null,
+  });
 
   useEffect(() => {
-    setArtifacts(null);
-    setError(null);
     fetchArtifacts(run.folder)
-      .then(setArtifacts)
-      .catch(() => setError("Failed to load artifacts."));
+      .then((artifacts) => {
+        setArtifactsState({
+          folder: run.folder,
+          artifacts,
+          error: null,
+        });
+      })
+      .catch(() => {
+        setArtifactsState({
+          folder: run.folder,
+          artifacts: null,
+          error: "Failed to load artifacts.",
+        });
+      });
   }, [run.folder]);
+
+  const isCurrentRunLoaded = artifactsState.folder === run.folder;
+  const artifacts = isCurrentRunLoaded ? artifactsState.artifacts : null;
+  const error = isCurrentRunLoaded ? artifactsState.error : null;
 
   const strategyLabel =
     run.strategy === "single_prompt"

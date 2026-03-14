@@ -2,6 +2,7 @@ import os
 import graphviz
 import re
 import subprocess
+import threading
 import time
 import requests
 from bs4 import BeautifulSoup, Tag
@@ -17,6 +18,10 @@ from .llm_tracker import llm
 
 # OpenRouter API key for single prompt
 openrouter_api_key = os.environ.get("OPENROUTER_API_KEY")
+
+# pythonmonkey / SpiderMonkey is unstable under overlapping threaded access in this app.
+# Serialize Mermaid parser/render usage to avoid native crashes when requests overlap.
+MERMAID_RENDER_LOCK = threading.Lock()
 
 
 def choose_model():
@@ -1684,228 +1689,229 @@ def create_single_prompt_gsm_diagram_with_sherpa(
     mermaid_code: The Mermaid stateDiagram-v2 code as a string
     diagram_file_path: Path where to save the PNG diagram
     """
-    # Lazy import inside the function (called via asyncio.to_thread, so it's safe)
-    # DO NOT import at module level - causes segfault in Chainlit's async context
-    # Import inside function ensures it runs in thread pool, not event loop
-    try:
-        from .mermaid_to_sherpa_parser import parse_mermaid_with_library
-    except (ImportError, KeyError) as e:
-        # Fallback import path
-        import sys
-
-        current_dir = os.path.dirname(os.path.abspath(__file__))
-        if current_dir not in sys.path:
-            sys.path.insert(0, current_dir)
-        from mermaid_to_sherpa_parser import parse_mermaid_with_library
-
-    # Parse Mermaid code using mermaid-parser-py library
-    (
-        states_list,
-        transitions_list,
-        hierarchical_dict,
-        initial_state,
-        parallel_regions,
-        state_annotations,
-        root_initial_state,
-        nested_initial_states,
-        state_declarations_map,
-    ) = parse_mermaid_with_library(mermaid_code)
-
-    # Parser Debug Output
-    print("\nParser Debug Output:")
-    print("─" * 60)
-    print("\nState Declarations Map (from raw mermaid scan):")
-    if state_declarations_map:
-        for state_name, parent_id in sorted(state_declarations_map.items()):
-            parent_str = parent_id if parent_id else "ROOT"
-            print(f"  {state_name} → {parent_str}")
-    else:
-        print("  (empty)")
-
-    print("\nParsed States:")
-    print(f"  {states_list}")
-
-    print("\nParsed Transitions:")
-    for trans in transitions_list:
-        source = trans.get("source", "?")
-        dest = trans.get("dest", "?")
-        trigger = trans.get("trigger", "?")
-        print(f"  {source} --{trigger}--> {dest}")
-
-    print(f"\nInitial State: {initial_state}")
-    print("─" * 60)
-
-    if not initial_state:
-        print("Warning: No initial state found, using first state")
-        if states_list:
-            initial_state = (
-                states_list[0]
-                if isinstance(states_list[0], str)
-                else states_list[0]["name"]
-            )
-        else:
-            raise ValueError("No states found in Mermaid diagram")
-
-    # Create the Sherpa state machine
-    try:
-        gsm = SherpaStateMachine(
-            states=states_list,
-            transitions=transitions_list,
-            initial=initial_state,
-            sm_cls=HierarchicalGraphMachine,
-        )
-
-        # Override the default 'active' styling from transitions' diagrams
-        # (which uses a colored fill like 'darksalmon') so active states
-        # don't appear with the coral/darksalmon fill. Use the machine's
-        # default node/graph styles instead.
+    with MERMAID_RENDER_LOCK:
+        # Lazy import inside the function (called via asyncio.to_thread, so it's safe)
+        # DO NOT import at module level - causes segfault in Chainlit's async context
+        # Import inside function ensures it runs in thread pool, not event loop
         try:
-            node_defaults = (
-                gsm.sm.style_attributes.get("node", {}).get("default", {}).copy()
-            )
-            graph_defaults = (
-                gsm.sm.style_attributes.get("graph", {}).get("default", {}).copy()
-            )
-            gsm.sm.style_attributes.setdefault("node", {})["active"] = node_defaults
-            gsm.sm.style_attributes.setdefault("graph", {})["active"] = graph_defaults
-        except Exception:
-            # Non-fatal: if attributes aren't present, continue with defaults
-            pass
+            from .mermaid_to_sherpa_parser import parse_mermaid_with_library
+        except (ImportError, KeyError) as e:
+            # Fallback import path
+            import sys
 
-        # Ensure the diagram path has .png extension
-        if not diagram_file_path.endswith(".png"):
-            png_file_path = f"{diagram_file_path}.png"
+            current_dir = os.path.dirname(os.path.abspath(__file__))
+            if current_dir not in sys.path:
+                sys.path.insert(0, current_dir)
+            from mermaid_to_sherpa_parser import parse_mermaid_with_library
+
+        # Parse Mermaid code using mermaid-parser-py library
+        (
+            states_list,
+            transitions_list,
+            hierarchical_dict,
+            initial_state,
+            parallel_regions,
+            state_annotations,
+            root_initial_state,
+            nested_initial_states,
+            state_declarations_map,
+        ) = parse_mermaid_with_library(mermaid_code)
+
+        # Parser Debug Output
+        print("\nParser Debug Output:")
+        print("─" * 60)
+        print("\nState Declarations Map (from raw mermaid scan):")
+        if state_declarations_map:
+            for state_name, parent_id in sorted(state_declarations_map.items()):
+                parent_str = parent_id if parent_id else "ROOT"
+                print(f"  {state_name} → {parent_str}")
         else:
-            png_file_path = diagram_file_path
+            print("  (empty)")
 
-        # Get the graph and manually add initial state markers ([*])
-        # These are visual-only markers and must be placed at the correct hierarchical level
-        graph = gsm.sm.get_graph()
+        print("\nParsed States:")
+        print(f"  {states_list}")
 
-        # Apply fix for hierarchical state transitions
-        # Makes transitions to composite states point to the box boundary instead of internal initial state
-        graph = fix_hierarchical_state_transitions(graph)
+        print("\nParsed Transitions:")
+        for trans in transitions_list:
+            source = trans.get("source", "?")
+            dest = trans.get("dest", "?")
+            trigger = trans.get("trigger", "?")
+            print(f"  {source} --{trigger}--> {dest}")
 
-        # Manually add initial state markers to the Graphviz graph
-        # Strategy: Insert point nodes and edges at the correct hierarchical levels
+        print(f"\nInitial State: {initial_state}")
+        print("─" * 60)
+
+        if not initial_state:
+            print("Warning: No initial state found, using first state")
+            if states_list:
+                initial_state = (
+                    states_list[0]
+                    if isinstance(states_list[0], str)
+                    else states_list[0]["name"]
+                )
+            else:
+                raise ValueError("No states found in Mermaid diagram")
+
+        # Create the Sherpa state machine
         try:
-            import re
+            gsm = SherpaStateMachine(
+                states=states_list,
+                transitions=transitions_list,
+                initial=initial_state,
+                sm_cls=HierarchicalGraphMachine,
+            )
 
-            new_body = []
+            # Override the default 'active' styling from transitions' diagrams
+            # (which uses a colored fill like 'darksalmon') so active states
+            # don't appear with the coral/darksalmon fill. Use the machine's
+            # default node/graph styles instead.
+            try:
+                node_defaults = (
+                    gsm.sm.style_attributes.get("node", {}).get("default", {}).copy()
+                )
+                graph_defaults = (
+                    gsm.sm.style_attributes.get("graph", {}).get("default", {}).copy()
+                )
+                gsm.sm.style_attributes.setdefault("node", {})["active"] = node_defaults
+                gsm.sm.style_attributes.setdefault("graph", {})["active"] = graph_defaults
+            except Exception:
+                # Non-fatal: if attributes aren't present, continue with defaults
+                pass
 
-            # Track which subgraphs (composite states) we're inside
-            current_subgraphs = []  # Stack of (subgraph_name, indent_level)
+            # Ensure the diagram path has .png extension
+            if not diagram_file_path.endswith(".png"):
+                png_file_path = f"{diagram_file_path}.png"
+            else:
+                png_file_path = diagram_file_path
 
-            # Process each line and inject initial markers at the right places
-            i = 0
-            while i < len(graph.body):
-                line = graph.body[i]
+            # Get the graph and manually add initial state markers ([*])
+            # These are visual-only markers and must be placed at the correct hierarchical level
+            graph = gsm.sm.get_graph()
 
-                # Track subgraph entries
-                if "subgraph" in line:
-                    # Extract the subgraph name (e.g., cluster_On)
-                    match = re.search(r"subgraph\s+(\S+)", line)
-                    if match:
-                        subgraph_name = match.group(1)
-                        indent_match = re.match(r"(\s*)", line)
-                        indent_level = len(indent_match.group(1)) if indent_match else 0
-                        current_subgraphs.append((subgraph_name, indent_level))
+            # Apply fix for hierarchical state transitions
+            # Makes transitions to composite states point to the box boundary instead of internal initial state
+            graph = fix_hierarchical_state_transitions(graph)
 
-                        # Nested initial state markers are NOT injected here manually.
-                        # Setting "initial" on state dicts (in mermaid_to_sherpa_parser.py)
-                        # causes pytransitions' HierarchicalGraphMachine to render
-                        # the initial markers automatically in the graphviz output.
+            # Manually add initial state markers to the Graphviz graph
+            # Strategy: Insert point nodes and edges at the correct hierarchical levels
+            try:
+                import re
 
-                        new_body.append(line)
+                new_body = []
 
-                        i += 1
-                        continue
+                # Track which subgraphs (composite states) we're inside
+                current_subgraphs = []  # Stack of (subgraph_name, indent_level)
 
-                # Track subgraph exits
-                if line.strip() == "}":
-                    if current_subgraphs:
-                        # Check indent level to see if we're exiting a subgraph
-                        indent_match = re.match(r"(\s*)", line)
-                        current_indent = (
-                            len(indent_match.group(1)) if indent_match else 0
-                        )
+                # Process each line and inject initial markers at the right places
+                i = 0
+                while i < len(graph.body):
+                    line = graph.body[i]
 
-                        # Pop subgraphs that we're exiting
-                        while (
-                            current_subgraphs
-                            and current_subgraphs[-1][1] >= current_indent
+                    # Track subgraph entries
+                    if "subgraph" in line:
+                        # Extract the subgraph name (e.g., cluster_On)
+                        match = re.search(r"subgraph\s+(\S+)", line)
+                        if match:
+                            subgraph_name = match.group(1)
+                            indent_match = re.match(r"(\s*)", line)
+                            indent_level = len(indent_match.group(1)) if indent_match else 0
+                            current_subgraphs.append((subgraph_name, indent_level))
+
+                            # Nested initial state markers are NOT injected here manually.
+                            # Setting "initial" on state dicts (in mermaid_to_sherpa_parser.py)
+                            # causes pytransitions' HierarchicalGraphMachine to render
+                            # the initial markers automatically in the graphviz output.
+
+                            new_body.append(line)
+
+                            i += 1
+                            continue
+
+                    # Track subgraph exits
+                    if line.strip() == "}":
+                        if current_subgraphs:
+                            # Check indent level to see if we're exiting a subgraph
+                            indent_match = re.match(r"(\s*)", line)
+                            current_indent = (
+                                len(indent_match.group(1)) if indent_match else 0
+                            )
+
+                            # Pop subgraphs that we're exiting
+                            while (
+                                current_subgraphs
+                                and current_subgraphs[-1][1] >= current_indent
+                            ):
+                                current_subgraphs.pop()
+
+                    # Keep the line
+                    new_body.append(line)
+                    i += 1
+
+                # Add root-level initial marker if needed
+                # Root initial marker should be at the top level (not inside any subgraph)
+                if root_initial_state:
+                    # Find where to insert the root initial marker
+                    # It should be after the graph attributes but before state definitions
+                    insert_index = 0
+                    for idx, line in enumerate(new_body):
+                        if (
+                            "digraph" in line
+                            or "graph [" in line
+                            or "node [" in line
+                            or "edge [" in line
                         ):
-                            current_subgraphs.pop()
+                            insert_index = idx + 1
+                        elif "subgraph" in line:
+                            break
 
-                # Keep the line
-                new_body.append(line)
-                i += 1
+                    # Insert root initial marker at top level
+                    root_marker = "_initial"
+                    new_body.insert(
+                        insert_index,
+                        f'\t"{root_marker}" [fillcolor=black color=black height=0.15 label="" shape=point width=0.15]',
+                    )
+                    new_body.insert(
+                        insert_index + 1, f'\t"{root_marker}" -> "{root_initial_state}"'
+                    )
 
-            # Add root-level initial marker if needed
-            # Root initial marker should be at the top level (not inside any subgraph)
-            if root_initial_state:
-                # Find where to insert the root initial marker
-                # It should be after the graph attributes but before state definitions
-                insert_index = 0
-                for idx, line in enumerate(new_body):
-                    if (
-                        "digraph" in line
-                        or "graph [" in line
-                        or "node [" in line
-                        or "edge [" in line
-                    ):
-                        insert_index = idx + 1
-                    elif "subgraph" in line:
-                        break
+                # Replace the graph body
+                graph.body = new_body
 
-                # Insert root initial marker at top level
-                root_marker = "_initial"
-                new_body.insert(
-                    insert_index,
-                    f'\t"{root_marker}" [fillcolor=black color=black height=0.15 label="" shape=point width=0.15]',
-                )
-                new_body.insert(
-                    insert_index + 1, f'\t"{root_marker}" -> "{root_initial_state}"'
-                )
+            except Exception as e:
+                # Non-fatal: if this fails, continue with default rendering
+                print(f"Warning: Could not add initial state markers: {e}")
+                import traceback
 
-            # Replace the graph body
-            graph.body = new_body
+                traceback.print_exc()
+
+            if state_annotations:
+                # Format annotations as a left-aligned label at the bottom of the diagram
+                annotation_text = (
+                    "\\l".join(state_annotations) + "\\l"
+                )  # \l = left-align in graphviz
+                graph.graph_attr["label"] = annotation_text
+                graph.graph_attr["labelloc"] = "b"  # bottom
+                graph.graph_attr["labeljust"] = "l"  # left-justify
+                graph.graph_attr["fontsize"] = "10"
+
+            # Save the GraphViz source for debugging
+            gv_debug_path = png_file_path.replace(".png", ".gv")
+            with open(gv_debug_path, "w") as f:
+                f.write(graph.source)
+            print(f"GraphViz source saved to: {gv_debug_path}")
+
+            # Generate and render the diagram directly to PNG using graphviz
+            graph.draw(png_file_path, prog="dot", format="png")
+
+            print(f"Sherpa diagram saved to: {png_file_path}")
+            return True
 
         except Exception as e:
-            # Non-fatal: if this fails, continue with default rendering
-            print(f"Warning: Could not add initial state markers: {e}")
+            print(f"Error creating Sherpa state machine: {str(e)}")
             import traceback
 
             traceback.print_exc()
-
-        if state_annotations:
-            # Format annotations as a left-aligned label at the bottom of the diagram
-            annotation_text = (
-                "\\l".join(state_annotations) + "\\l"
-            )  # \l = left-align in graphviz
-            graph.graph_attr["label"] = annotation_text
-            graph.graph_attr["labelloc"] = "b"  # bottom
-            graph.graph_attr["labeljust"] = "l"  # left-justify
-            graph.graph_attr["fontsize"] = "10"
-
-        # Save the GraphViz source for debugging
-        gv_debug_path = png_file_path.replace(".png", ".gv")
-        with open(gv_debug_path, "w") as f:
-            f.write(graph.source)
-        print(f"GraphViz source saved to: {gv_debug_path}")
-
-        # Generate and render the diagram directly to PNG using graphviz
-        graph.draw(png_file_path, prog="dot", format="png")
-
-        print(f"Sherpa diagram saved to: {png_file_path}")
-        return True
-
-    except Exception as e:
-        print(f"Error creating Sherpa state machine: {str(e)}")
-        import traceback
-
-        traceback.print_exc()
-        return False
+            return False
 
 
 def mermaidDiagramGeneration(mermaid_code_path: str, diagram_file_path: str):

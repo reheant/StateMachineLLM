@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { fetchExamples, fetchDescription } from "@/lib/api";
-import type { Example, Run } from "@/lib/types";
+import { fetchArtifacts, fetchDescription, fetchExamples, fetchHistory } from "@/lib/api";
+import type { Artifacts, Example, Run } from "@/lib/types";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
@@ -14,7 +14,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Loader2, Zap } from "lucide-react";
+import { Check, ChevronDown, Loader2, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const MODELS: Record<string, { label: string; value: string }[]> = {
@@ -55,6 +55,160 @@ const MODEL_LABELS: Record<string, string> = Object.values(MODELS)
 interface Props {
   onComplete: (run: Run) => void;
   onHistoryRefresh: () => void;
+  onGeneratingChange?: (v: boolean) => void;
+}
+
+type PromptStrategy = "single_prompt" | "two_shot_prompt";
+
+type ProgressStep = {
+  label: string;
+  status: "pending" | "active" | "done";
+};
+
+function buildProgressSteps(
+  strategy: PromptStrategy,
+  logs: string[],
+  artifacts: Artifacts | null
+): ProgressStep[] {
+  const logText = logs.join("\n").toLowerCase();
+
+  if (strategy === "two_shot_prompt") {
+    const shot1Started =
+      /running shot 1|shot 1 raw llm response|shot 1: failed/.test(logText);
+    const shot1Mermaid = Boolean(artifacts?.shot1_mmd);
+    const shot1Image = Boolean(artifacts?.shot1_png);
+    const shot2Started =
+      /running shot 2|shot 2 raw llm response|shot 2: failed/.test(logText);
+    const shot2Mermaid = Boolean(artifacts?.mmd || artifacts?.txt);
+    const finalImage = Boolean(artifacts?.png);
+
+    return [
+      { label: "Shot 1 started", status: shot1Started ? "done" : "active" },
+      { label: "Shot 1 Mermaid generated", status: shot1Mermaid ? "done" : shot1Started ? "active" : "pending" },
+      { label: "Shot 1 image generated", status: shot1Image ? "done" : shot1Mermaid ? "active" : "pending" },
+      { label: "Shot 2 started", status: shot2Started ? "done" : shot1Image ? "active" : "pending" },
+      { label: "Shot 2 Mermaid generated", status: shot2Mermaid ? "done" : shot2Started ? "active" : "pending" },
+      { label: "Image generated", status: finalImage ? "done" : shot2Mermaid ? "active" : "pending" },
+    ];
+  }
+
+  const mermaidGenerated = Boolean(artifacts?.mmd || artifacts?.txt);
+  const imageGenerated = Boolean(artifacts?.png);
+
+  return [
+    { label: "Calling LLM", status: mermaidGenerated ? "done" : "active" },
+    { label: "Mermaid generated", status: mermaidGenerated ? (imageGenerated ? "done" : "active") : "pending" },
+    { label: "Image generated", status: imageGenerated ? "done" : mermaidGenerated ? "active" : "pending" },
+  ];
+}
+
+function GeneratingProgress({
+  strategy,
+  logs,
+  artifacts,
+  onCancel,
+}: {
+  strategy: PromptStrategy;
+  logs: string[];
+  artifacts: Artifacts | null;
+  onCancel: () => void;
+}) {
+  const [showLogs, setShowLogs] = useState(false);
+  const logsEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (showLogs) logsEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [logs, showLogs]);
+
+  const steps = buildProgressSteps(strategy, logs, artifacts);
+
+  return (
+    <div className="overflow-hidden rounded-2xl border border-white/[0.10] bg-[oklch(0.19_0.04_258)] shadow-lg shadow-black/40">
+
+      {/* Header */}
+      <div className="flex items-center gap-2 border-b border-white/[0.06] px-4 py-3">
+        <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-orange-400" />
+        <span className="text-[10px] font-bold uppercase tracking-widest text-white/40">Generating</span>
+      </div>
+
+      {/* Steps — each clickable to toggle log terminal */}
+      <div className="flex flex-col px-3 py-3">
+        {steps.map((step, i) => {
+          const done = step.status === "done";
+          const active = step.status === "active";
+          return (
+            <button
+              key={i}
+              onClick={() => setShowLogs((v) => !v)}
+              className={cn(
+                "flex w-full items-center gap-3 rounded-xl px-2 py-2.5 text-left transition-colors",
+                active ? "bg-orange-400/[0.07]" : "hover:bg-white/[0.03]"
+              )}
+            >
+              <span className={cn(
+                "flex h-5 w-5 shrink-0 items-center justify-center rounded-full transition-all duration-300",
+                done  && "bg-orange-500/20",
+                active && "ring-2 ring-orange-400/50 ring-offset-1 ring-offset-[oklch(0.19_0.04_258)] bg-orange-400/10",
+                !done && !active && "border border-white/[0.10]"
+              )}>
+                {done ? (
+                  <Check className="h-3 w-3 text-orange-400" />
+                ) : active ? (
+                  <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-orange-400" />
+                ) : (
+                  <span className="h-1.5 w-1.5 rounded-full bg-white/15" />
+                )}
+              </span>
+              <span className={cn(
+                "text-[13px] transition-colors duration-200",
+                done  && "text-white/25 line-through decoration-white/15",
+                active && "font-semibold text-white/80",
+                !done && !active && "text-white/25"
+              )}>
+                {step.label}
+              </span>
+              {active && (
+                <ChevronDown className={cn(
+                  "ml-auto h-3.5 w-3.5 shrink-0 text-white/25 transition-transform duration-200",
+                  showLogs && "rotate-180"
+                )} />
+              )}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Terminal log pane */}
+      {showLogs && (
+        <div className="border-t border-white/[0.06]">
+          <ScrollArea className="h-44 px-3 py-3">
+            <div className="flex flex-col gap-0.5">
+              {logs.length === 0 ? (
+                <p className="font-mono text-[10px] text-white/20 italic">Waiting for output…</p>
+              ) : (
+                logs.map((line, i) => (
+                  <p key={i} className="font-mono text-[10px] leading-relaxed text-orange-300/50 break-all">
+                    <span className="mr-1.5 text-white/15">›</span>{line}
+                  </p>
+                ))
+              )}
+              <div ref={logsEndRef} />
+            </div>
+          </ScrollArea>
+        </div>
+      )}
+
+      {/* Footer */}
+      <div className="border-t border-white/[0.06] px-4 py-3">
+        <button
+          onClick={onCancel}
+          className="w-full rounded-xl border border-white/[0.10] bg-white/[0.04] py-2 text-sm font-medium text-white/50 transition-all hover:border-white/[0.20] hover:bg-white/[0.07] hover:text-white/80"
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  );
 }
 
 function StepNumber({ n }: { n: number }) {
@@ -65,7 +219,80 @@ function StepNumber({ n }: { n: number }) {
   );
 }
 
-export function RunForm({ onComplete, onHistoryRefresh }: Props) {
+function normalizeToken(value: string): string {
+  return value.toLowerCase().replace(/[^a-z0-9]/g, "");
+}
+
+function normalizeSystemName(value: string): string {
+  return value.trim().replace(/[_\s]+/g, " ").toLowerCase();
+}
+
+function findCompletedRun(
+  history: Run[],
+  strategy: PromptStrategy,
+  systemName: string,
+  model: string,
+  startedAt: number
+): Run | null {
+  const requestedModel = normalizeToken(model.split(":").pop() ?? model);
+  const requestedSystem = normalizeSystemName(systemName);
+
+  const strictMatches = history.filter((run) => {
+    if (run.strategy !== strategy || !run.has_png) return false;
+    if (normalizeSystemName(run.system) !== requestedSystem) return false;
+    return normalizeToken(run.model) === requestedModel;
+  });
+
+  const fallbackMatches = strictMatches.length > 0
+    ? strictMatches
+    : history.filter(
+        (run) =>
+          run.strategy === strategy &&
+          run.has_png &&
+          normalizeSystemName(run.system) === requestedSystem
+      );
+
+  return (
+    fallbackMatches.find((run) => {
+      const completedAt = Date.parse(`${run.date}T${run.time}`);
+      return Number.isNaN(completedAt) || completedAt >= startedAt - 60_000;
+    }) ?? null
+  );
+}
+
+function findMatchingRun(
+  history: Run[],
+  strategy: PromptStrategy,
+  systemName: string,
+  model: string,
+  startedAt: number
+): Run | null {
+  const requestedModel = normalizeToken(model.split(":").pop() ?? model);
+  const requestedSystem = normalizeSystemName(systemName);
+
+  const strictMatches = history.filter((run) => {
+    if (run.strategy !== strategy) return false;
+    if (normalizeSystemName(run.system) !== requestedSystem) return false;
+    return normalizeToken(run.model) === requestedModel;
+  });
+
+  const fallbackMatches = strictMatches.length > 0
+    ? strictMatches
+    : history.filter(
+        (run) =>
+          run.strategy === strategy &&
+          normalizeSystemName(run.system) === requestedSystem
+      );
+
+  return (
+    fallbackMatches.find((run) => {
+      const completedAt = Date.parse(`${run.date}T${run.time}`);
+      return Number.isNaN(completedAt) || completedAt >= startedAt - 60_000;
+    }) ?? null
+  );
+}
+
+export function RunForm({ onComplete, onHistoryRefresh, onGeneratingChange }: Props) {
   const [strategy, setStrategy] = useState<
     "single_prompt" | "two_shot_prompt" | "mermaid_compiler" | "automatic_grader"
   >("single_prompt");
@@ -79,6 +306,7 @@ export function RunForm({ onComplete, onHistoryRefresh }: Props) {
   const [generating, setGenerating] = useState(false);
   const [logs, setLogs] = useState<string[]>([]);
   const [enableAutoGrading, setEnableAutoGrading] = useState(false);
+  const [progressArtifacts, setProgressArtifacts] = useState<Artifacts | null>(null);
 
   // Mermaid sandbox state
   const [mermaidCode, setMermaidCode] = useState("");
@@ -87,15 +315,28 @@ export function RunForm({ onComplete, onHistoryRefresh }: Props) {
   const [gradingMermaid, setGradingMermaid] = useState(false);
   const [mermaidError, setMermaidError] = useState<string | null>(null);
 
-  const logsEndRef = useRef<HTMLDivElement>(null);
+  const abortRef = useRef<AbortController | null>(null);
+  // Always hold latest callback refs so async handlers don't close over stale values
+  const onCompleteRef = useRef(onComplete);
+  const onHistoryRefreshRef = useRef(onHistoryRefresh);
+  const onGeneratingChangeRef = useRef(onGeneratingChange);
+  useEffect(() => { onCompleteRef.current = onComplete; }, [onComplete]);
+  useEffect(() => { onHistoryRefreshRef.current = onHistoryRefresh; }, [onHistoryRefresh]);
+  useEffect(() => { onGeneratingChangeRef.current = onGeneratingChange; }, [onGeneratingChange]);
 
   useEffect(() => {
     fetchExamples().then(setExamples).catch(console.error);
   }, []);
 
+  // Notify parent of generating state changes
   useEffect(() => {
-    logsEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [logs]);
+    onGeneratingChangeRef.current?.(generating);
+  }, [generating]);
+
+  // Abort on unmount
+  useEffect(() => {
+    return () => { abortRef.current?.abort(); };
+  }, []);
 
 async function handleExampleChange(key: string) {
     setExampleKey(key);
@@ -135,81 +376,165 @@ async function handleExampleChange(key: string) {
     }
   }
 
+  function handleCancel() {
+    abortRef.current?.abort();
+    abortRef.current = null;
+    setGenerating(false);
+    setLogs([]);
+    setProgressArtifacts(null);
+  }
+
   async function handleGenerate() {
     const desc = description.trim();
     const name = systemName.trim();
     if (!desc || !name) return;
+    const startedAt = Date.now();
+
+    const controller = new AbortController();
+    abortRef.current = controller;
 
     setGenerating(true);
     setLogs([]);
+    setProgressArtifacts(null);
 
     const isManualCustomInput = inputTab === "custom";
     const shouldEnableAutoGrading = !isManualCustomInput && enableAutoGrading;
+    let finished = false;
 
-    const res = await fetch("/api/generate", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        strategy,
-        model,
-        system_name: name,
-        description: desc,
-        enable_auto_grading: shouldEnableAutoGrading,
-        input_mode: inputTab,
-      }),
-    });
-
-    if (!res.ok || !res.body) {
-      setLogs((l) => [...l, "Error: failed to start generation."]);
+    const completeRun = (run: Run) => {
+      if (finished) return;
+      finished = true;
+      abortRef.current = null;
+      setProgressArtifacts(null);
       setGenerating(false);
-      return;
-    }
+      onHistoryRefreshRef.current();
+      onCompleteRef.current(run);
+    };
 
-    const reader = res.body.getReader();
-    const decoder = new TextDecoder();
-    let buffer = "";
+    const failRun = (message: string) => {
+      if (finished) return;
+      finished = true;
+      abortRef.current = null;
+      setProgressArtifacts(null);
+      setLogs((l) => [...l, message]);
+      setGenerating(false);
+    };
 
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      buffer += decoder.decode(value, { stream: true });
-      const parts = buffer.split("\n\n");
-      buffer = parts.pop() ?? "";
+    const pollForRenderedRun = async () => {
+      while (!finished && !controller.signal.aborted) {
+        try {
+          const history = await fetchHistory();
+          const matchingRun = findMatchingRun(history, strategy, name, model, startedAt);
+          if (matchingRun) {
+            try {
+              const artifacts = await fetchArtifacts(matchingRun.folder);
+              setProgressArtifacts(artifacts);
+            } catch {
+              // Ignore artifact polling failures; keep polling.
+            }
+          }
 
-      for (const chunk of parts) {
-        const lines = chunk.split("\n");
-        let eventType = "message";
-        let data = "";
-        for (const line of lines) {
-          if (line.startsWith("event: ")) eventType = line.slice(7);
-          else if (line.startsWith("data: ")) data = line.slice(6);
+          const recoveredRun = findCompletedRun(history, strategy, name, model, startedAt);
+          if (recoveredRun) {
+            completeRun(recoveredRun);
+            return;
+          }
+        } catch {
+          // Ignore polling failures; SSE/error path will handle terminal state.
         }
 
-        if (eventType === "progress") {
-          setLogs((l) => [...l, data]);
-        } else if (eventType === "complete") {
-          const payload = JSON.parse(data);
-          onHistoryRefresh();
-          const run: Run = {
-            strategy, model,
-            system: name,
-            folder: payload.folder,
-            date: new Date().toISOString().slice(0, 10),
-            time: new Date().toTimeString().slice(0, 8),
-            has_png: true,
-          };
-          setGenerating(false);
-          onComplete(run);
-          return;
-        } else if (eventType === "error") {
-          setLogs((l) => [...l, `Error: ${data}`]);
-          setGenerating(false);
-          return;
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+      }
+    };
+
+    try {
+      void pollForRenderedRun();
+      const res = await fetch("/api/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          strategy,
+          model,
+          system_name: name,
+          description: desc,
+          enable_auto_grading: shouldEnableAutoGrading,
+          input_mode: inputTab,
+        }),
+        signal: controller.signal,
+      });
+
+      if (!res.ok || !res.body) {
+        failRun("Error: failed to start generation.");
+        return;
+      }
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+      let sawTerminalEvent = false;
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const parts = buffer.split("\n\n");
+        buffer = parts.pop() ?? "";
+
+        for (const chunk of parts) {
+          const lines = chunk.split("\n");
+          let eventType = "message";
+          let data = "";
+          for (const line of lines) {
+            if (line.startsWith("event: ")) eventType = line.slice(7);
+            else if (line.startsWith("data: ")) data = line.slice(6);
+          }
+
+          if (eventType === "progress") {
+            setLogs((l) => [...l, data]);
+          } else if (eventType === "complete") {
+            sawTerminalEvent = true;
+            const payload = JSON.parse(data);
+            const run: Run = {
+              strategy, model,
+              system: name,
+              folder: payload.folder,
+              date: new Date().toISOString().slice(0, 10),
+              time: new Date().toTimeString().slice(0, 8),
+              has_png: true,
+            };
+            completeRun(run);
+            return;
+          } else if (eventType === "error") {
+            sawTerminalEvent = true;
+            failRun(`Error: ${data}`);
+            return;
+          }
         }
       }
+
+      if (!sawTerminalEvent) {
+        try {
+          const history = await fetchHistory();
+          const recoveredRun = findCompletedRun(history, strategy, name, model, startedAt);
+          if (recoveredRun) {
+            completeRun(recoveredRun);
+            return;
+          }
+        } catch {
+          // Fall through to the generic stream-closed error below.
+        }
+
+        failRun("Error: generation stream ended before completion.");
+      }
+    } catch (err) {
+      if ((err as Error).name === "AbortError") return; // user cancelled
+      failRun("Error: unexpected failure.");
     }
 
-    setGenerating(false);
+    if (!finished) {
+      abortRef.current = null;
+      setGenerating(false);
+    }
   }
 
   async function handleRenderMermaid() {
@@ -336,13 +661,14 @@ async function handleExampleChange(key: string) {
 
   return (
     <div className="flex flex-col bg-background">
-
       <div className="flex flex-col px-6 py-10">
       <div className="mx-auto w-full max-w-5xl flex flex-col gap-10">
         <div className="flex flex-col items-center gap-1.5 text-center">
           <h1 className="text-5xl font-black tracking-tight bg-gradient-to-br from-orange-300 via-orange-400 to-orange-600 bg-clip-text text-transparent">Tracer</h1>
           <p className="text-sm text-white/30">Generate a state machine diagram from any system description.</p>
         </div>
+
+        <div className="flex flex-col gap-10">
 
         {/* Step 1 — Strategy */}
         <div className="flex flex-col gap-4">
@@ -610,23 +936,33 @@ async function handleExampleChange(key: string) {
         </div>{/* end Parameters */}
 
         {isPromptStrategy && (
-          <button
-            onClick={handleGenerate}
-            disabled={!canGenerate}
-            className={cn(
-              "group relative flex w-full items-center justify-center gap-2.5 overflow-hidden rounded-xl py-3.5 text-sm font-semibold transition-all duration-200",
-              canGenerate
-                ? "bg-orange-500/90 text-white shadow-lg shadow-orange-500/20 hover:bg-orange-400/90 active:scale-[0.99]"
-                : "cursor-not-allowed bg-white/[0.04] text-white/20"
+          <>
+            <button
+              onClick={handleGenerate}
+              disabled={!canGenerate}
+              className={cn(
+                "group relative flex w-full items-center justify-center gap-2.5 overflow-hidden rounded-xl py-3.5 text-sm font-semibold transition-all duration-200",
+                canGenerate
+                  ? "bg-orange-500/90 text-white shadow-lg shadow-orange-500/20 hover:bg-orange-400/90 active:scale-[0.99]"
+                  : "cursor-not-allowed bg-white/[0.04] text-white/20"
+              )}
+            >
+              {generating ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Zap className="h-4 w-4 transition-transform group-hover:scale-110" />
+              )}
+              {generating ? "Generating…" : "Generate"}
+            </button>
+            {generating && (
+              <GeneratingProgress
+                strategy={strategy === "two_shot_prompt" ? "two_shot_prompt" : "single_prompt"}
+                logs={logs}
+                artifacts={progressArtifacts}
+                onCancel={handleCancel}
+              />
             )}
-          >
-            {generating ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <Zap className="h-4 w-4 transition-transform group-hover:scale-110" />
-            )}
-            {generating ? "Generating…" : "Generate"}
-          </button>
+          </>
         )}
 
         {strategy === "mermaid_compiler" && (
@@ -669,31 +1005,7 @@ async function handleExampleChange(key: string) {
           </button>
         )}
 
-        {/* Live log */}
-        {logs.length > 0 && (
-          <div className="flex flex-col gap-2">
-            <div className="flex items-center gap-2.5">
-              <span className="text-xs font-medium text-white/30">Output</span>
-              {generating && (
-                <span className="flex items-center gap-1.5">
-                  <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-orange-400" />
-                  <span className="text-[10px] font-semibold text-orange-400">Live</span>
-                </span>
-              )}
-            </div>
-            <ScrollArea className="h-56 rounded-xl border border-white/[0.06] bg-black/30 p-4">
-              <div className="flex flex-col gap-0.5">
-                {logs.map((line, i) => (
-                  <p key={i} className="font-mono text-[11px] leading-relaxed text-orange-300/60">
-                    <span className="mr-2 text-white/10">›</span>
-                    {line}
-                  </p>
-                ))}
-                <div ref={logsEndRef} />
-              </div>
-            </ScrollArea>
-          </div>
-        )}
+        </div>
       </div>
       </div>
     </div>

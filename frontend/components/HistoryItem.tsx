@@ -71,7 +71,7 @@ export function HistoryItem({ run, selected, isNew, onClick }: Props) {
         </span>
         <div className="flex shrink-0 items-center gap-1 pt-0.5">
           {isNew && (
-            <span className="rounded-md bg-orange-400/25 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-orange-300">
+            <span className="animate-pulse rounded-md bg-red-500/25 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-red-400 ring-1 ring-red-500/40">
               New
             </span>
           )}

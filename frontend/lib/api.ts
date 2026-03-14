@@ -1,13 +1,15 @@
 import type { Run, Artifacts, Example } from "./types";
 
 export async function fetchHistory(): Promise<Run[]> {
-  const res = await fetch("/api/history");
+  const res = await fetch("/api/history", { cache: "no-store" });
   if (!res.ok) throw new Error("Failed to fetch history");
   return res.json();
 }
 
 export async function fetchArtifacts(folder: string): Promise<Artifacts> {
-  const res = await fetch(`/api/artifacts?folder=${encodeURIComponent(folder)}`);
+  const res = await fetch(`/api/artifacts?folder=${encodeURIComponent(folder)}`, {
+    cache: "no-store",
+  });
   if (!res.ok) throw new Error("Failed to fetch artifacts");
   return res.json();
 }
