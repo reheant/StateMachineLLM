@@ -1,9 +1,13 @@
+import contextlib
 import os
 import graphviz
+import json
 import re
 import subprocess
+import sys
 import threading
 import time
+import tempfile
 import requests
 from bs4 import BeautifulSoup, Tag
 from transitions.extensions import HierarchicalGraphMachine
@@ -1679,7 +1683,7 @@ def fix_hierarchical_state_transitions(graph):
     return graph
 
 
-def create_single_prompt_gsm_diagram_with_sherpa(
+def _create_single_prompt_gsm_diagram_with_sherpa_in_process(
     mermaid_code: str, diagram_file_path: str
 ):
     """
@@ -1912,6 +1916,50 @@ def create_single_prompt_gsm_diagram_with_sherpa(
 
             traceback.print_exc()
             return False
+
+
+def create_single_prompt_gsm_diagram_with_sherpa(
+    mermaid_code: str, diagram_file_path: str
+):
+    """
+    Run Mermaid parsing/rendering in a child process so native parser crashes
+    do not take down the main backend process.
+    """
+    worker_script = os.path.join(
+        os.path.dirname(os.path.abspath(__file__)), "sherpa_render_worker.py"
+    )
+
+    with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False) as request_file:
+        request_path = request_file.name
+        json.dump(
+            {
+                "mermaid_code": mermaid_code,
+                "diagram_file_path": diagram_file_path,
+            },
+            request_file,
+        )
+
+    try:
+        result = subprocess.run(
+            [sys.executable, worker_script, request_path],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+    finally:
+        with contextlib.suppress(OSError):
+            os.unlink(request_path)
+
+    if result.stdout:
+        print(result.stdout, end="" if result.stdout.endswith("\n") else "\n")
+    if result.stderr:
+        print(result.stderr, file=sys.stderr, end="" if result.stderr.endswith("\n") else "\n")
+
+    if result.returncode == 0:
+        return True
+
+    print(f"Renderer subprocess failed with exit code {result.returncode}")
+    return False
 
 
 def mermaidDiagramGeneration(mermaid_code_path: str, diagram_file_path: str):
