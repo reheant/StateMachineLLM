@@ -68,6 +68,60 @@ function FileContent({ path }: { path: string }) {
   );
 }
 
+function GradingGrid({ path }: { path: string }) {
+  const [rows, setRows] = useState<string[][] | null>(null);
+
+  useEffect(() => {
+    fetch(fileUrl(path))
+      .then((r) => r.text())
+      .then((text) => {
+        const parsed = text
+          .split(/\r?\n/)
+          .filter((line) => line.trim().length > 0)
+          .map((line) => line.split("\t"));
+        setRows(parsed);
+      })
+      .catch(() => setRows([]));
+  }, [path]);
+
+  if (rows === null) {
+    return <p className="text-sm text-white/20">Loading…</p>;
+  }
+
+  if (rows.length === 0) {
+    return <p className="text-sm text-white/20">No grading rows found.</p>;
+  }
+
+  const [header, ...body] = rows;
+
+  return (
+    <div className="max-h-[60vh] overflow-auto rounded-xl border border-white/[0.06] bg-black/30">
+      <table className="w-full border-collapse text-xs text-white/70">
+        <thead className="sticky top-0 bg-white/[0.06] text-white/80">
+          <tr>
+            {header.map((cell, i) => (
+              <th key={i} className="border-b border-white/[0.08] px-3 py-2 text-left font-semibold">
+                {cell}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {body.map((row, rowIdx) => (
+            <tr key={rowIdx} className="odd:bg-white/[0.02]">
+              {row.map((cell, cellIdx) => (
+                <td key={cellIdx} className="border-b border-white/[0.05] px-3 py-2 align-top leading-relaxed">
+                  {cell}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 export function ArtifactView({ run, onNewRun }: Props) {
   const [artifacts, setArtifacts] = useState<Artifacts | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -80,7 +134,14 @@ export function ArtifactView({ run, onNewRun }: Props) {
       .catch(() => setError("Failed to load artifacts."));
   }, [run.folder]);
 
-  const strategyLabel = run.strategy === "single_prompt" ? "Single Prompt" : "Two-Shot";
+  const strategyLabel =
+    run.strategy === "single_prompt"
+      ? "Single Prompt"
+      : run.strategy === "two_shot_prompt"
+      ? "Two-Shot Prompt"
+      : run.strategy === "mermaid_compiler"
+      ? "Mermaid Compiler"
+      : "Automatic Grader";
 
   if (error)
     return <p className="p-10 text-sm text-red-400">{error}</p>;
@@ -146,11 +207,41 @@ export function ArtifactView({ run, onNewRun }: Props) {
           )}
 
           {/* Collapsible files */}
-          {(artifacts.mmd || artifacts.llm_log || artifacts.txt) && (
+          {(artifacts.mmd || artifacts.llm_log || artifacts.txt || artifacts.grading_prompt || artifacts.grading_output || artifacts.ground_truth_csv || artifacts.grading_csv || artifacts.grading_tsv) && (
             <div className="overflow-hidden rounded-2xl border border-white/[0.07] bg-white/[0.02] divide-y divide-white/[0.05]">
               {artifacts.mmd && (
                 <CollapsibleSection title="Mermaid source" badge=".mmd">
                   <FileContent path={artifacts.mmd} />
+                </CollapsibleSection>
+              )}
+              {artifacts.grading_tsv && (
+                <CollapsibleSection title="Automatic grading grid" badge=".tsv">
+                  <GradingGrid path={artifacts.grading_tsv} />
+                </CollapsibleSection>
+              )}
+              {artifacts.ground_truth_csv && (
+                <CollapsibleSection title="Ground truth grading sheet" badge=".csv">
+                  <FileContent path={artifacts.ground_truth_csv} />
+                </CollapsibleSection>
+              )}
+              {artifacts.grading_csv && (
+                <CollapsibleSection title="Automatic grading results" badge=".csv">
+                  <FileContent path={artifacts.grading_csv} />
+                </CollapsibleSection>
+              )}
+              {artifacts.grading_tsv && (
+                <CollapsibleSection title="Automatic grading results" badge=".tsv">
+                  <FileContent path={artifacts.grading_tsv} />
+                </CollapsibleSection>
+              )}
+              {artifacts.grading_prompt && (
+                <CollapsibleSection title="Automatic grading prompt">
+                  <FileContent path={artifacts.grading_prompt} />
+                </CollapsibleSection>
+              )}
+              {artifacts.grading_output && (
+                <CollapsibleSection title="Automatic grading output">
+                  <FileContent path={artifacts.grading_output} />
                 </CollapsibleSection>
               )}
               {artifacts.llm_log && (
@@ -166,7 +257,7 @@ export function ArtifactView({ run, onNewRun }: Props) {
             </div>
           )}
 
-          {!artifacts.png && !artifacts.mmd && !artifacts.txt && !artifacts.llm_log && (
+          {!artifacts.png && !artifacts.mmd && !artifacts.txt && !artifacts.llm_log && !artifacts.grading_prompt && !artifacts.grading_output && !artifacts.ground_truth_csv && !artifacts.grading_csv && !artifacts.grading_tsv && (
             <div className="flex flex-1 items-center justify-center rounded-2xl border border-white/[0.06] bg-white/[0.02] py-20">
               <p className="text-sm text-white/20">No artifacts found.</p>
             </div>

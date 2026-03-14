@@ -23,7 +23,12 @@ interface Props {
   latestFolder: string | null;
 }
 
-type StrategyFilter = "all" | "single_prompt" | "two_shot_prompt";
+type StrategyFilter =
+  | "all"
+  | "single_prompt"
+  | "two_shot_prompt"
+  | "mermaid_compiler"
+  | "automatic_grader";
 
 export function AppSidebar({ selectedRun, onSelectRun, onNewRun, refreshToken, latestFolder }: Props) {
   const [history, setHistory] = useState<Run[]>([]);
@@ -90,6 +95,8 @@ export function AppSidebar({ selectedRun, onSelectRun, onNewRun, refreshToken, l
               { value: "all",              label: "All",    active: "bg-white/10 text-white/80",           inactive: "text-white/35" },
               { value: "single_prompt",    label: "1-shot", active: "bg-orange-400/20 text-orange-300 ring-1 ring-orange-400/20", inactive: "text-orange-400/40 hover:text-orange-300/70" },
               { value: "two_shot_prompt",  label: "2-shot", active: "bg-sky-400/20 text-sky-300 ring-1 ring-sky-400/20", inactive: "text-sky-400/40 hover:text-sky-300/70" },
+              { value: "mermaid_compiler", label: "Compiler", active: "bg-emerald-400/20 text-emerald-300 ring-1 ring-emerald-400/20", inactive: "text-emerald-400/40 hover:text-emerald-300/70" },
+              { value: "automatic_grader", label: "Grader", active: "bg-amber-400/20 text-amber-300 ring-1 ring-amber-400/20", inactive: "text-amber-400/40 hover:text-amber-300/70" },
             ] as const).map((opt) => (
               <button
                 key={opt.value}

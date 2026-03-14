@@ -46,7 +46,7 @@ def choose_model():
             print("Invalid input. Please enter a number (1, 2, 3, or 4).")
 
 
-def call_llm(prompt, max_tokens=1200, temperature=0.7):
+def call_llm(prompt, max_tokens=15000, temperature=0.7):
     """
     The call_llm function calls the specified LLM with a specified prompt,
     max_tokens, and temperature, and returns the string response of the LLM
@@ -61,7 +61,7 @@ def call_llm(prompt, max_tokens=1200, temperature=0.7):
 
 
 def call_openrouter_llm(
-    prompt, max_tokens=1500, temperature=0.7, model="anthropic/claude-3.5-sonnet"
+    prompt, max_tokens=15000, temperature=0.7, model="anthropic/claude-3.5-sonnet"
 ):
     """
     Call OpenRouter API for LLM requests specifically for single prompt technique
@@ -99,7 +99,6 @@ def call_openrouter_llm(
         raise Exception(
             f"OpenRouter API call failed with status {response.status_code}: {response.text}"
         )
-
 
 
 # **************** HTML TABLE UTILITY FUNCTIONS ****************
@@ -1155,8 +1154,13 @@ def setup_file_paths(
         dict: Dictionary containing all necessary file paths
     """
 
-    # For single_prompt and two_shot_prompt, organize files in timestamped folders
-    if file_type in ("single_prompt", "two_shot_prompt"):
+    # For generation/compiler/grader runs, organize files in timestamped folders
+    if file_type in (
+        "single_prompt",
+        "two_shot_prompt",
+        "mermaid_compiler",
+        "automatic_grader",
+    ):
         # Create date and time parts separately
         date_folder = time.strftime("%Y_%m_%d")  # e.g., 2026_01_30
         time_folder = time.strftime("%H_%M_%S")  # e.g., 16_38_49
@@ -1210,11 +1214,12 @@ def setup_file_paths(
             "umple_jar_path": os.path.join(base_dir, "resources", "umple.jar"),
             "diagram_base_dir": output_base_dir,
             "diagram_file_path": os.path.join(output_base_dir, file_prefix),
+            "llm_log_path": os.path.join(output_base_dir, "LLM_log.txt"),
+            "grading_prompt_path": os.path.join(output_base_dir, "grading_prompt.txt"),
+            "grading_output_path": os.path.join(output_base_dir, "grading_output.txt"),
+            "grading_csv_path": os.path.join(output_base_dir, "grading_results.csv"),
+            "grading_tsv_path": os.path.join(output_base_dir, "grading_results.tsv"),
         }
-
-        # For two_shot_prompt, add a separate llm_log_path for full interaction log
-        if file_type == "two_shot_prompt":
-            result["llm_log_path"] = os.path.join(output_base_dir, "LLM_log.txt")
 
         return result
     else:

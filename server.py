@@ -19,6 +19,8 @@ from fastapi.responses import FileResponse, StreamingResponse
 from pydantic import BaseModel
 
 import backend.resources.state_machine_descriptions as sm_descriptions
+from backend.grading import run_automatic_grading
+from backend.resources.util import setup_file_paths
 from backend.single_prompt import process_custom_mermaid, run_single_prompt
 from backend.two_shot_prompt import run_two_shot_prompt
 
@@ -45,44 +47,119 @@ RESOURCES_DIR = BASE_DIR / "backend" / "resources"
 # Keys match app.py chat profile names (provider:model-id format)
 # Values are OpenRouter model strings
 PROFILE_TO_OPENROUTER: dict[str, str] = {
-    "anthropic:claude-4-5-sonnet":          "anthropic/claude-4.5-sonnet",
+    "anthropic:claude-4-5-sonnet": "anthropic/claude-4.5-sonnet",
     "anthropic:claude-3-5-sonnet-20241022": "anthropic/claude-3.5-sonnet",
-    "anthropic:claude-sonnet-4":            "anthropic/claude-sonnet-4",
-    "openai:gpt-4o":                        "openai/gpt-4o",
-    "openai:gpt-4o-mini":                   "openai/gpt-4o-mini",
-    "openai:gpt-4-turbo":                   "openai/gpt-4-turbo",
-    "openai:o1":                            "openai/o1",
-    "openai:o1-mini":                       "openai/o1-mini",
-    "google:gemini-2-0-flash-exp":          "google/gemini-2.0-flash-exp",
-    "google:gemini-1-5-pro-001":            "google/gemini-pro-1.5",
-    "google:gemini-1-5-flash":              "google/gemini-flash-1.5",
-    "meta:llama-3-3-70b-instruct":          "meta-llama/llama-3.3-70b-instruct",
-    "meta:llama-3-1-405b-instruct":         "meta-llama/llama-3.1-405b-instruct",
-    "meta:llama-3-1-70b-instruct":          "meta-llama/llama-3.1-70b-instruct",
-    "meta:llama-3-2-3b-instruct":           "meta-llama/llama-3.2-3b-instruct",
-    "qwen:qwq-32b":                         "qwen/qwq-32b",
-    "qwen:qwen-2-5-72b-instruct":           "qwen/qwen-2.5-72b-instruct",
+    "anthropic:claude-sonnet-4": "anthropic/claude-sonnet-4",
+    "openai:gpt-4o": "openai/gpt-4o",
+    "openai:gpt-4o-mini": "openai/gpt-4o-mini",
+    "openai:gpt-4-turbo": "openai/gpt-4-turbo",
+    "openai:o1": "openai/o1",
+    "openai:o1-mini": "openai/o1-mini",
+    "google:gemini-2-0-flash-exp": "google/gemini-2.0-flash-exp",
+    "google:gemini-1-5-pro-001": "google/gemini-pro-1.5",
+    "google:gemini-1-5-flash": "google/gemini-flash-1.5",
+    "meta:llama-3-3-70b-instruct": "meta-llama/llama-3.3-70b-instruct",
+    "meta:llama-3-1-405b-instruct": "meta-llama/llama-3.1-405b-instruct",
+    "meta:llama-3-1-70b-instruct": "meta-llama/llama-3.1-70b-instruct",
+    "meta:llama-3-2-3b-instruct": "meta-llama/llama-3.2-3b-instruct",
+    "qwen:qwq-32b": "qwen/qwq-32b",
+    "qwen:qwen-2-5-72b-instruct": "qwen/qwen-2.5-72b-instruct",
 }
 
 # ---------------------------------------------------------------------------
 # Example catalogue (copied from app.py)
 # ---------------------------------------------------------------------------
 
-EXAMPLES = [
-    ("printer_winter_2017",             "🖨️",  "Printer System",          "office printer with card authentication, print/scan, and error handling"),
-    ("spa_manager_winter_2018",         "🧖",  "Spa Manager",             "sauna & Jacuzzi control with temperature regulation and water jets"),
-    ("dishwasher_winter_2019",          "✨",  "Smart Dishwasher",        "automated dishwasher with multiple programs, drying, and door safety"),
-    ("chess_clock_fall_2019",           "🕰️",  "Digital Chess Clock",     "tournament chess clock with multiple timing modes and player controls"),
-    ("automatic_bread_maker_fall_2020", "🥖",  "Automatic Bread Maker",   "programmable bread maker with crust options and delayed start"),
-    ("thermomix_fall_2021",             "🔪",  "Thermomix TM6",           "guided recipe steps and ingredient processing"),
-    ("ATAS_fall_2022",                  "🚆",  "Train Automation System", "driverless trains across a rail network with signals and stations"),
-    ("WUMPLE_fall_2023_Version_A",      "⌚",  "Wumple Watch",            "timekeeping, alarm, and countdown modes with backlight and flash alerts"),
-    ("SSC7_fall_2024_Version_A",        "🛒",  "SSC7 Self-Checkout",      "supermarket self-checkout with scanning, weighing, payment, and staff override"),
-]
+EXAMPLE_META: dict[str, tuple[str, str, str]] = {
+    "printer_winter_2017": (
+        "🖨️",
+        "Printer System",
+        "office printer with card authentication, print/scan, and error handling",
+    ),
+    "spa_manager_winter_2018": (
+        "🧖",
+        "Spa Manager",
+        "sauna & Jacuzzi control with temperature regulation and water jets",
+    ),
+    "dishwasher_winter_2019": (
+        "✨",
+        "Smart Dishwasher",
+        "automated dishwasher with multiple programs, drying, and door safety",
+    ),
+    "chess_clock_fall_2019": (
+        "🕰️",
+        "Digital Chess Clock",
+        "tournament chess clock with multiple timing modes and player controls",
+    ),
+    "automatic_bread_maker_fall_2020": (
+        "🥖",
+        "Automatic Bread Maker",
+        "programmable bread maker with crust options and delayed start",
+    ),
+    "thermomix_fall_2021": (
+        "🔪",
+        "Thermomix TM6",
+        "guided recipe steps and ingredient processing",
+    ),
+    "ATAS_fall_2022": (
+        "🚆",
+        "Train Automation System",
+        "driverless trains across a rail network with signals and stations",
+    ),
+    "WUMPLE_fall_2023_Version_A": (
+        "⌚",
+        "Wumple Watch",
+        "timekeeping, alarm, and countdown modes with backlight and flash alerts",
+    ),
+    "SSC7_fall_2024_Version_A": (
+        "🛒",
+        "SSC7 Self-Checkout",
+        "supermarket self-checkout with scanning, weighing, payment, and staff override",
+    ),
+}
+
+EXAMPLE_FALLBACK_ICON = "🧩"
+
+
+def _humanize_example_key(key: str) -> str:
+    parts = [p for p in key.split("_") if p]
+    filtered = [
+        p
+        for p in parts
+        if p.lower()
+        not in {"fall", "winter", "spring", "summer", "version", "a", "b", "c"}
+        and not p.isdigit()
+    ]
+    return " ".join(p.capitalize() for p in filtered) or key
+
+
+def _build_examples() -> list[tuple[str, str, str, str, str]]:
+    keys = [
+        name
+        for name in dir(sm_descriptions)
+        if not name.startswith("_") and isinstance(getattr(sm_descriptions, name), str)
+    ]
+    keys.sort()
+
+    examples: list[tuple[str, str, str, str, str]] = []
+    for key in keys:
+        desc = getattr(sm_descriptions, key)
+        if key in EXAMPLE_META:
+            icon, label, blurb = EXAMPLE_META[key]
+        else:
+            icon = EXAMPLE_FALLBACK_ICON
+            label = _humanize_example_key(key)
+            blurb = desc.strip().split("\n", 1)[0][:120]
+        examples.append((key, icon, label, blurb, desc))
+    return examples
+
+
+EXAMPLES = _build_examples()
 
 # ---------------------------------------------------------------------------
 # Path safety helper
 # ---------------------------------------------------------------------------
+
 
 def _safe_path(raw: str) -> Path:
     """Resolve path and ensure it's inside RESOURCES_DIR."""
@@ -91,14 +168,21 @@ def _safe_path(raw: str) -> Path:
         raise HTTPException(status_code=403, detail="Path outside resources directory")
     return resolved
 
+
 # ---------------------------------------------------------------------------
 # History helpers
 # ---------------------------------------------------------------------------
 
+
 def _scan_runs() -> list[dict]:
     """Walk both output dirs and return a list of run metadata dicts."""
     runs = []
-    for strategy in ("single_prompt", "two_shot_prompt"):
+    for strategy in (
+        "single_prompt",
+        "two_shot_prompt",
+        "mermaid_compiler",
+        "automatic_grader",
+    ):
         outputs_dir = RESOURCES_DIR / f"{strategy}_outputs"
         if not outputs_dir.exists():
             continue
@@ -117,16 +201,18 @@ def _scan_runs() -> list[dict]:
                         has_png = any(time_dir.glob("*.png"))
                         date_fmt = date_dir.name.replace("_", "-")
                         time_fmt = time_dir.name.replace("_", ":")
-                        runs.append({
-                            "strategy": strategy,
-                            "date": date_fmt,
-                            "time": time_fmt,
-                            "model": model_dir.name,
-                            "system": system_dir.name,
-                            "folder": str(time_dir),
-                            "has_png": has_png,
-                            "sort_key": f"{date_dir.name}_{time_dir.name}",
-                        })
+                        runs.append(
+                            {
+                                "strategy": strategy,
+                                "date": date_fmt,
+                                "time": time_fmt,
+                                "model": model_dir.name,
+                                "system": system_dir.name,
+                                "folder": str(time_dir),
+                                "has_png": has_png,
+                                "sort_key": f"{date_dir.name}_{time_dir.name}",
+                            }
+                        )
     runs.sort(key=lambda r: r["sort_key"], reverse=True)
     for r in runs:
         del r["sort_key"]
@@ -136,14 +222,36 @@ def _scan_runs() -> list[dict]:
 def _find_latest_run_folder(strategy: str) -> str | None:
     """After generation, find the most-recently modified run folder."""
     outputs_dir = RESOURCES_DIR / f"{strategy}_outputs"
+    if not outputs_dir.exists():
+        return None
+
     latest_path: Path | None = None
     latest_mtime = 0.0
-    for png in outputs_dir.rglob("*.png"):
-        mtime = png.stat().st_mtime
+    for run_dir in outputs_dir.rglob("*"):
+        if not run_dir.is_dir():
+            continue
+        # A run folder contains generated artifacts (diagram, mermaid, logs or grading outputs).
+        has_artifacts = any(
+            child.is_file()
+            and (
+                child.suffix in {".png", ".mmd", ".txt", ".csv", ".tsv"}
+                or child.name
+                in {"LLM_log.txt", "grading_prompt.txt", "grading_output.txt"}
+            )
+            for child in run_dir.iterdir()
+        )
+        if not has_artifacts:
+            continue
+        try:
+            mtime = run_dir.stat().st_mtime
+        except OSError:
+            continue
         if mtime > latest_mtime:
             latest_mtime = mtime
-            latest_path = png.parent
+            latest_path = run_dir
+
     return str(latest_path) if latest_path else None
+
 
 # ---------------------------------------------------------------------------
 # API routes
@@ -157,8 +265,14 @@ def healthcheck():
 @app.get("/api/examples")
 def get_examples():
     return [
-        {"key": k, "icon": icon, "label": label, "blurb": blurb}
-        for k, icon, label, blurb in EXAMPLES
+        {
+            "key": k,
+            "icon": icon,
+            "label": label,
+            "blurb": blurb,
+            "description": description,
+        }
+        for k, icon, label, blurb, description in EXAMPLES
     ]
 
 
@@ -192,6 +306,11 @@ def get_artifacts(folder: str = Query(...)):
         "mmd": None,
         "txt": None,
         "llm_log": None,
+        "grading_prompt": None,
+        "grading_output": None,
+        "ground_truth_csv": None,
+        "grading_csv": None,
+        "grading_tsv": None,
     }
 
     for f in path.iterdir():
@@ -201,6 +320,16 @@ def get_artifacts(folder: str = Query(...)):
             files["mmd"] = str(f)
         elif f.name == "LLM_log.txt":
             files["llm_log"] = str(f)
+        elif f.name == "grading_prompt.txt":
+            files["grading_prompt"] = str(f)
+        elif f.name == "grading_output.txt":
+            files["grading_output"] = str(f)
+        elif f.name == "ground_truth.csv":
+            files["ground_truth_csv"] = str(f)
+        elif f.name == "grading_results.csv":
+            files["grading_csv"] = str(f)
+        elif f.name == "grading_results.tsv":
+            files["grading_tsv"] = str(f)
         elif f.suffix == ".txt" and f.name != "LLM_log.txt":
             files["txt"] = str(f)
 
@@ -222,19 +351,24 @@ def serve_file(path: str = Query(...)):
         raise HTTPException(status_code=404)
     return FileResponse(resolved, media_type="text/plain")
 
+
 # ---------------------------------------------------------------------------
 # Generation — SSE streaming
 # ---------------------------------------------------------------------------
+
 
 class GenerateRequest(BaseModel):
     strategy: Literal["single_prompt", "two_shot_prompt"]
     model: str
     system_name: str
     description: str
+    enable_auto_grading: bool = True
+    input_mode: Literal["example", "custom"] | None = None
 
 
 class _QueueWriter(io.RawIOBase):
     """Redirect stdout lines into a queue for SSE streaming."""
+
     def __init__(self, q: queue.Queue):
         self._q = q
         self._buf = ""
@@ -261,11 +395,24 @@ def generate(req: GenerateRequest):
     def _run():
         writer = _QueueWriter(q)
         try:
+            effective_auto_grading = (
+                req.enable_auto_grading and req.input_mode != "custom"
+            )
             with contextlib.redirect_stdout(writer):  # type: ignore[arg-type]
                 if req.strategy == "single_prompt":
-                    run_single_prompt(req.description, openrouter_model, req.system_name)
+                    run_single_prompt(
+                        req.description,
+                        openrouter_model,
+                        req.system_name,
+                        effective_auto_grading,
+                    )
                 else:
-                    run_two_shot_prompt(req.description, openrouter_model, req.system_name)
+                    run_two_shot_prompt(
+                        req.description,
+                        openrouter_model,
+                        req.system_name,
+                        effective_auto_grading,
+                    )
             writer.flush()
             folder = _find_latest_run_folder(req.strategy)
             q.put(("complete", {"folder": folder}))
@@ -296,6 +443,7 @@ def generate(req: GenerateRequest):
 # Mermaid sandbox — render custom Mermaid code without LLM
 # ---------------------------------------------------------------------------
 
+
 class MermaidRequest(BaseModel):
     mermaid_code: str
     system_name: str = "CustomMermaid"
@@ -303,10 +451,63 @@ class MermaidRequest(BaseModel):
 
 @app.post("/api/render-mermaid")
 def render_mermaid(req: MermaidRequest):
-    success, _ = process_custom_mermaid(req.mermaid_code, req.system_name)
+    success, _ = process_custom_mermaid(
+        req.mermaid_code,
+        req.system_name,
+        file_type="mermaid_compiler",
+    )
     if not success:
-        raise HTTPException(status_code=422, detail="Mermaid rendering failed. Check your diagram syntax.")
-    folder = _find_latest_run_folder("single_prompt")
+        raise HTTPException(
+            status_code=422,
+            detail="Mermaid rendering failed. Check your diagram syntax.",
+        )
+    folder = _find_latest_run_folder("mermaid_compiler")
     if not folder:
-        raise HTTPException(status_code=500, detail="Could not locate rendered output folder.")
+        raise HTTPException(
+            status_code=500, detail="Could not locate rendered output folder."
+        )
+    return {"folder": folder}
+
+
+class AutomaticGraderRequest(BaseModel):
+    mermaid_code: str
+    example_key: str
+    model: str = "anthropic:claude-4-5-sonnet"
+
+
+@app.post("/api/automatic-grade")
+def automatic_grade(req: AutomaticGraderRequest):
+    system_prompt = getattr(sm_descriptions, req.example_key, None)
+    if system_prompt is None:
+        raise HTTPException(status_code=404, detail="Example not found")
+
+    openrouter_model = PROFILE_TO_OPENROUTER.get(req.model, req.model)
+    model_short_name = (
+        openrouter_model.split("/")[-1] if "/" in openrouter_model else openrouter_model
+    )
+    backend_dir = BASE_DIR / "backend"
+    paths = setup_file_paths(
+        str(backend_dir),
+        file_type="automatic_grader",
+        system_name=req.example_key,
+        model_name=model_short_name,
+    )
+
+    with open(paths["generated_mermaid_code_path"], "w") as f:
+        f.write(req.mermaid_code.strip())
+
+    run_automatic_grading(
+        student_mermaid_code=req.mermaid_code.strip(),
+        system_prompt=system_prompt,
+        system_name=req.example_key,
+        model=openrouter_model,
+        paths=paths,
+        base_dir=str(backend_dir),
+    )
+
+    folder = _find_latest_run_folder("automatic_grader")
+    if not folder:
+        raise HTTPException(
+            status_code=500, detail="Could not locate grading output folder."
+        )
     return {"folder": folder}
