@@ -5,8 +5,16 @@ def build_grading_prompt(
 ) -> str:
     """Build the automatic grading prompt for a generated Mermaid state machine."""
     return f"""<role>
-You are a professor who specializes in state machine modeling and evaluation.
+You are a professor specializing in state machine modeling and grading.
+You evaluate student state machine submissions against the system description and complete the grading CSV with high precision.
 </role>
+
+<context>
+The system description is the source of truth.
+The student submission is written in Mermaid.
+The grading sheet CSV already contains the rubric rows and must be preserved exactly except for the grading fields you are instructed to fill.
+</context>
+
 
 <documents>
     <document index="1">
@@ -30,29 +38,82 @@ You are a professor who specializes in state machine modeling and evaluation.
 </documents>
 
 <instructions>
-Your task is to complete the provided ground-truth grading sheet CSV.
+Your task is to return the completed grading sheet CSV.
 
-1. Keep the CSV structure exactly the same:
-     - Same header
-     - Same row order
-     - Same values in non-grading columns
+<rule_1>
+Preserve the CSV structure exactly:
+- keep the same header
+- keep the same row order
+- keep all existing values unchanged in every non-grading column
+</rule_1>
 
-2. Fill only the grading column and notes/justification column for each row.
+<rule_2>
+Modify only these two columns for each row:
+- grading column
+- notes/justification column
 
-3. For rows where Element is "additional elements" (case-insensitive):
-     - Use integers only in the grading column: 0, 1, 2, 3, ...
-     - Add 1 only when an element in that category should fundamentally not be modeled at all.
-     - Do not add values for style preferences, optimization opportunities, or simplifications.
+Do not edit, rename, reorder, remove, or add any other column or row.
+</rule_2>
 
-4. For all other rows, grading must be one of: 0, 0.5, 1.
-     - 1: The concept is correctly represented.
-     - 0.5: The concept is partially represented.
-     - 0: The concept is not represented.
+<rule_3>
+Use the system description as the source of truth for expected behavior.
+Use the student Mermaid diagram only to determine whether each rubric item is represented.
+Judge semantic meaning, not exact wording, naming, or diagram syntax.
+Accept reasonable equivalents when they capture the intended system behavior correctly.
+</rule_3>
 
-5. Use semantic equivalence, not exact naming or syntax. Ground grading in the system description as source-of-truth behavior.
+<rule_4>
+For rows whose Element value is "additional elements" (case-insensitive):
+- grading must be a non-negative integer only: 0, 1, 2, 3, ...
+- add 1 only for an element that should fundamentally not be modeled at all
+- do not count harmless extra detail, acceptable abstraction differences, stylistic choices, optimization opportunities, or reasonable modeling choices
+- if an extra element is unnecessary but still reasonable, assign 0
+</rule_4>
 
-6. Keep notes concise and concrete.
+<rule_5>
+For all other rows, grading must be exactly one of:
+- 1
+- 0.5
+- 0
 
-7. Return CSV only. Do not include XML, markdown fences, commentary, or any text before/after the CSV.
+Use this scale:
+- 1 = correctly represented, or represented with a reasonable equivalent
+- 0.5 = partially represented, incomplete, ambiguous, or only partly correct
+- 0 = not represented, clearly incorrect, or contradicted
+</rule_5>
+
+<rule_6>
+Write notes/justification that are:
+- concise
+- concrete
+- specific to the row being graded
+
+Do not write generic comments.
+Briefly explain why the score was assigned, referencing the student model behavior when useful.
+</rule_6>
+
+<rule_7>
+Be strict about factual correctness, but do not penalize superficial naming differences when the underlying state machine meaning is correct.
+</rule_7>
+
+<rule_8>
+Before producing the final answer, verify all of the following:
+- the output is valid CSV
+- the header is unchanged
+- the row count is unchanged
+- the row order is unchanged
+- the only modified columns are the grading and notes/justification columns
+- only the grading and notes/justification columns were modified
+- every "additional elements" row uses an integer grade only
+- every other row uses only 0, 0.5, or 1
+</rule_8>
+
+<output_requirement>
+Return only the final CSV.
+Do not include markdown.
+Do not include code fences.
+Do not include XML.
+Do not include explanations before or after the CSV.
+</output_requirement>
 </instructions>
 """

@@ -22,13 +22,29 @@ def _slugify(value: str) -> str:
     return re.sub(r"[^a-z0-9]+", "_", value.lower()).strip("_")
 
 
+def _normalize_prompt_text(value: str) -> str:
+    """Normalize prompt text for resilient matching across trim/whitespace edits."""
+    return " ".join(value.split()).strip().lower()
+
+
 def _resolve_example_key(system_prompt: str) -> Optional[str]:
+    normalized_prompt = _normalize_prompt_text(system_prompt)
+
     for name in dir(sm_descriptions):
         if name.startswith("_"):
             continue
         value = getattr(sm_descriptions, name)
-        if isinstance(value, str) and value == system_prompt:
+        if not isinstance(value, str):
+            continue
+
+        # Fast-path for exact string equality.
+        if value == system_prompt:
             return name
+
+        # Fallback for harmless formatting differences (trim/newline collapse).
+        if _normalize_prompt_text(value) == normalized_prompt:
+            return name
+
     return None
 
 
@@ -182,7 +198,8 @@ def run_automatic_grading(
     base_dir: str,
 ) -> Optional[str]:
     """Run automatic grading using ground-truth CSV and persist grading artifacts."""
-    print("Running Automatic Grading")
+    print("Running automatic grading")
+    print("Evaluating generation against ground truth")
 
     csv_path = _resolve_ground_truth_csv_path(base_dir, system_prompt, system_name)
     _append_log(paths.get("llm_log_path"), f"=== Grading CSV Path ===\n{csv_path}\n\n")

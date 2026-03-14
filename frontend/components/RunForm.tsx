@@ -65,12 +65,47 @@ type ProgressStep = {
   status: "pending" | "active" | "done";
 };
 
+function hasGradingArtifacts(artifacts: Artifacts | null): boolean {
+  return Boolean(
+    artifacts?.grading_output || artifacts?.grading_csv || artifacts?.grading_tsv
+  );
+}
+
 function buildProgressSteps(
   strategy: PromptStrategy,
   logs: string[],
-  artifacts: Artifacts | null
+  artifacts: Artifacts | null,
+  showAutoGradingStages: boolean
 ): ProgressStep[] {
   const logText = logs.join("\n").toLowerCase();
+  const gradingStarted = /running automatic grading/.test(logText);
+  const gradingEvaluating = /evaluating generation against ground truth/.test(logText);
+  const gradingFinished =
+    /automatic grading completed|automatic grading skipped|automatic grading failed/.test(
+      logText
+    ) ||
+    Boolean(artifacts?.grading_output || artifacts?.grading_csv || artifacts?.grading_tsv);
+
+  const gradingSteps: ProgressStep[] = showAutoGradingStages
+    ? [
+        {
+          label: "Running automatic grading",
+          status: gradingStarted
+            ? gradingEvaluating || gradingFinished
+              ? "done"
+              : "active"
+            : "pending",
+        },
+        {
+          label: "Evaluating generation against ground truth",
+          status: gradingFinished
+            ? "done"
+            : gradingEvaluating || gradingStarted
+            ? "active"
+            : "pending",
+        },
+      ]
+    : [];
 
   if (strategy === "two_shot_prompt") {
     const shot1Started =
@@ -89,6 +124,7 @@ function buildProgressSteps(
       { label: "Shot 2 started", status: shot2Started ? "done" : shot1Image ? "active" : "pending" },
       { label: "Shot 2 Mermaid generated", status: shot2Mermaid ? "done" : shot2Started ? "active" : "pending" },
       { label: "Image generated", status: finalImage ? "done" : shot2Mermaid ? "active" : "pending" },
+      ...gradingSteps,
     ];
   }
 
@@ -99,6 +135,7 @@ function buildProgressSteps(
     { label: "Calling LLM", status: mermaidGenerated ? "done" : "active" },
     { label: "Mermaid generated", status: mermaidGenerated ? (imageGenerated ? "done" : "active") : "pending" },
     { label: "Image generated", status: imageGenerated ? "done" : mermaidGenerated ? "active" : "pending" },
+    ...gradingSteps,
   ];
 }
 
@@ -106,11 +143,13 @@ function GeneratingProgress({
   strategy,
   logs,
   artifacts,
+  showAutoGradingStages,
   onCancel,
 }: {
   strategy: PromptStrategy;
   logs: string[];
   artifacts: Artifacts | null;
+  showAutoGradingStages: boolean;
   onCancel: () => void;
 }) {
   const [showLogs, setShowLogs] = useState(false);
@@ -120,7 +159,12 @@ function GeneratingProgress({
     if (showLogs) logsEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [logs, showLogs]);
 
-  const steps = buildProgressSteps(strategy, logs, artifacts);
+  const steps = buildProgressSteps(
+    strategy,
+    logs,
+    artifacts,
+    showAutoGradingStages
+  );
 
   return (
     <div className="overflow-hidden rounded-2xl border border-white/[0.10] bg-[oklch(0.19_0.04_258)] shadow-lg shadow-black/40">
@@ -307,6 +351,7 @@ export function RunForm({ onComplete, onHistoryRefresh, onGeneratingChange }: Pr
   const [logs, setLogs] = useState<string[]>([]);
   const [enableAutoGrading, setEnableAutoGrading] = useState(false);
   const [progressArtifacts, setProgressArtifacts] = useState<Artifacts | null>(null);
+  const [showAutoGradingStages, setShowAutoGradingStages] = useState(false);
 
   // Mermaid sandbox state
   const [mermaidCode, setMermaidCode] = useState("");
@@ -382,12 +427,15 @@ async function handleExampleChange(key: string) {
     setGenerating(false);
     setLogs([]);
     setProgressArtifacts(null);
+    setShowAutoGradingStages(false);
   }
 
   async function handleGenerate() {
     const desc = description.trim();
     const name = systemName.trim();
     if (!desc || !name) return;
+    const promptStrategy: PromptStrategy =
+      strategy === "two_shot_prompt" ? "two_shot_prompt" : "single_prompt";
     const startedAt = Date.now();
 
     const controller = new AbortController();
@@ -399,6 +447,7 @@ async function handleExampleChange(key: string) {
 
     const isManualCustomInput = inputTab === "custom";
     const shouldEnableAutoGrading = !isManualCustomInput && enableAutoGrading;
+    setShowAutoGradingStages(shouldEnableAutoGrading);
     let finished = false;
 
     const completeRun = (run: Run) => {
@@ -406,6 +455,7 @@ async function handleExampleChange(key: string) {
       finished = true;
       abortRef.current = null;
       setProgressArtifacts(null);
+      setShowAutoGradingStages(false);
       setGenerating(false);
       onHistoryRefreshRef.current();
       onCompleteRef.current(run);
@@ -416,6 +466,7 @@ async function handleExampleChange(key: string) {
       finished = true;
       abortRef.current = null;
       setProgressArtifacts(null);
+      setShowAutoGradingStages(false);
       setLogs((l) => [...l, message]);
       setGenerating(false);
     };
@@ -424,20 +475,58 @@ async function handleExampleChange(key: string) {
       while (!finished && !controller.signal.aborted) {
         try {
           const history = await fetchHistory();
-          const matchingRun = findMatchingRun(history, strategy, name, model, startedAt);
+          const matchingRun = findMatchingRun(
+            history,
+            promptStrategy,
+            name,
+            model,
+            startedAt
+          );
+          let matchingArtifacts: Artifacts | null = null;
+
           if (matchingRun) {
             try {
               const artifacts = await fetchArtifacts(matchingRun.folder);
+              matchingArtifacts = artifacts;
               setProgressArtifacts(artifacts);
             } catch {
               // Ignore artifact polling failures; keep polling.
             }
           }
 
-          const recoveredRun = findCompletedRun(history, strategy, name, model, startedAt);
+          const recoveredRun = findCompletedRun(
+            history,
+            promptStrategy,
+            name,
+            model,
+            startedAt
+          );
           if (recoveredRun) {
-            completeRun(recoveredRun);
-            return;
+            // Keep prior behavior for non-grading runs: open as soon as image is ready.
+            if (!shouldEnableAutoGrading) {
+              completeRun(recoveredRun);
+              return;
+            }
+
+            // For graded runs, only auto-open once grading artifacts are present.
+            let recoveredArtifacts =
+              matchingRun?.folder === recoveredRun.folder
+                ? matchingArtifacts
+                : null;
+
+            if (!recoveredArtifacts) {
+              try {
+                recoveredArtifacts = await fetchArtifacts(recoveredRun.folder);
+                setProgressArtifacts(recoveredArtifacts);
+              } catch {
+                // Keep waiting for grading completion signal/artifacts.
+              }
+            }
+
+            if (hasGradingArtifacts(recoveredArtifacts)) {
+              completeRun(recoveredRun);
+              return;
+            }
           }
         } catch {
           // Ignore polling failures; SSE/error path will handle terminal state.
@@ -453,7 +542,7 @@ async function handleExampleChange(key: string) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          strategy,
+          strategy: promptStrategy,
           model,
           system_name: name,
           description: desc,
@@ -495,7 +584,8 @@ async function handleExampleChange(key: string) {
             sawTerminalEvent = true;
             const payload = JSON.parse(data);
             const run: Run = {
-              strategy, model,
+              strategy: promptStrategy,
+              model,
               system: name,
               folder: payload.folder,
               date: new Date().toISOString().slice(0, 10),
@@ -515,10 +605,31 @@ async function handleExampleChange(key: string) {
       if (!sawTerminalEvent) {
         try {
           const history = await fetchHistory();
-          const recoveredRun = findCompletedRun(history, strategy, name, model, startedAt);
+          const recoveredRun = findCompletedRun(
+            history,
+            promptStrategy,
+            name,
+            model,
+            startedAt
+          );
           if (recoveredRun) {
-            completeRun(recoveredRun);
-            return;
+            if (!shouldEnableAutoGrading) {
+              completeRun(recoveredRun);
+              return;
+            }
+
+            const recoveredArtifacts = await fetchArtifacts(recoveredRun.folder).catch(
+              () => null
+            );
+            if (recoveredArtifacts) {
+              setProgressArtifacts(recoveredArtifacts);
+            }
+            if (hasGradingArtifacts(recoveredArtifacts)) {
+              completeRun(recoveredRun);
+              return;
+            }
+
+            failRun("Error: generation stream ended before grading completed.");
           }
         } catch {
           // Fall through to the generic stream-closed error below.
@@ -533,6 +644,7 @@ async function handleExampleChange(key: string) {
 
     if (!finished) {
       abortRef.current = null;
+      setShowAutoGradingStages(false);
       setGenerating(false);
     }
   }
@@ -959,6 +1071,7 @@ async function handleExampleChange(key: string) {
                 strategy={strategy === "two_shot_prompt" ? "two_shot_prompt" : "single_prompt"}
                 logs={logs}
                 artifacts={progressArtifacts}
+                showAutoGradingStages={showAutoGradingStages}
                 onCancel={handleCancel}
               />
             )}
