@@ -9,3 +9,4 @@
 *.pyc
 *output*
 .DS_Store
+Data/
