@@ -41,7 +41,7 @@ def run_event_driven_smf(system_prompt):
     the run_event_driven_smf initiates the Sherpa Event Driven State Machine Framework
     """
     # Define the base directory for logs
-    base_dir = os.path.join(os.path.dirname(__file__), "..", "resources", "event_driven_log")
+    base_dir = os.path.join(os.path.dirname(__file__), "..", "resources", "Data", "event_driven_log")
     os.makedirs(base_dir, exist_ok=True)  # Ensure the directory exists
 
     # Construct the log file path

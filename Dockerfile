@@ -38,7 +38,7 @@ COPY StateMachineLLM/ /app/
 # Create necessary directories
 RUN mkdir -p /app/.chainlit \
     /app/.files \
-    /app/backend/resources/event_driven_log \
+    /app/backend/resources/Data/event_driven_log \
     /app/backend/resources/single_prompt_log \
     /app/backend/resources/single_prompt_outputs
 

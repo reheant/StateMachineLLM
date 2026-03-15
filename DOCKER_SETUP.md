@@ -118,7 +118,7 @@ docker build -t statemachine-llm -f Dockerfile ..
 ```bash
 docker run -p 8000:8000 \
   --env-file .env \
-  -v $(pwd)/backend/resources/event_driven_log:/app/backend/resources/event_driven_log \
+  -v $(pwd)/backend/resources/Data/event_driven_log:/app/backend/resources/Data/event_driven_log \
   -v $(pwd)/backend/resources/single_prompt_outputs:/app/backend/resources/single_prompt_outputs \
   statemachine-llm
 ```

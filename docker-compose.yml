@@ -14,7 +14,7 @@ services:
     env_file:
       - .env
     volumes:
-      - ./backend/resources/event_driven_log:/app/backend/resources/event_driven_log
+      - ./backend/resources/Data/event_driven_log:/app/backend/resources/Data/event_driven_log
       - ./backend/resources/single_prompt_log:/app/backend/resources/single_prompt_log
       - ./backend/resources/single_prompt_outputs:/app/backend/resources/single_prompt_outputs
       - ./backend/resources/two_shot_prompt_outputs:/app/backend/resources/two_shot_prompt_outputs
