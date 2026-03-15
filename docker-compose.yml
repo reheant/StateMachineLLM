@@ -14,14 +14,14 @@ services:
     env_file:
       - .env
     volumes:
-      - ./backend/resources/event_driven_log:/app/backend/resources/event_driven_log
-      - ./backend/resources/single_prompt_log:/app/backend/resources/single_prompt_log
-      - ./backend/resources/single_prompt_outputs:/app/backend/resources/single_prompt_outputs
-      - ./backend/resources/two_shot_prompt_outputs:/app/backend/resources/two_shot_prompt_outputs
-      - ./backend/resources/mermaid_compiler_outputs:/app/backend/resources/mermaid_compiler_outputs
-      - ./backend/resources/automatic_grader_outputs:/app/backend/resources/automatic_grader_outputs
-      - ./backend/resources/event_driven_diagrams:/app/backend/resources/event_driven_diagrams
-      - ./backend/resources/single_prompt_diagrams:/app/backend/resources/single_prompt_diagrams
+      - ./backend/resources/Data/event_driven_log:/app/backend/resources/Data/event_driven_log
+      - ./backend/resources/Data/single_prompt_log:/app/backend/resources/Data/single_prompt_log
+      - ./backend/resources/Data/single_prompt_outputs:/app/backend/resources/Data/single_prompt_outputs
+      - ./backend/resources/Data/two_shot_prompt_outputs:/app/backend/resources/Data/two_shot_prompt_outputs
+      - ./backend/resources/Data/mermaid_compiler_outputs:/app/backend/resources/Data/mermaid_compiler_outputs
+      - ./backend/resources/Data/automatic_grader_outputs:/app/backend/resources/Data/automatic_grader_outputs
+      - ./backend/resources/Data/event_driven_diagrams:/app/backend/resources/Data/event_driven_diagrams
+      - ./backend/resources/Data/single_prompt_diagrams:/app/backend/resources/Data/single_prompt_diagrams
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
