@@ -39,11 +39,11 @@ Thumbs.db
 
 # Test outputs
 StateMachineLLM/tests/test_output/
-StateMachineLLM/backend/resources/Data/event_driven_log/
-StateMachineLLM/backend/resources/Data/single_prompt_log/
-StateMachineLLM/backend/resources/Data/single_prompt_outputs/
-StateMachineLLM/backend/resources/Data/event_driven_diagrams/
-StateMachineLLM/backend/resources/Data/single_prompt_diagrams/
+StateMachineLLM/backend/resources/event_driven_log/
+StateMachineLLM/backend/resources/single_prompt_log/
+StateMachineLLM/backend/resources/single_prompt_outputs/
+StateMachineLLM/backend/resources/event_driven_diagrams/
+StateMachineLLM/backend/resources/single_prompt_diagrams/
 
 # Logs
 *.log

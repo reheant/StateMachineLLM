@@ -78,37 +78,22 @@ function buildProgressSteps(
   showAutoGradingStages: boolean
 ): ProgressStep[] {
   const logText = logs.join("\n").toLowerCase();
-  const gradingStarted =
-    /running automatic grading|automatic grading started|starting automatic grading/.test(
-      logText
-    );
-  const gradingEvaluating =
-    /evaluating generation against ground truth|evaluating against ground truth/.test(
-      logText
-    );
+  const gradingStarted = /running automatic grading/.test(logText);
+  const gradingEvaluating = /evaluating generation against ground truth/.test(logText);
   const gradingFinished =
     /automatic grading completed|automatic grading skipped|automatic grading failed/.test(
       logText
     ) ||
     Boolean(artifacts?.grading_output || artifacts?.grading_csv || artifacts?.grading_tsv);
 
-  // Some backends/loggers omit the exact grading markers; once the rendered image
-  // exists and auto-grading is enabled, treat grading as in progress until artifacts land.
-  const gradingInferredActive =
-    showAutoGradingStages &&
-    Boolean(artifacts?.png) &&
-    !gradingStarted &&
-    !gradingEvaluating &&
-    !gradingFinished;
-
   const gradingSteps: ProgressStep[] = showAutoGradingStages
     ? [
         {
           label: "Running automatic grading",
-          status: gradingEvaluating || gradingFinished
-            ? "done"
-            : gradingStarted || gradingInferredActive
-            ? "active"
+          status: gradingStarted
+            ? gradingEvaluating || gradingFinished
+              ? "done"
+              : "active"
             : "pending",
         },
         {

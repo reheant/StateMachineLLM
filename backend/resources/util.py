@@ -1190,7 +1190,6 @@ def setup_file_paths(
             output_base_dir = os.path.join(
                 base_dir,
                 "resources",
-                "Data",
                 f"{file_type}_outputs",
                 date_folder,
                 safe_model_name,
@@ -1201,7 +1200,6 @@ def setup_file_paths(
             output_base_dir = os.path.join(
                 base_dir,
                 "resources",
-                "Data",
                 f"{file_type}_outputs",
                 date_folder,
                 safe_model_name,
@@ -1210,9 +1208,7 @@ def setup_file_paths(
         os.makedirs(output_base_dir, exist_ok=True)
 
         # Generate file names (simpler since they're in a timestamped folder)
-        file_prefix = (
-            "output_shot2" if file_type == "two_shot_prompt" else f"output_{file_type}"
-        )
+        file_prefix = "output_shot2" if file_type == "two_shot_prompt" else f"output_{file_type}"
         log_file_name = f"{file_prefix}.txt"
 
         return {
@@ -1236,10 +1232,8 @@ def setup_file_paths(
     else:
         # Keep existing behavior for other file types (event_driven, simple_linear)
         # Setup directories
-        log_base_dir = os.path.join(base_dir, "resources", "Data", f"{file_type}_log")
-        diagram_base_dir = os.path.join(
-            base_dir, "resources", "Data", f"{file_type}_diagrams"
-        )
+        log_base_dir = os.path.join(base_dir, "resources", f"{file_type}_log")
+        diagram_base_dir = os.path.join(base_dir, "resources", f"{file_type}_diagrams")
 
         # Create directories
         os.makedirs(log_base_dir, exist_ok=True)
@@ -1786,9 +1780,7 @@ def _create_single_prompt_gsm_diagram_with_sherpa_in_process(
                     gsm.sm.style_attributes.get("graph", {}).get("default", {}).copy()
                 )
                 gsm.sm.style_attributes.setdefault("node", {})["active"] = node_defaults
-                gsm.sm.style_attributes.setdefault("graph", {})[
-                    "active"
-                ] = graph_defaults
+                gsm.sm.style_attributes.setdefault("graph", {})["active"] = graph_defaults
             except Exception:
                 pass
 
@@ -1812,9 +1804,7 @@ def _create_single_prompt_gsm_diagram_with_sherpa_in_process(
                         if match:
                             subgraph_name = match.group(1)
                             indent_match = re.match(r"(\s*)", line)
-                            indent_level = (
-                                len(indent_match.group(1)) if indent_match else 0
-                            )
+                            indent_level = len(indent_match.group(1)) if indent_match else 0
                             current_subgraphs.append((subgraph_name, indent_level))
                             new_body.append(line)
                             i += 1
@@ -1970,11 +1960,7 @@ def create_single_prompt_gsm_diagram_with_sherpa(
     if result.stdout:
         print(result.stdout, end="" if result.stdout.endswith("\n") else "\n")
     if result.stderr:
-        print(
-            result.stderr,
-            file=sys.stderr,
-            end="" if result.stderr.endswith("\n") else "\n",
-        )
+        print(result.stderr, file=sys.stderr, end="" if result.stderr.endswith("\n") else "\n")
 
     if result.returncode == 0:
         return True

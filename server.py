@@ -186,7 +186,7 @@ def _scan_runs() -> list[dict]:
         "mermaid_compiler",
         "automatic_grader",
     ):
-        outputs_dir = RESOURCES_DIR / "Data" / f"{strategy}_outputs"
+        outputs_dir = RESOURCES_DIR / f"{strategy}_outputs"
         if not outputs_dir.exists():
             continue
         for date_dir in outputs_dir.iterdir():
@@ -248,7 +248,7 @@ def _find_latest_run_folder(
     since: float | None = None,
 ) -> str | None:
     """Find the newest matching top-level run folder for a strategy."""
-    outputs_dir = RESOURCES_DIR / "Data" / f"{strategy}_outputs"
+    outputs_dir = RESOURCES_DIR / f"{strategy}_outputs"
     if not outputs_dir.exists():
         return None
 
@@ -288,7 +288,6 @@ def _find_latest_run_folder(
 # ---------------------------------------------------------------------------
 # API routes
 # ---------------------------------------------------------------------------
-
 
 @app.get("/health")
 def healthcheck():
@@ -458,9 +457,7 @@ def generate(req: GenerateRequest):
     def _run():
         writer = _QueueWriter(q)
         log_handler = _QueueLogHandler(q)
-        log_handler.setFormatter(
-            logging.Formatter("%(levelname)s %(name)s: %(message)s")
-        )
+        log_handler.setFormatter(logging.Formatter("%(levelname)s %(name)s: %(message)s"))
         root_logger = logging.getLogger()
         previous_root_level = root_logger.level
         request_started_at = time.time()
