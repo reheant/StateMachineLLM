@@ -1527,7 +1527,8 @@ def fix_hierarchical_state_transitions(graph):
             target = target_raw.strip('"')
 
             source_cluster = initial_to_cluster.get(source)
-            if not source_cluster:
+            target_cluster = initial_to_cluster.get(target)
+            if not source_cluster and not target_cluster:
                 continue
 
             # Skip auto-generated pytransitions initial-state edges.
@@ -1539,9 +1540,6 @@ def fix_hierarchical_state_transitions(graph):
                 r'(?<![a-z])label=""', rest
             ):
                 continue
-
-            cluster_prefix = source
-            parent_cluster = cluster_parent.get(source_cluster)  # None = top level
 
             # Extract just this edge's attribute block; anything after belongs to
             # a second statement packed in the same body item by pytransitions.
@@ -1557,8 +1555,62 @@ def fix_hierarchical_state_transitions(graph):
                         after_edge = rest[idx + 1 :]
                         break
 
-            # Strip any previously-added ltail from edge_attrs (clean slate).
-            clean_attrs = re.sub(r"\bltail=\S+\s*", "", edge_attrs).strip()
+            if not source_cluster:
+                # ── Case 3b: non-composite → composite ancestor ────────────────
+                # pytransitions emits no lhead when the source lives inside the
+                # destination cluster (e.g. Printing → LoggedIn).  Adding lhead
+                # alone doesn't work because GraphViz ignores lhead when the tail
+                # is also inside the same cluster.  Use an intermediate dot placed
+                # outside the target cluster so the arrow forms a clean self-loop
+                # on the target cluster's outer boundary (same trick as Case 1).
+                if target_cluster and source.startswith(target + "_"):
+                    node_name = f"_escape_{target}_{counter}"
+                    counter += 1
+                    target_parent_cluster = cluster_parent.get(target_cluster)
+                    deferred_nodes[target_parent_cluster].append(
+                        f'\t"{node_name}" '
+                        f'[shape=point width=0 height=0 style=invis label=""]'
+                    )
+                    clean = re.sub(r"\bltail=[^\s\]]+\s*", "", edge_attrs).strip()
+                    clean = re.sub(r"\blhead=[^\s\]]+\s*", "", clean).strip()
+                    # Clean merged labels from pytransitions (e.g. "reset | " → "reset")
+                    clean = re.sub(r'\s*\|\s*"', '"', clean)
+                    clean = re.sub(r'="\s*\|\s*', '="', clean)
+                    # No ltail needed: source is a leaf node (non-composite),
+                    # so the edge should start directly from the source node
+                    # rather than being clipped at a cluster boundary.
+                    if clean.startswith("["):
+                        out_attrs = clean[:-1] + " dir=none]"
+                    elif clean:
+                        out_attrs = "[" + clean.strip("[]") + " dir=none]"
+                    else:
+                        out_attrs = "[dir=none]"
+                    # Edge 1: source node → dot (no arrowhead)
+                    extra_edges.append(
+                        f'{indent}{source_raw} -> "{node_name}" {out_attrs}'
+                    )
+                    # Edge 2: dot → arrowhead re-enters target cluster boundary
+                    extra_edges.append(
+                        f'{indent}"{node_name}" -> {target_raw} '
+                        f"[lhead={target_cluster} constraint=false]"
+                    )
+                    lines_to_skip.add(i)
+                    if after_edge.strip():
+                        residuals[i] = "\t" + after_edge.lstrip("\t ")
+                continue
+
+            cluster_prefix = source
+            parent_cluster = cluster_parent.get(source_cluster)  # None = top level
+
+            # Strip any previously-added ltail/lhead from edge_attrs (clean slate).
+            # lhead belongs only on Edge 2 (dot → target); keeping it on Edge 1
+            # (source → dot) clips the edge at a cluster boundary the dot is
+            # outside of, causing GraphViz to mis-route the arrow.
+            clean_attrs = re.sub(r"\bltail=[^\s\]]+\s*", "", edge_attrs).strip()
+            clean_attrs = re.sub(r"\blhead=[^\s\]]+\s*", "", clean_attrs).strip()
+            # Clean merged labels from pytransitions (e.g. "reset | " → "reset")
+            clean_attrs = re.sub(r'\s*\|\s*"', '"', clean_attrs)
+            clean_attrs = re.sub(r'="\s*\|\s*', '="', clean_attrs)
 
             if source == target:
                 # ── Case 1: self-loop on composite ────────────────────────────
@@ -1625,9 +1677,54 @@ def fix_hierarchical_state_transitions(graph):
                     if out_attrs.endswith("]")
                     else f'{indent}{source_raw} -> "{node_name}" {out_attrs} [dir=none]'
                 )
-                # Edge 2: dot ──> target child (enters the cluster)
-                extra_edges.append(f'{indent}"{node_name}" -> {target_raw}')
+                # Edge 2: dot ──> target child (enters the cluster).
+                # If the child is itself composite, add lhead so the arrowhead
+                # stops at the cluster border rather than the inner black dot.
+                target_child_cluster = initial_to_cluster.get(target)
+                if target_child_cluster:
+                    extra_edges.append(
+                        f'{indent}"{node_name}" -> {target_raw} '
+                        f'[lhead={target_child_cluster} constraint=false]'
+                    )
+                else:
+                    extra_edges.append(f'{indent}"{node_name}" -> {target_raw}')
 
+                lines_to_skip.add(i)
+                if after_edge.strip():
+                    residuals[i] = "\t" + after_edge.lstrip("\t ")
+
+            elif target_cluster and source.startswith(target + "_"):
+                # ── Case 3a: composite → composite ancestor ────────────────────
+                # e.g. LoggedIn → On.  pytransitions adds ltail but not lhead
+                # when dest is an ancestor of source.  lhead alone also fails
+                # because the source is inside the lhead cluster.  Use the same
+                # intermediate-dot self-loop approach as Case 1.
+                node_name = f"_escape_{target}_{counter}"
+                counter += 1
+                target_parent_cluster = cluster_parent.get(target_cluster)
+                deferred_nodes[target_parent_cluster].append(
+                    f'\t"{node_name}" '
+                    f'[shape=point width=0 height=0 style=invis label=""]'
+                )
+                if clean_attrs.startswith("["):
+                    out_attrs = "[ltail=" + source_cluster + " " + clean_attrs[1:]
+                elif clean_attrs:
+                    out_attrs = (
+                        "[ltail=" + source_cluster + " " + clean_attrs.strip("[]") + "]"
+                    )
+                else:
+                    out_attrs = f"[ltail={source_cluster}]"
+                # Edge 1: tail exits source cluster boundary (no arrowhead)
+                extra_edges.append(
+                    f'{indent}{source_raw} -> "{node_name}" {out_attrs[:-1]} dir=none]'
+                    if out_attrs.endswith("]")
+                    else f'{indent}{source_raw} -> "{node_name}" {out_attrs} [dir=none]'
+                )
+                # Edge 2: dot → arrowhead re-enters target cluster boundary
+                extra_edges.append(
+                    f'{indent}"{node_name}" -> {target_raw} '
+                    f"[lhead={target_cluster} constraint=false]"
+                )
                 lines_to_skip.add(i)
                 if after_edge.strip():
                     residuals[i] = "\t" + after_edge.lstrip("\t ")
@@ -1863,6 +1960,37 @@ def _create_single_prompt_gsm_diagram_with_sherpa_in_process(
                             insert_index + 1,
                             f'\t"{root_marker}" -> "{root_initial_state}"',
                         )
+
+                # Inject [*]→Child initial-state edges for nested composites.
+                # pytransitions merges [*]→Child with regular transitions that
+                # target the same child (e.g. "reset | ").  When Case 2 of
+                # fix_hierarchical_state_transitions replaces that merged edge
+                # with an intermediate-dot pair, the composite's entry black dot
+                # loses its outgoing edge.  Re-inject it here using
+                # nested_initial_states from the parser.
+                if nested_initial_states:
+                    _cluster_names_set = {
+                        m.group(1)
+                        for l in new_body
+                        for m in [re.search(r"subgraph\s+(\S+)", l)]
+                        if m
+                    }
+                    for _parent_id, _child_bare in nested_initial_states.items():
+                        _child_full = f"{_parent_id}_{_child_bare}"
+                        _pat = re.compile(
+                            rf'"?{re.escape(_parent_id)}"?\s*->\s*"?{re.escape(_child_full)}"?'
+                        )
+                        if not any(_pat.search(l) for l in new_body):
+                            _child_cluster = f"cluster_{_child_full}"
+                            if _child_cluster in _cluster_names_set:
+                                new_body.append(
+                                    f'\t"{_parent_id}" -> "{_child_full}" '
+                                    f'[headlabel="" lhead={_child_cluster}]'
+                                )
+                            else:
+                                new_body.append(
+                                    f'\t"{_parent_id}" -> "{_child_full}" [headlabel=""]'
+                                )
 
                 point_node_re = re.compile(
                     r'^\s*"?([A-Za-z_][A-Za-z0-9_]*)"?\s*\[.*\bshape=point\b.*\]'
