@@ -253,6 +253,55 @@ on the composite, and declare an initial pseudostate inside it.
 </example>
 </examples>
 </error>
+<error id="6" name="History state naming or usage violations">
+History states must always be named exactly `H` — never with suffixes like \
+`H_Mode`, `H_TK`, `H_Alarm`, etc. An underscore in a state name like \
+`H_Mode` causes the parser to interpret it as a composite state `H` \
+containing a child state `Mode`, producing a broken diagram. History states \
+are locally scoped to their parent composite, so every composite that needs \
+one simply declares `state H` inside its own block.
+
+Additionally, every declared `state H` must be targeted by at least one \
+transition originating from outside its parent composite. Declaring a \
+history state without wiring transitions to it is a common mistake — \
+especially when adding history states during refinement. After declaring \
+`state H` inside a composite, you must also update the transitions that \
+re-enter that composite so they target `H` instead of the composite itself.
+
+<examples>
+<example type="incorrect – suffixed history state name">
+    state Running {{{{
+        state PhaseA
+        state PhaseB
+        state H_Run
+        [*] --> PhaseA
+    }}}}
+    Paused --> H_Run : continue
+    ← parser breaks: H_Run becomes composite H with child Run
+</example>
+
+<example type="incorrect – history state declared but no transition targets it">
+    state Running {{{{
+        state PhaseA
+        state PhaseB
+        state H
+        [*] --> PhaseA
+    }}}}
+    Paused --> Running : continue
+    ← H is declared but the re-entry transition still targets Running, not H
+</example>
+
+<example type="correct – history state declared and re-entry targets H">
+    state Running {{{{
+        state PhaseA
+        state PhaseB
+        state H
+        [*] --> PhaseA
+    }}}}
+    Paused --> H : continue    ← re-entry now targets H inside Running
+</example>
+</examples>
+</error>
 </common_errors>
 
 <task>
@@ -260,7 +309,7 @@ Work through the following steps in order. Place your review in <thinking> \
 tags, then write the corrected diagram in step 3.
 
 1. Check your previous output against each error in <common_errors> in order \
-   (errors 1, 2, 3, 4, 5). For each error, state explicitly whether it is \
+   (errors 1, 2, 3, 4, 5, 6). For each error, state explicitly whether it is \
    present and, if so, identify every affected state or transition.
 2. List every correction and addition you will make. If no errors are found, \
    state that explicitly and confirm the diagram is correct as-is.
