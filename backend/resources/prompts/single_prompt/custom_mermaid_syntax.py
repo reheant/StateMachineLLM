@@ -194,6 +194,9 @@ Rules - violations produce incorrect re-entry behavior or parse errors:
 3. Substates inside the same composite must NEVER transition directly to the history state.
 4. History states are exclusively for external re-entry; do not use them for internal
    navigation, sequencing, or normal state flow.
+5. History states are locally scoped to their parent composite and must always be named
+   exactly `H`. Never use suffixes like `H_Mode`, `H_TK`, etc. If multiple composite
+   states each need a history state, each one declares its own `state H` inside its block.
 
 <examples>
 <example type="correct - composite transitions to its own history state">
