@@ -281,6 +281,31 @@ def parse_mermaid_with_library(mermaid_code: str):
     # cross hierarchical boundaries. If a state "Busy" exists as both "On/Busy" and
     # "On/LoggedIn/Busy", we keep only the nested one and remove the sibling reference.
 
+    # Build a set of (parent, child) pairs explicitly declared in the mermaid source.
+    # This lets us distinguish genuine same-named states at different hierarchy levels
+    # (e.g. "state H" inside both ModeControl and Timekeeping) from converter-generated
+    # cross-reference artifacts that should be deduplicated.
+    explicitly_declared = set()
+    _parent_stack = []
+    for _line in mermaid_code.split("\n"):
+        _stripped = _line.strip()
+        if not _stripped or _stripped.startswith("%%") or "stateDiagram" in _stripped:
+            continue
+        if (_stripped.startswith("state ") or _stripped.startswith("region ")) and "{" in _stripped:
+            _name = _stripped.split("{")[0].replace("state", "").replace("region", "").strip()
+            _cur_parent = _parent_stack[-1] if _parent_stack else None
+            explicitly_declared.add((_cur_parent, _name))
+            _parent_stack.append(_name)
+        elif _stripped == "}":
+            if _parent_stack:
+                _parent_stack.pop()
+        elif _stripped.startswith("state ") and "{" not in _stripped and "-->" not in _stripped:
+            _name = _stripped.replace("state", "").strip()
+            if " " in _name:
+                _name = _name.split()[0]
+            _cur_parent = _parent_stack[-1] if _parent_stack else None
+            explicitly_declared.add((_cur_parent, _name))
+
     # Build a function to calculate depth using hierarchical_states structure
     def get_nesting_depth_from_hierarchy(state_name, hier_states, visited=None):
         """Calculate how deeply nested a state is by counting how many ancestors it has"""
@@ -347,6 +372,10 @@ def parse_mermaid_with_library(mermaid_code: str):
             for parent, depth in parent_depths[1:]:
                 if not is_ancestor(parent, deepest_parent, hierarchical_states):
                     # parent is not an ancestor of deepest_parent → different branch → different state
+                    continue
+                # Don't remove if this child was explicitly declared at this level
+                # in the mermaid source (not a converter cross-reference artifact).
+                if (parent, state_name) in explicitly_declared:
                     continue
                 if state_name in hierarchical_states.get(parent, []):
                     hierarchical_states[parent].remove(state_name)
