@@ -443,10 +443,226 @@ n_shot_examples = {
             }
         }""",
     },
+        "WUMPLE_fall_2023_Version_A": {
+        "system_description": WUMPLE_fall_2023_Version_A,
+        "mermaid_code_solution": """stateDiagram-v2
+        
+        [*] --> Watch : test / time=0h00m00s, alarmtime=0h00m00s, alarm=false, flashAlert=false, cdTime=0h00m00s
+
+        state Watch {
+            region Light {
+                [*] --> Off
+                state Off 
+                Off --> On : D
+                Off --> Flash : flash [flashAlert]
+            
+                note right of Off
+                    entry / lightOff()
+                end note
+                
+                state On
+                On --> Off : D
+                On --> Off : after10sec
+                On --> Flash : flash [flashAlert]
+
+                note right of On
+                    entry / lightOn()
+                end note
+                
+                state Flash
+                Flash --> Off : anyButton
+                
+                note right of Flash
+                    do / flash5sec()
+                end note
+                
+                
+            }
+            region WatchMode {
+                [*] --> AlarmOff
+                state AlarmOff {
+
+                    [*] --> TimeKeepingMode
+                    state TimeKeepingMode {
+                        
+                        [*] --> IdleTimeKeeping
+                        state IdleTimeKeeping
+                        IdleTimeKeeping --> IdleTimeKeeping : B2sec / toggleFlashAlert()
+                        IdleTimeKeeping --> IdleTimeKeeping : B / toggleAlarm()
+                        IdleTimeKeeping --> AlarmMode : A
+                        
+                        note right of IdleTimeKeeping
+                            do / displayTime()
+                        end note
+                        
+                        state Seconds
+                        Seconds --> Seconds : B / time+=1sec
+                        IdleTimeKeeping --> Seconds : C / flashSeconds()
+                        
+                        state Minutes
+                        Minutes --> Minutes : B / time+=1min
+                        Seconds --> Minutes : C / flashMinutes()
+                        
+                        state Hours
+                        Hours --> Hours : B / time+=1hr
+                        Minutes --> Hours : C / flashHours()
+                        Hours --> Seconds: C / flashSeconds()
+                    }
+                    TimeKeepingMode --> TimeKeepingMode : A
+                    
+                    state AlarmMode {
+                        
+                        [*] --> IdleAlarm
+                        state IdleAlarm
+                        IdleAlarm --> CountdownMode : A
+                        
+                        note right of IdleAlarm
+                            entry / displayAlarmTime()
+                        end note
+                        
+                        state Minutes
+                        IdleAlarm --> Minutes : C / flashMinutes()
+                        Minutes --> Minutes : B / alarmTime+=1min
+                        
+                        state Hours
+                        Minutes --> Hours : C / flashHours()
+                        Hours --> Hours : B / alarmTime+=1hr
+                        Hours --> Minutes : C / flashMinutes()
+                        
+                    }
+                    
+                    AlarmMode --> TimeKeepingMode : A
+                    
+                    state CountdownMode {
+                        
+                        [*] --> IdleCountdown
+                        state IdleCountdown
+                        IdleCountdown --> Countdown : B [cdTime > 0h00m00s] / targetTime=time+cdTime
+                        
+                        note right of IdleCountdown
+                            entry / displayCdTime()
+                        end note
+                        
+                        state Seconds
+                        IdleCountdown --> Seconds : C / flashSeconds()
+                        Seconds --> Seconds : B / cdTime+=1sec
+                        
+                        state Minutes
+                        Seconds --> Minutes : C / flashMinutes()
+                        Minutes --> Minutes : B / cdTime+=1min
+                        
+                        state Hours
+                        Minutes --> Hours : C / flashHours()
+                        Hours --> Hours : B / cdTime+=1hr
+                        Hours --> Minutes : C / flashMinutes()
+                    }
+                    CountdownMode --> CountdownMode : A
+
+                    state Countdown
+                    Countdown --> IdleCountdown : B / cdTime=targetTime-time
+                    Countdown --> CountdownReached : [targetTime == time] / flash()
+                    
+                    note right of Countdown
+                        do / displayCountdown()
+                    end note
+                    
+                    
+                    state CountdownReached
+                    CountdownReached --> CountdownMode : anyButton
+                    
+                    note right of CountdownReached
+                        do / flashZeroAndBeep5Sec()
+                    end note
+
+                    
+                    state H
+                }
+                
+                state AlarmOn
+                AlarmOff --> AlarmOn : [alarm && alarmTime == time] / saveDisplay(), flash()
+                AlarmOn --> AlarmOff : anyButton
+                
+                note right of AlarmOn
+                    do / flashAlarmTimeAndBeep5Sec()
+                    exit / restoreDisplay()
+                end note
+            }
+        }
+        """,
+    },
+    "SSC7_fall_2024_Version_A": {
+        "system_description": SSC7_fall_2024_Version_A,
+        "mermaid_code_solution": """stateDiagram-v2
+        
+        state TimeoutCountdown
+        
+        note right of TimeoutCountdown
+            do / countFrom60()
+        end note
+        
+        state Override
+        Override --> Override : codeEntered [!codeCorrect()] / error()
+        
+        note right of Override
+            entry / lightOn()
+            exit / lightOff()
+        end note
+        
+        state PayRequested
+        
+    
+        [*] --> Active
+        
+        state Active {
+            state Ready
+            [*] --> Ready
+            Ready --> Ready : scannedNr [!existNr()] / error()
+            Ready --> Ready : productCodeEntered [!existsCode()] / error()
+            Ready --> PayRequested : pay [billHasItem()] / sendPaymentRequest()
+            PayRequested --> Ready : fail / error()
+            PayRequested --> Ready : cancel
+            PayRequested --> Ready : success / printBill(), readyForNextCustomer()
+            Ready --> Override : cancelCheckout / setTypeEverything()
+            Ready --> Override : removeItem [billHasItem()] / setTypeItem()
+            Override --> Ready : codeEntered [codeCorrect() && isTypeItem()] / clearItem()
+            Override --> Ready : codeEntered [codeCorrect() && isTypeEverything()] / clearEverything()
+            
+            state H
+            TimeoutCountdown --> H : continue
+            
+            state WeighItem
+            Ready --> WeighItem : productCodeEntered [existCode()]
+            WeighItem --> Ready : cancel
+            
+            state CheckWeight
+            WeighItem --> CheckWeight : weightedItem / addWeightedItem()
+            Ready --> CheckWeight : scannedNr [existsNr()] / addItem()
+            CheckWeight --> Ready : secWeightedItem [weightMatched()]
+            CheckWeight --> Override : cancelCheckout / setTypeEverything()
+            CheckWeight --> Override : secWeightedItem [!weightMatched()] / setTypeItem()
+            
+            state WeighBag
+            Ready --> WeighBag : broughtOwnBag
+            WeighBag --> Ready : secWeighedItem / addBag()
+            WeighBag --> Ready : cancel
+        }
+        Active --> TimeoutCountdown : timeoutWarning
+        TimeoutCountdown --> Active : / clearEverything(), readyForNextCustomer() 
+        """,
+    }
 }
 
 
 def get_n_shot_examples(example_names, tables):
+    """ Gets the n-shot examples as a formatted string for the given example names and tables.
+    
+    Args:       
+        example_names (list of str): The list of example names to include in the n-shot examples
+        tables (list of str): The list of table names to include in the n-shot examples
+
+    Returns:
+        str: The formatted n-shot examples string for the given example names and tables.
+    """
     result = ""
     for i, example in enumerate(example_names):
         if example in n_shot_examples:
@@ -455,3 +671,17 @@ def get_n_shot_examples(example_names, tables):
                 result += f"\n{table}:\n<{table}>{n_shot_examples[example][table]}</{table}>\n"
             result += "\n"
     return result.strip()
+
+def get_example_mermaid_code(example_name):
+    """ Gets the mermaid code solution for a given example name.
+    
+    Args:
+        example_name (str): The name of the example to retrieve the mermaid code for.
+        e.g. "printer_winter_2017", "spa_manager_winter_2018", etc.
+    Returns:
+        str: The mermaid code solution for the given example name.
+    """
+    if example_name in n_shot_examples:
+        return n_shot_examples[example_name]["mermaid_code_solution"]
+    else:
+        return None
