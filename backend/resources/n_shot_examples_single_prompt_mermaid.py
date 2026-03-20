@@ -442,6 +442,9 @@ n_shot_examples = {
             }
         }""",
     },
+}
+
+validation_examples = {
     "WUMPLE_fall_2023_Version_A": {
         "system_description": WUMPLE_fall_2023_Version_A,
         "mermaid_code_solution": """stateDiagram-v2
@@ -662,11 +665,10 @@ def get_n_shot_examples(example_names, tables):
     Returns:
         str: The formatted n-shot examples string for the given example names and tables.
     """
-    validation_examples = {"SSC7_fall_2024_Version_A", "WUMPLE_fall_2023_Version_A"}
     result = ""
     for i, example in enumerate(example_names):
         # Only include examples that are in the n_shot_examples dictionary and not in the validation set
-        if example in n_shot_examples and example not in validation_examples:
+        if example in n_shot_examples:
             result += f"Example {i+1}:\n"
             for table in tables:
                 result += f"\n{table}:\n<{table}>{n_shot_examples[example][table]}</{table}>\n"
@@ -685,5 +687,7 @@ def get_example_mermaid_code(example_name):
     """
     if example_name in n_shot_examples:
         return n_shot_examples[example_name]["mermaid_code_solution"]
+    elif example_name in validation_examples:
+        return validation_examples[example_name]["mermaid_code_solution"]
     else:
         return None
