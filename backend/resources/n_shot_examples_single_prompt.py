@@ -1,9 +1,9 @@
-from state_machine_descriptions import *
+from .state_machine_descriptions import *
 
 n_shot_examples = {
     "printer_winter_2017": {
         "system_description": printer_winter_2017,
-        "umple_code_solution": '''class Printer{
+        "umple_code_solution": """class Printer{
  sm {
    Off {on -> On;}
    On{
@@ -49,11 +49,11 @@ n_shot_examples = {
      }
    }
  }
-}'''
+}""",
     },
     "spa_manager_winter_2018": {
         "system_description": spa_manager_winter_2018,
-        "umple_code_solution":'''class SpaManager{
+        "umple_code_solution": """class SpaManager{
  sm {
   SpaManager{
     Jacuzzi{
@@ -126,11 +126,11 @@ n_shot_examples = {
     }
   }
  }
-}'''
+}""",
     },
     "dishwasher_winter_2019": {
         "system_description": dishwasher_winter_2019,
-        "umple_code_solution":'''class Dishwasher {
+        "umple_code_solution": """class Dishwasher {
   status {
     state0 {
       doorState {
@@ -180,11 +180,11 @@ n_shot_examples = {
       }
     }
   }
-}'''
+}""",
     },
     "chess_clock_fall_2019": {
         "system_description": chess_clock_fall_2019,
-        "umple_code_solution":'''class ChessClock {
+        "umple_code_solution": """class ChessClock {
   status {
     Off {
       onOff -> On;
@@ -234,11 +234,11 @@ n_shot_examples = {
     onOff -> Off;
     }
   }    
-}'''
+}""",
     },
     "thermomix_fall_2021": {
         "system_description": thermomix_fall_2021,
-        "umple_code_solution": '''class Thermomix {
+        "umple_code_solution": """class Thermomix {
   sm {
     TransportationMode {
     	selectorPressed -> On;
@@ -278,11 +278,11 @@ n_shot_examples = {
         }
     }
   }
-}'''
+}""",
     },
     "ATAS_fall_2022": {
         "system_description": ATAS_fall_2022,
-        "umple_code_solution": '''class AdvancedTrainAutomationSystem {
+        "umple_code_solution": """class AdvancedTrainAutomationSystem {
   sm {
     Scheduled {
       atBeginningStopDuration / {action=p0n; setCs;} -> Active;
@@ -352,9 +352,10 @@ n_shot_examples = {
       }
     }
   }
-}'''
-    }
+}""",
+    },
 }
+
 
 def get_n_shot_examples(example_names, tables):
     result = ""

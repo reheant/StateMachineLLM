@@ -1,4 +1,4 @@
-from state_machine_descriptions import *
+from .state_machine_descriptions import *
 
 n_shot_examples = {
     "printer_winter_2017": {
@@ -306,9 +306,8 @@ n_shot_examples = {
             Baking --> Setup : stop
             Setup --> Baking : start [delay=0] / setCourseTime()
         }
-    """
+    """,
     },
-    
     "thermomix_fall_2021": {
         "system_description": thermomix_fall_2021,
         "mermaid_code_solution": """stateDiagram-v2
@@ -443,7 +442,7 @@ n_shot_examples = {
             }
         }""",
     },
-        "WUMPLE_fall_2023_Version_A": {
+    "WUMPLE_fall_2023_Version_A": {
         "system_description": WUMPLE_fall_2023_Version_A,
         "mermaid_code_solution": """stateDiagram-v2
         
@@ -649,32 +648,35 @@ n_shot_examples = {
         Active --> TimeoutCountdown : timeoutWarning
         TimeoutCountdown --> Active : / clearEverything(), readyForNextCustomer() 
         """,
-    }
+    },
 }
 
 
 def get_n_shot_examples(example_names, tables):
-    """ Gets the n-shot examples as a formatted string for the given example names and tables.
-    
-    Args:       
+    """Gets the n-shot examples as a formatted string for the given example names and tables.
+
+    Args:
         example_names (list of str): The list of example names to include in the n-shot examples
         tables (list of str): The list of table names to include in the n-shot examples
 
     Returns:
         str: The formatted n-shot examples string for the given example names and tables.
     """
+    validation_examples = {"SSC7_fall_2024_Version_A", "WUMPLE_fall_2023_Version_A"}
     result = ""
     for i, example in enumerate(example_names):
-        if example in n_shot_examples:
+        # Only include examples that are in the n_shot_examples dictionary and not in the validation set
+        if example in n_shot_examples and example not in validation_examples:
             result += f"Example {i+1}:\n"
             for table in tables:
                 result += f"\n{table}:\n<{table}>{n_shot_examples[example][table]}</{table}>\n"
             result += "\n"
     return result.strip()
 
+
 def get_example_mermaid_code(example_name):
-    """ Gets the mermaid code solution for a given example name.
-    
+    """Gets the mermaid code solution for a given example name.
+
     Args:
         example_name (str): The name of the example to retrieve the mermaid code for.
         e.g. "printer_winter_2017", "spa_manager_winter_2018", etc.

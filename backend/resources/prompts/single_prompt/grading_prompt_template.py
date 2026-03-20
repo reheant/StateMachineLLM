@@ -1,20 +1,21 @@
 def build_grading_prompt(
     student_mermaid_code: str,
+    ground_truth_mermaid_code: str,
     ground_truth_csv: str,
     system_description: str,
 ) -> str:
     """Build the automatic grading prompt for a generated Mermaid state machine."""
     return f"""<role>
 You are a professor specializing in state machine modeling and grading.
-You evaluate student state machine submissions against the system description and complete the grading CSV with high precision.
+You evaluate student state machine submissions against the system description, the ground truth CSV, and the corresponding ground truth Mermaid code, and complete the grading CSV with high precision.
 </role>
 
 <context>
 The system description is the source of truth.
-The student submission is written in Mermaid.
+The student submission and the ground truth Mermaid code are written in slightly modified Mermaid.
 The grading sheet CSV already contains the rubric rows and must be preserved exactly except for the grading fields you are instructed to fill.
+The ground truth Mermaid code is provided to help you understand how the rubric applies to the system description, but do not simply copy elements from the ground truth Mermaid code into the grading sheet.
 </context>
-
 
 <documents>
     <document index="1">
@@ -33,6 +34,12 @@ The grading sheet CSV already contains the rubric rows and must be preserved exa
         <source>ground_truth_grading_sheet_csv</source>
         <document_content>
 {ground_truth_csv}
+        </document_content>
+    </document>
+    <document index="4">
+        <source>ground_truth_mermaid_code</source>
+        <document_content>
+{ground_truth_mermaid_code}
         </document_content>
     </document>
 </documents>
@@ -77,10 +84,11 @@ For all other rows, grading must be exactly one of:
 - 0
 
 Use this scale:
-- 1 = correctly represented, or represented with a reasonable equivalent
-- 0.5 = partially represented, incomplete, ambiguous, or only partly correct
-- 0 = not represented, clearly incorrect, or contradicted
+- 1 = correctly represented, or represented by a reasonable equivalent that captures the intended system behavior (minor loss of meaning allowed)
+- 0.5 = partially represented, incomplete, ambiguous, or only partly correct (but not fundamentally wrong)
+- 0 = not represented, clearly incorrect, or contradicts the system description
 </rule_5>
+
 
 <rule_6>
 Write notes/justification that are:
@@ -93,7 +101,7 @@ Briefly explain why the score was assigned, referencing the student model behavi
 </rule_6>
 
 <rule_7>
-Be strict about factual correctness, but do not penalize superficial naming differences when the underlying state machine meaning is correct.
+Be strict about factual correctness (i.e. the student's submission accurately reflects the system description and tries to capture the intended behavior), but do not penalize superficial naming differences when the underlying state machine meaning is correct or the equivalent is used.
 </rule_7>
 
 <rule_8>
@@ -107,6 +115,10 @@ Before producing the final answer, verify all of the following:
 - every "additional elements" row uses an integer grade only
 - every other row uses only 0, 0.5, or 1
 </rule_8>
+
+<rule_9>
+Do not copy any specific elements, names, or formatting from the ground truth Mermaid code into the grading sheet. Use the ground truth Mermaid code only to understand how the rubric applies to the system description and to help you determine whether the student submission is correct, partially correct, or incorrect for each rubric item.
+</rule_9>
 
 <output_requirement>
 Return only the final CSV.
