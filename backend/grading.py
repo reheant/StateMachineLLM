@@ -3,19 +3,20 @@ import re
 import csv
 import io
 from typing import Optional
+import sys
 
-try:
-    from backend.resources.util import call_openrouter_llm
-    from backend.resources.prompts.single_prompt.grading_prompt_template import (
-        build_grading_prompt,
-    )
-    from backend.resources import state_machine_descriptions as sm_descriptions
-except ImportError:
-    from resources.util import call_openrouter_llm
-    from resources.prompts.single_prompt.grading_prompt_template import (
-        build_grading_prompt,
-    )
-    from resources import state_machine_descriptions as sm_descriptions
+sys.path.append(os.path.dirname(__file__))
+sys.path.append(os.path.join(os.path.dirname(__file__), "resources"))
+
+
+from resources.util import call_openrouter_llm
+from resources.prompts.single_prompt.grading_prompt_template import (
+    build_grading_prompt,
+)
+from resources import state_machine_descriptions as sm_descriptions
+from resources.n_shot_examples_single_prompt_mermaid import (
+    get_example_mermaid_code,
+)
 
 
 def _slugify(value: str) -> str:
@@ -237,9 +238,15 @@ def run_automatic_grading(
         print("Automatic grading skipped (empty CSV)")
         return None
 
+    example_key = _resolve_example_key(system_prompt)
+    ground_truth_mermaid_code = (
+        get_example_mermaid_code(example_key) if example_key else ""
+    ) or ""
+
     grading_prompt = build_grading_prompt(
         student_mermaid_code=student_mermaid_code,
         ground_truth_csv=ground_truth_csv,
+        ground_truth_mermaid_code=ground_truth_mermaid_code,
         system_description=system_prompt,
     )
 
@@ -252,7 +259,7 @@ def run_automatic_grading(
 
     grading_response = call_openrouter_llm(
         grading_prompt,
-        max_tokens=15000,
+        max_tokens=8000,
         temperature=0.0,
         model=model,
     )
