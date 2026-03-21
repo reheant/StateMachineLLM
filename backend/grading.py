@@ -19,10 +19,7 @@ from resources.n_shot_examples_single_prompt_mermaid import (
 )
 
 
-
-def _resolve_ground_truth_csv_path(
-    base_dir: str, example_key: str
-) -> str:
+def _resolve_ground_truth_csv_path(base_dir: str, example_key: str) -> str:
     ground_truth_dir = os.path.join(base_dir, "resources", "ground_truth_grading")
 
     return os.path.join(ground_truth_dir, f"{example_key}.csv")
@@ -174,12 +171,9 @@ def run_automatic_grading(
         base_dir: Base directory for resolving relative paths.
         example_key: The preset example key (e.g., 'printer_winter_2017') or a slug name for custom systems.
     """
-    print("Running automatic grading")
-    print("Evaluating generation against ground truth")
+    print("Running automatic grading", flush=True)
 
-    csv_path = _resolve_ground_truth_csv_path(
-        base_dir, example_key
-    )
+    csv_path = _resolve_ground_truth_csv_path(base_dir, example_key)
     _append_log(paths.get("llm_log_path"), f"=== Grading CSV Path ===\n{csv_path}\n\n")
 
     if not os.path.exists(csv_path):
@@ -191,7 +185,7 @@ def run_automatic_grading(
         if paths.get("grading_output_path"):
             with open(paths["grading_output_path"], "w") as f:
                 f.write(message)
-        print("Automatic grading skipped (missing CSV)")
+        print("Automatic grading skipped (missing CSV)", flush=True)
         return None
 
     with open(csv_path, "r") as f:
@@ -212,7 +206,7 @@ def run_automatic_grading(
         if paths.get("grading_output_path"):
             with open(paths["grading_output_path"], "w") as f:
                 f.write(message)
-        print("Automatic grading skipped (empty CSV)")
+        print("Automatic grading skipped (empty CSV)", flush=True)
         return None
 
     ground_truth_mermaid_code = (
@@ -232,6 +226,8 @@ def run_automatic_grading(
 
     _append_log(paths.get("llm_log_path"), "=== Automatic Grading Prompt ===\n")
     _append_log(paths.get("llm_log_path"), grading_prompt + "\n\n")
+
+    print("Evaluating generation against ground truth", flush=True)
 
     grading_response = call_openrouter_llm(
         grading_prompt,
@@ -284,5 +280,5 @@ def run_automatic_grading(
     _append_log(paths.get("llm_log_path"), "=== Automatic Grading Response ===\n")
     _append_log(paths.get("llm_log_path"), grading_response + "\n\n")
 
-    print("Automatic grading completed")
+    print("Automatic grading completed", flush=True)
     return grading_response
