@@ -101,7 +101,12 @@ Briefly explain why the score was assigned, referencing the student model behavi
 </rule_6>
 
 <rule_7>
-Be strict about factual correctness (i.e. the student's submission accurately reflects the system description and tries to capture the intended behavior), but do not penalize superficial naming differences when the underlying state machine meaning is correct or the equivalent is used.
+Be strict about factual correctness, meaning the student’s submission must accurately reflect the system description and intended behavior. However, do not penalize superficial or stylistic differences when the underlying semantics are correct.
+
+When evaluating the student submission, consider the following:
+- accept structurally different but semantically equivalent representations
+- treat additional elements (e.g., extra states, composite states, transitions) as correct if they preserve the intended behavior
+- do not penalize alternative modeling approaches that are behaviorally equivalent to the expected solution
 </rule_7>
 
 <rule_8>
@@ -114,6 +119,7 @@ Before producing the final answer, verify all of the following:
 - only the grading and notes/justification columns were modified
 - every "additional elements" row uses an integer grade only
 - every other row uses only 0, 0.5, or 1
+Not respecting any of these verification rules will be considered a failure to follow instructions and will result in a score of 0 for the entire grading task.
 </rule_8>
 
 <rule_9>
@@ -126,6 +132,7 @@ Do not include markdown.
 Do not include code fences.
 Do not include XML.
 Do not include explanations before or after the CSV.
+Not respecting the output requirement will be considered a failure to follow instructions and will result in a score of 0 for the entire grading task.
 </output_requirement>
 </instructions>
 """
