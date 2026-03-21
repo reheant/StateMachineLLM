@@ -31,6 +31,7 @@ def run_two_shot_prompt(
     model="anthropic/claude-3.5-sonnet",
     system_name=None,
     enable_auto_grading=True,
+    example_key=None,
 ):
     """
     Run the Two-Shot Prompt State Machine Framework.
@@ -44,10 +45,14 @@ def run_two_shot_prompt(
         model: The OpenRouter model to use.
         system_name: Optional name for the system (used for output folder organization).
         enable_auto_grading: Whether automatic grading is executed after a successful run.
+        example_key: Optional key identifying which preset example is being used (e.g., 'printer_winter_2017')
 
     Returns:
         bool: True if the shot 2 diagram rendered successfully, False otherwise.
     """
+    if enable_auto_grading and not example_key:
+        raise ValueError("example_key is required when automatic grading is enabled")
+
     model_short_name = model.split("/")[-1] if "/" in model else model
 
     paths = setup_file_paths(
@@ -92,9 +97,7 @@ def run_two_shot_prompt(
         if i > 0:
             print(f"Retrying (attempt {i+1}/{max_attempts})...")
 
-        result = process_two_shot_attempt(
-            first_prompt, system_prompt, paths, model
-        )
+        result = process_two_shot_attempt(first_prompt, system_prompt, paths, model)
 
         if result != "False":
             success = True
@@ -107,6 +110,7 @@ def run_two_shot_prompt(
                         model=model,
                         paths=paths,
                         base_dir=os.path.dirname(__file__),
+                        example_key=example_key,
                     )
                 except Exception as e:
                     print(f"Automatic grading failed: {str(e)}")
@@ -199,7 +203,9 @@ def process_two_shot_attempt(
         )
 
         with open(paths["llm_log_path"], "a") as f:
-            f.write(f"=== Shot 2 Refinement Prompt (sent to LLM) ===\n{refinement_prompt}\n\n")
+            f.write(
+                f"=== Shot 2 Refinement Prompt (sent to LLM) ===\n{refinement_prompt}\n\n"
+            )
 
         second_answer = call_openrouter_llm(
             refinement_prompt, max_tokens=15000, temperature=0.3, model=model
@@ -249,9 +255,7 @@ def process_two_shot_attempt(
                 )
 
             with open(paths["llm_log_path"], "a") as f:
-                f.write(
-                    f"{error}\nError: {str(e)}\nTraceback:\n{full_traceback}\n\n"
-                )
+                f.write(f"{error}\nError: {str(e)}\nTraceback:\n{full_traceback}\n\n")
 
             print(f"{error}: {str(e)}")
             return "False"

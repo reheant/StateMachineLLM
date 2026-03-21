@@ -434,6 +434,7 @@ async function handleExampleChange(key: string) {
     const desc = description.trim();
     const name = systemName.trim();
     if (!desc || !name) return;
+    if (inputTab === "example" && !exampleKey) return;
     const promptStrategy: PromptStrategy =
       strategy === "two_shot_prompt" ? "two_shot_prompt" : "single_prompt";
     const startedAt = Date.now();
@@ -546,6 +547,7 @@ async function handleExampleChange(key: string) {
           model,
           system_name: name,
           description: desc,
+          example_key: inputTab === "example" ? exampleKey : null,
           enable_auto_grading: shouldEnableAutoGrading,
           input_mode: inputTab,
         }),
