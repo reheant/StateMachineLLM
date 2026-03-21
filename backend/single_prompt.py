@@ -96,6 +96,7 @@ def run_single_prompt(
     model="anthropic/claude-3.5-sonnet",
     system_name=None,
     enable_auto_grading=True,
+    example_key=None,
 ):
     """
     the run_single_prompt initiates the Single Prompt State Machine Framework
@@ -104,9 +105,13 @@ def run_single_prompt(
         model: The OpenRouter model to use
         system_name: Optional name for the system (used for organizing output folders)
         enable_auto_grading: Whether automatic grading is executed after a successful run
+        example_key: Optional key identifying which preset example is being used (e.g., 'printer_winter_2017')
     Returns:
         bool: True if generation succeeded, False if all attempts failed
     """
+    if enable_auto_grading and not example_key:
+        raise ValueError("example_key is required when automatic grading is enabled")
+
     # Extract short model name for folder (e.g., "anthropic/claude-3.5-sonnet" -> "claude-3.5-sonnet")
     model_short_name = model.split("/")[-1] if "/" in model else model
 
@@ -173,6 +178,7 @@ def run_single_prompt(
                         model=model,
                         paths=paths,
                         base_dir=os.path.dirname(__file__),
+                        example_key=example_key,
                     )
                 except Exception as e:
                     print(f"Automatic grading failed: {str(e)}")

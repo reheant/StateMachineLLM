@@ -78,34 +78,44 @@ function buildProgressSteps(
   showAutoGradingStages: boolean
 ): ProgressStep[] {
   const logText = logs.join("\n").toLowerCase();
-  const gradingStarted = /running automatic grading/.test(logText);
-  const gradingEvaluating = /evaluating generation against ground truth/.test(logText);
+  const sawGradingStartedLog = /running automatic grading/.test(logText);
+  const sawGradingEvaluatingLog = /evaluating generation against ground truth/.test(logText);
+  const hasGradingPrompt = Boolean(artifacts?.grading_prompt);
   const gradingFinished =
     /automatic grading completed|automatic grading skipped|automatic grading failed/.test(
       logText
     ) ||
     Boolean(artifacts?.grading_output || artifacts?.grading_csv || artifacts?.grading_tsv);
 
-  const gradingSteps: ProgressStep[] = showAutoGradingStages
-    ? [
-        {
-          label: "Running automatic grading",
-          status: gradingStarted
-            ? gradingEvaluating || gradingFinished
-              ? "done"
-              : "active"
-            : "pending",
-        },
-        {
-          label: "Evaluating generation against ground truth",
-          status: gradingFinished
+  const buildGradingSteps = (generationComplete: boolean): ProgressStep[] => {
+    if (!showAutoGradingStages) return [];
+
+    // If grading logs are delayed, infer the active grading phase from artifacts
+    // so the UI always has one active (orange) step while work is still running.
+    const gradingStarted =
+      sawGradingStartedLog || (generationComplete && !gradingFinished);
+    const gradingEvaluating =
+      sawGradingEvaluatingLog || (hasGradingPrompt && !gradingFinished);
+
+    return [
+      {
+        label: "Running automatic grading",
+        status: gradingStarted
+          ? gradingEvaluating || gradingFinished
             ? "done"
-            : gradingEvaluating || gradingStarted
-            ? "active"
-            : "pending",
-        },
-      ]
-    : [];
+            : "active"
+          : "pending",
+      },
+      {
+        label: "Evaluating generation against ground truth",
+        status: gradingFinished
+          ? "done"
+          : gradingEvaluating
+          ? "active"
+          : "pending",
+      },
+    ];
+  };
 
   if (strategy === "two_shot_prompt") {
     const shot1Started =
@@ -116,6 +126,7 @@ function buildProgressSteps(
       /running shot 2|shot 2 raw llm response|shot 2: failed/.test(logText);
     const shot2Mermaid = Boolean(artifacts?.mmd || artifacts?.txt);
     const finalImage = Boolean(artifacts?.png);
+    const gradingSteps = buildGradingSteps(finalImage);
 
     return [
       { label: "Shot 1 started", status: shot1Started ? "done" : "active" },
@@ -130,6 +141,7 @@ function buildProgressSteps(
 
   const mermaidGenerated = Boolean(artifacts?.mmd || artifacts?.txt);
   const imageGenerated = Boolean(artifacts?.png);
+  const gradingSteps = buildGradingSteps(imageGenerated);
 
   return [
     { label: "Calling LLM", status: mermaidGenerated ? "done" : "active" },
@@ -434,6 +446,7 @@ async function handleExampleChange(key: string) {
     const desc = description.trim();
     const name = systemName.trim();
     if (!desc || !name) return;
+    if (inputTab === "example" && !exampleKey) return;
     const promptStrategy: PromptStrategy =
       strategy === "two_shot_prompt" ? "two_shot_prompt" : "single_prompt";
     const startedAt = Date.now();
@@ -546,6 +559,7 @@ async function handleExampleChange(key: string) {
           model,
           system_name: name,
           description: desc,
+          example_key: inputTab === "example" ? exampleKey : null,
           enable_auto_grading: shouldEnableAutoGrading,
           input_mode: inputTab,
         }),

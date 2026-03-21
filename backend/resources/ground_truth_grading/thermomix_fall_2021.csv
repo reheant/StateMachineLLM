@@ -1,4 +1,4 @@
-Type,Element,Rater 1,Notes
+Type,Element,Grading,Notes
 State,"initial state (⇒ TransportationMode)",,
 State,"TransportationMode",,
 Transition,"selectorPressed (TransportationMode ⇒ On)",,

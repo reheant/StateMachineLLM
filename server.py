@@ -407,6 +407,7 @@ class GenerateRequest(BaseModel):
     model: str
     system_name: str
     description: str
+    example_key: str | None = None
     enable_auto_grading: bool = True
     input_mode: Literal["example", "custom"] | None = None
 
@@ -457,7 +458,9 @@ def generate(req: GenerateRequest):
     def _run():
         writer = _QueueWriter(q)
         log_handler = _QueueLogHandler(q)
-        log_handler.setFormatter(logging.Formatter("%(levelname)s %(name)s: %(message)s"))
+        log_handler.setFormatter(
+            logging.Formatter("%(levelname)s %(name)s: %(message)s")
+        )
         root_logger = logging.getLogger()
         previous_root_level = root_logger.level
         request_started_at = time.time()
@@ -468,6 +471,15 @@ def generate(req: GenerateRequest):
             effective_auto_grading = (
                 req.enable_auto_grading and req.input_mode != "custom"
             )
+            if effective_auto_grading and not req.example_key:
+                q.put(
+                    (
+                        "error",
+                        "example_key is required when automatic grading is enabled.",
+                    )
+                )
+                return
+
             with contextlib.redirect_stdout(writer), contextlib.redirect_stderr(
                 writer
             ):  # type: ignore[arg-type]
@@ -477,6 +489,7 @@ def generate(req: GenerateRequest):
                         openrouter_model,
                         req.system_name,
                         effective_auto_grading,
+                        req.example_key,
                     )
                 else:
                     success = run_two_shot_prompt(
@@ -484,6 +497,7 @@ def generate(req: GenerateRequest):
                         openrouter_model,
                         req.system_name,
                         effective_auto_grading,
+                        req.example_key,
                     )
             writer.flush()
             log_handler.flush()
@@ -602,6 +616,7 @@ def automatic_grade(req: AutomaticGraderRequest):
         model=openrouter_model,
         paths=paths,
         base_dir=str(backend_dir),
+        example_key=req.example_key,
     )
 
     folder = _find_latest_run_folder("automatic_grader")
