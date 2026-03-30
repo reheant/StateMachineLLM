@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { fetchArtifacts, fetchDescription, fetchExamples, fetchHistory } from "@/lib/api";
+import { fetchArtifacts, fetchDescription, fetchExamples, fetchHistory, fileUrl } from "@/lib/api";
 import type { Artifacts, Example, Run } from "@/lib/types";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -14,7 +14,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Check, ChevronDown, Loader2, Zap } from "lucide-react";
+import { AlertTriangle, Check, ChevronDown, Loader2, X, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const MODELS: Record<string, { label: string; value: string }[]> = {
@@ -65,10 +65,53 @@ type ProgressStep = {
   status: "pending" | "active" | "done";
 };
 
+type ToastState = { kind: "error" | "info"; message: string };
+
 function hasGradingArtifacts(artifacts: Artifacts | null): boolean {
   return Boolean(
     artifacts?.grading_output || artifacts?.grading_csv || artifacts?.grading_tsv
   );
+}
+
+// Poll until grading finishes. Return TSV artifacts when ready or an error message if grading failed.
+async function waitForGradingCompletion(
+  folder: string,
+  intervalMs = 1200
+): Promise<{ artifacts: Artifacts | null; errorMessage: string | null }> {
+  while (true) {
+    try {
+      const artifacts = await fetchArtifacts(folder);
+
+      // Use status.json as the authoritative signal when available.
+      if (artifacts.status) {
+        const s = artifacts.status;
+        if (s.status === "success") return { artifacts, errorMessage: null };
+        if (s.status === "failed" || s.status === "partial") {
+          return {
+            artifacts,
+            errorMessage: s.error?.message ?? "Automatic grading failed.",
+          };
+        }
+        // status is "in_progress" — keep polling.
+      } else {
+        // Fallback: legacy runs without status.json.
+        if (artifacts.grading_tsv) return { artifacts, errorMessage: null };
+        if (artifacts.grading_output) {
+          try {
+            const res = await fetch(fileUrl(artifacts.grading_output));
+            const text = await res.text();
+            return { artifacts, errorMessage: text || "Automatic grading failed." };
+          } catch {
+            return { artifacts, errorMessage: "Automatic grading failed." };
+          }
+        }
+      }
+    } catch {
+      // Ignore transient fetch errors while grading finishes.
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, intervalMs));
+  }
 }
 
 function buildProgressSteps(
@@ -364,6 +407,7 @@ export function RunForm({ onComplete, onHistoryRefresh, onGeneratingChange }: Pr
   const [enableAutoGrading, setEnableAutoGrading] = useState(false);
   const [progressArtifacts, setProgressArtifacts] = useState<Artifacts | null>(null);
   const [showAutoGradingStages, setShowAutoGradingStages] = useState(false);
+  const [toast, setToast] = useState<ToastState | null>(null);
 
   // Mermaid sandbox state
   const [mermaidCode, setMermaidCode] = useState("");
@@ -389,6 +433,12 @@ export function RunForm({ onComplete, onHistoryRefresh, onGeneratingChange }: Pr
   useEffect(() => {
     onGeneratingChangeRef.current?.(generating);
   }, [generating]);
+
+  useEffect(() => {
+    if (!toast) return;
+    const id = setTimeout(() => setToast(null), 6500);
+    return () => clearTimeout(id);
+  }, [toast]);
 
   // Abort on unmount
   useEffect(() => {
@@ -420,6 +470,10 @@ async function handleExampleChange(key: string) {
     setDescription("");
     setSystemName("");
     setMermaidError(null);
+  }
+
+  function pushToast(message: string, kind: ToastState["kind"] = "error") {
+    setToast({ kind, message });
   }
 
   function handleStrategyChange(next: "single_prompt" | "two_shot_prompt" | "mermaid_compiler" | "automatic_grader") {
@@ -536,7 +590,19 @@ async function handleExampleChange(key: string) {
               }
             }
 
-            if (hasGradingArtifacts(recoveredArtifacts)) {
+            // Check status.json first (authoritative); fall back to artifact heuristic.
+            const st = recoveredArtifacts?.status;
+            if (st) {
+              if (st.status === "success" || st.status === "partial") {
+                completeRun(recoveredRun);
+                return;
+              }
+              if (st.status === "failed") {
+                failRun(st.error?.message ?? "Generation failed.");
+                return;
+              }
+              // "in_progress" — keep waiting.
+            } else if (hasGradingArtifacts(recoveredArtifacts)) {
               completeRun(recoveredRun);
               return;
             }
@@ -597,6 +663,16 @@ async function handleExampleChange(key: string) {
           } else if (eventType === "complete") {
             sawTerminalEvent = true;
             const payload = JSON.parse(data);
+
+            // Check structured status from the backend.
+            const runStatus = payload.status as string | undefined;
+            const runError = payload.error as { message?: string } | null | undefined;
+
+            if (runStatus === "failed") {
+              failRun(runError?.message ?? "Generation failed.");
+              return;
+            }
+
             const run: Run = {
               strategy: promptStrategy,
               model,
@@ -606,6 +682,15 @@ async function handleExampleChange(key: string) {
               time: new Date().toTimeString().slice(0, 8),
               has_png: true,
             };
+
+            if (runStatus === "partial") {
+              // Generation OK but grading failed. Still open the run, but
+              // show a toast so the user knows grading had issues.
+              pushToast(
+                runError?.message ?? "Generation succeeded but automatic grading failed."
+              );
+            }
+
             completeRun(run);
             return;
           } else if (eventType === "error") {
@@ -638,7 +723,19 @@ async function handleExampleChange(key: string) {
             if (recoveredArtifacts) {
               setProgressArtifacts(recoveredArtifacts);
             }
-            if (hasGradingArtifacts(recoveredArtifacts)) {
+
+            // Check status.json first, then fall back to artifact heuristic.
+            const st = recoveredArtifacts?.status;
+            if (st) {
+              if (st.status === "success" || st.status === "partial") {
+                completeRun(recoveredRun);
+                return;
+              }
+              if (st.status === "failed") {
+                failRun(st.error?.message ?? "Generation failed.");
+                return;
+              }
+            } else if (hasGradingArtifacts(recoveredArtifacts)) {
               completeRun(recoveredRun);
               return;
             }
@@ -683,6 +780,7 @@ async function handleExampleChange(key: string) {
           (err.detail ?? "Rendering failed.") +
             " Ensure valid Mermaid state diagram syntax (stateDiagram-v2)."
         );
+        pushToast(err.detail ?? "Mermaid rendering failed.");
         return;
       }
       const payload = await res.json();
@@ -699,6 +797,7 @@ async function handleExampleChange(key: string) {
       onComplete(run);
     } catch {
       setMermaidError("Network error — is the server running?");
+      pushToast("Network error while rendering Mermaid.");
     } finally {
       setRenderingMermaid(false);
     }
@@ -736,26 +835,96 @@ async function handleExampleChange(key: string) {
         body: JSON.stringify({ mermaid_code: code, example_key: gradingExampleKey, model }),
       });
       if (!res.ok) {
+        // The backend may return structured error details with a folder reference.
+        const err = await res.json().catch(() => ({ detail: "Automatic grading failed." }));
+        const detail = typeof err.detail === "object" ? err.detail : { message: err.detail };
+        const message = detail.message ?? "Automatic grading failed.";
+        const errorFolder = detail.folder as string | undefined;
+
+        // If the backend created a folder despite the error, open it so the
+        // user can inspect fallback artifacts + error state.
+        if (errorFolder) {
+          onHistoryRefresh();
+          const selectedExample = examples.find((e) => e.key === gradingExampleKey);
+          const run: Run = {
+            strategy: "automatic_grader",
+            model,
+            system: selectedExample?.label ?? gradingExampleKey,
+            folder: errorFolder,
+            date: new Date().toISOString().slice(0, 10),
+            time: new Date().toTimeString().slice(0, 8),
+            has_png: false,
+          };
+          pushToast(message);
+          onComplete(run);
+          return;
+        }
+
+        // No folder — try history recovery.
         const recoveredRun = await recoverFromHistory();
         if (recoveredRun) {
+          const { artifacts, errorMessage } = await waitForGradingCompletion(recoveredRun.folder);
           onHistoryRefresh();
+          if (errorMessage || !artifacts?.grading_tsv) {
+            setMermaidError(errorMessage || message);
+            pushToast(errorMessage || message);
+            return;
+          }
           onComplete(recoveredRun);
           return;
         }
 
-        const err = await res.json().catch(() => ({ detail: "Automatic grading failed." }));
-        setMermaidError(err.detail ?? "Automatic grading failed.");
+        setMermaidError(message);
+        pushToast(message);
         return;
       }
 
       const payload = await res.json();
+      const folder = payload.folder as string;
+      const payloadStatus = payload.status as { status?: string; error?: { message?: string } } | null;
       const selectedExample = examples.find((e) => e.key === gradingExampleKey);
+
+      // If the backend already reports failure/partial in the response, handle it directly.
+      if (payloadStatus?.status === "failed") {
+        onHistoryRefresh();
+        const errMsg = payloadStatus.error?.message ?? "Automatic grading failed.";
+        setMermaidError(errMsg);
+        pushToast(errMsg);
+        return;
+      }
+
+      if (payloadStatus?.status === "partial") {
+        onHistoryRefresh();
+        const warnMsg = payloadStatus.error?.message ?? "Grading completed with issues.";
+        pushToast(warnMsg);
+        const run: Run = {
+          strategy: "automatic_grader",
+          model,
+          system: selectedExample?.label ?? gradingExampleKey,
+          folder,
+          date: new Date().toISOString().slice(0, 10),
+          time: new Date().toTimeString().slice(0, 8),
+          has_png: false,
+        };
+        onComplete(run);
+        return;
+      }
+
+      // Success or status not yet written — poll for completion.
+      const { artifacts, errorMessage } = await waitForGradingCompletion(folder);
+      onHistoryRefresh();
+      if (errorMessage || !artifacts?.grading_tsv) {
+        const message = errorMessage || "Automatic grading failed.";
+        setMermaidError(message);
+        pushToast(message);
+        return;
+      }
       onHistoryRefresh();
       const run: Run = {
         strategy: "automatic_grader",
         model,
         system: selectedExample?.label ?? gradingExampleKey,
-        folder: payload.folder,
+        folder,
         date: new Date().toISOString().slice(0, 10),
         time: new Date().toTimeString().slice(0, 8),
         has_png: false,
@@ -764,11 +933,20 @@ async function handleExampleChange(key: string) {
     } catch {
       const recoveredRun = await recoverFromHistory();
       if (recoveredRun) {
+        const { artifacts, errorMessage } = await waitForGradingCompletion(recoveredRun.folder);
+        onHistoryRefresh();
+        if (errorMessage || !artifacts?.grading_tsv) {
+          const message = errorMessage || "Automatic grading failed.";
+          setMermaidError(message);
+          pushToast(message);
+          return;
+        }
         onHistoryRefresh();
         onComplete(recoveredRun);
         return;
       }
       setMermaidError("Network error while grading. If artifacts were created, open the latest automatic grader run in History.");
+      pushToast("Network error while grading. If artifacts were created, open the latest automatic grader run in History.");
     } finally {
       setGradingMermaid(false);
     }
@@ -787,6 +965,33 @@ async function handleExampleChange(key: string) {
 
   return (
     <div className="flex flex-col bg-background">
+      {toast && (
+        <div className="pointer-events-auto fixed right-5 top-5 z-50 w-[min(24rem,calc(100vw-2.5rem))]">
+          <div
+            className={cn(
+              "flex items-start gap-3 rounded-2xl border px-4 py-3 shadow-xl",
+              toast.kind === "error"
+                ? "border-red-500/30 bg-red-500/15 shadow-red-500/20"
+                : "border-white/[0.12] bg-white/[0.08] shadow-black/40"
+            )}
+          >
+            <span className="mt-0.5 rounded-full bg-red-500/15 p-1.5 text-red-300">
+              <AlertTriangle className="h-4 w-4" />
+            </span>
+            <div className="flex-1 space-y-1">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/45">Attention</p>
+              <p className="text-sm leading-relaxed text-white/85">{toast.message}</p>
+            </div>
+            <button
+              onClick={() => setToast(null)}
+              className="mt-0.5 rounded-full p-1 text-white/30 transition-colors hover:bg-white/10 hover:text-white/80"
+              aria-label="Dismiss notification"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+      )}
       <div className="flex flex-col px-6 py-10">
       <div className="mx-auto w-full max-w-5xl flex flex-col gap-10">
         <div className="flex flex-col items-center gap-1.5 text-center">

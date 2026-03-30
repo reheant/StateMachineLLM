@@ -27,6 +27,14 @@ from resources.n_shot_examples_single_prompt_mermaid import (
 )
 from resources.prompts.single_prompt.single_prompt_template import build_single_prompt
 from grading import run_automatic_grading
+from errors import (
+    ErrorType,
+    RunError,
+    write_success,
+    write_failure,
+    write_partial,
+    write_in_progress,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -181,14 +189,27 @@ def run_single_prompt(
                         example_key=example_key,
                     )
                 except Exception as e:
+                    # Generation succeeded but grading failed — mark as partial.
                     print(f"Automatic grading failed: {str(e)}")
+                    error = RunError(
+                        type=ErrorType.GRADING_VALIDATION,
+                        message=f"Automatic grading failed: {str(e)}",
+                    )
+                    write_partial(paths, error)
             else:
                 print("Automatic grading disabled")
+                write_success(paths)
             break
         elif i < max_attempts - 1:
             print(f"Attempt failed, retrying...")
         else:
             print(f"All attempts failed")
+            error = RunError(
+                type=ErrorType.GENERATION,
+                message="All generation attempts failed.",
+                attempts=max_attempts,
+            )
+            write_failure(paths, error)
 
     return success
 
