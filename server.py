@@ -595,12 +595,18 @@ def render_mermaid(req: MermaidRequest):
         req.system_name,
         file_type="mermaid_compiler",
     )
-    if not success:
-        raise HTTPException(
-            status_code=422,
-            detail="Mermaid rendering failed. Check your diagram syntax.",
-        )
     folder = _find_latest_run_folder("mermaid_compiler")
+    if not success:
+        detail: dict = {
+            "message": "Mermaid rendering failed. Check your diagram syntax.",
+            "error_type": "mermaid_compilation",
+        }
+        if folder:
+            detail["folder"] = folder
+            status = read_status(folder)
+            if status:
+                detail["status"] = status
+        raise HTTPException(status_code=422, detail=detail)
     if not folder:
         raise HTTPException(
             status_code=500, detail="Could not locate rendered output folder."

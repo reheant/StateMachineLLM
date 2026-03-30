@@ -34,6 +34,10 @@ from errors import (
 logger = logging.getLogger(__name__)
 
 
+def _make_attempt_error(kind: str, message: str, attempt: int) -> dict:
+    return {"kind": kind, "message": message, "attempt": attempt}
+
+
 def run_two_shot_prompt(
     system_prompt,
     model="anthropic/claude-3.5-sonnet",
@@ -98,14 +102,17 @@ def run_two_shot_prompt(
 
     print(f"Running Two-Shot Prompt Generation with {model}")
 
+    write_in_progress(paths)
+
     success = False
     max_attempts = 3
+    attempt_errors: list[dict] = []
 
     for i in range(max_attempts):
         if i > 0:
             print(f"Retrying (attempt {i+1}/{max_attempts})...")
 
-        result = process_two_shot_attempt(first_prompt, system_prompt, paths, model)
+        result, attempt_error = process_two_shot_attempt(first_prompt, system_prompt, paths, model, i)
 
         if result != "False":
             success = True
@@ -132,16 +139,26 @@ def run_two_shot_prompt(
                 print("Automatic grading disabled")
                 write_success(paths)
             break
-        elif i < max_attempts - 1:
-            print("Attempt failed, retrying...")
         else:
-            print("All attempts failed")
-            error = RunError(
-                type=ErrorType.GENERATION,
-                message="All generation attempts failed.",
-                attempts=max_attempts,
-            )
-            write_failure(paths, error)
+            if attempt_error:
+                attempt_errors.append(attempt_error)
+            if i < max_attempts - 1:
+                print("Attempt failed, retrying...")
+            else:
+                print("All attempts failed")
+                # Use the last attempt's error type if available.
+                last_error_type = ErrorType.GENERATION
+                if attempt_errors:
+                    last_kind = attempt_errors[-1].get("kind", "")
+                    if last_kind == "mermaid_compilation":
+                        last_error_type = ErrorType.MERMAID_COMPILATION
+                error = RunError(
+                    type=last_error_type,
+                    message="All generation attempts failed.",
+                    details={"attempt_errors": attempt_errors},
+                    attempts=max_attempts,
+                )
+                write_failure(paths, error)
 
     return success
 
@@ -151,25 +168,40 @@ def process_two_shot_attempt(
     system_prompt: str,
     paths: dict,
     model: str = "anthropic/claude-3.5-sonnet",
-) -> str:
+    attempt_index: int = 0,
+) -> tuple[str, dict | None]:
     """
     Execute one full two-shot attempt: initial generation followed by refinement.
 
     Args:
         first_prompt: The fully assembled first-turn prompt (from build_single_prompt).
+        system_prompt: The original system description.
         paths: Dictionary of file paths from setup_file_paths.
         model: OpenRouter model identifier.
+        attempt_index: Zero-based attempt counter for error reporting.
 
     Returns:
-        str: The refined Mermaid code if the diagram rendered successfully,
-             "False" otherwise.
+        tuple: (mermaid_code, error_info)
+            - mermaid_code: The refined Mermaid code if rendered successfully, "False" otherwise.
+            - error_info: dict with 'kind' and 'message' on failure, None on success.
     """
+    attempt_num = attempt_index + 1
     try:
         # --- Shot 1: Initial generation ---
         print("Running Shot 1: Initial Mermaid generation")
-        first_answer = call_openrouter_llm(
-            first_prompt, max_tokens=15000, temperature=0.01, model=model
-        )
+        try:
+            first_answer = call_openrouter_llm(
+                first_prompt, max_tokens=15000, temperature=0.01, model=model
+            )
+        except Exception as e:
+            error_msg = f"Shot 1: LLM call failed: {str(e)}"
+            print(error_msg)
+            try:
+                with open(paths["llm_log_path"], "a") as f:
+                    f.write(f"{error_msg}\n\n")
+            except Exception:
+                pass
+            return "False", _make_attempt_error("llm_call", error_msg, attempt_num)
 
         # Log raw response so extraction failures can be diagnosed
         with open(paths["llm_log_path"], "a") as f:
@@ -186,7 +218,7 @@ def process_two_shot_attempt(
             with open(paths["llm_log_path"], "a") as f:
                 f.write(f"{error}\nError: {str(e)}\n\n")
             print(f"{error}: {str(e)}")
-            return "False"
+            return "False", _make_attempt_error("mermaid_extraction", f"{error}: {str(e)}", attempt_num)
 
         # Save shot 1 mermaid and render its diagram into a subfolder for comparison
         shot1_dir = os.path.join(paths["log_base_dir"], "shot1")
@@ -212,7 +244,7 @@ def process_two_shot_attempt(
             with open(paths["llm_log_path"], "a") as f:
                 f.write(f"Shot 1 rendering failed: {str(e)}\n\n")
             print(f"Shot 1 rendering failed: {str(e)}")
-            return "False"
+            return "False", _make_attempt_error("mermaid_compilation", f"Shot 1 rendering failed: {str(e)}", attempt_num)
 
         with open(paths["llm_log_path"], "a") as f:
             f.write(f"=== Shot 1 (Initial) ===\n{shot1_mermaid}\n\n")
@@ -228,9 +260,19 @@ def process_two_shot_attempt(
                 f"=== Shot 2 Refinement Prompt (sent to LLM) ===\n{refinement_prompt}\n\n"
             )
 
-        second_answer = call_openrouter_llm(
-            refinement_prompt, max_tokens=15000, temperature=0.3, model=model
-        )
+        try:
+            second_answer = call_openrouter_llm(
+                refinement_prompt, max_tokens=15000, temperature=0.3, model=model
+            )
+        except Exception as e:
+            error_msg = f"Shot 2: LLM call failed: {str(e)}"
+            print(error_msg)
+            try:
+                with open(paths["llm_log_path"], "a") as f:
+                    f.write(f"{error_msg}\n\n")
+            except Exception:
+                pass
+            return "False", _make_attempt_error("llm_call", error_msg, attempt_num)
 
         with open(paths["llm_log_path"], "a") as f:
             f.write(f"=== Shot 2 Raw LLM Response ===\n{second_answer}\n\n")
@@ -244,7 +286,7 @@ def process_two_shot_attempt(
             with open(paths["llm_log_path"], "a") as f:
                 f.write(f"{error}\nError: {str(e)}\n\n")
             print(f"{error}: {str(e)}")
-            return "False"
+            return "False", _make_attempt_error("mermaid_extraction", f"{error}: {str(e)}", attempt_num)
 
         with open(paths["llm_log_path"], "a") as f:
             f.write(f"=== Shot 2 (Refined, Final) ===\n{shot2_mermaid}\n\n")
@@ -279,7 +321,7 @@ def process_two_shot_attempt(
                 f.write(f"{error}\nError: {str(e)}\nTraceback:\n{full_traceback}\n\n")
 
             print(f"{error}: {str(e)}")
-            return "False"
+            return "False", _make_attempt_error("mermaid_compilation", f"{error}: {str(e)}", attempt_num)
 
         # Write the final Mermaid code in .txt form as well.
         with open(paths["log_file_path"], "w") as f:
@@ -289,7 +331,7 @@ def process_two_shot_attempt(
         with open(final_txt_path, "w") as f:
             f.write(shot2_mermaid)
 
-        return shot2_mermaid
+        return shot2_mermaid, None
 
     except Exception as e:
         import traceback
@@ -304,4 +346,4 @@ def process_two_shot_attempt(
                 f.write(f"=== UNEXPECTED ERROR ===\n{error_msg}\n\n")
         except Exception:
             pass
-        return "False"
+        return "False", _make_attempt_error("unexpected", f"Unexpected error: {str(e)}", attempt_num)

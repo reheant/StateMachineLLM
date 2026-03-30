@@ -666,7 +666,26 @@ async function handleExampleChange(key: string) {
 
             // Check structured status from the backend.
             const runStatus = payload.status as string | undefined;
-            const runError = payload.error as { message?: string } | null | undefined;
+            const runError = payload.error as { message?: string; type?: string } | null | undefined;
+
+            if (runStatus === "failed" && payload.folder) {
+              // Open the run so the user can see the error banner in ArtifactView.
+              const run: Run = {
+                strategy: promptStrategy,
+                model,
+                system: name,
+                folder: payload.folder,
+                date: new Date().toISOString().slice(0, 10),
+                time: new Date().toTimeString().slice(0, 8),
+                has_png: false,
+                run_status: "failed",
+              };
+              pushToast(
+                runError?.message ?? "Generation failed."
+              );
+              completeRun(run);
+              return;
+            }
 
             if (runStatus === "failed") {
               failRun(runError?.message ?? "Generation failed.");
@@ -776,11 +795,32 @@ async function handleExampleChange(key: string) {
       });
       if (!res.ok) {
         const err = await res.json().catch(() => ({ detail: "Rendering failed." }));
-        setMermaidError(
-          (err.detail ?? "Rendering failed.") +
-            " Ensure valid Mermaid state diagram syntax (stateDiagram-v2)."
-        );
-        pushToast(err.detail ?? "Mermaid rendering failed.");
+        const detail = typeof err.detail === "object" ? err.detail : { message: err.detail };
+        const message = (detail.message ?? "Rendering failed.") +
+          " Ensure valid Mermaid state diagram syntax (stateDiagram-v2).";
+        const errorFolder = detail.folder as string | undefined;
+
+        // If a folder was created despite the failure, open it so the
+        // user can see the error banner and mermaid source.
+        if (errorFolder) {
+          onHistoryRefresh();
+          const run: Run = {
+            strategy: "mermaid_compiler",
+            model: "custom-input",
+            system: name,
+            folder: errorFolder,
+            date: new Date().toISOString().slice(0, 10),
+            time: new Date().toTimeString().slice(0, 8),
+            has_png: false,
+            run_status: "failed",
+          };
+          pushToast(message);
+          onComplete(run);
+          return;
+        }
+
+        setMermaidError(message);
+        pushToast(detail.message ?? "Mermaid rendering failed.");
         return;
       }
       const payload = await res.json();
