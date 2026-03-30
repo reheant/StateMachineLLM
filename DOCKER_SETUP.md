@@ -118,7 +118,6 @@ docker build -t statemachine-llm -f Dockerfile ..
 ```bash
 docker run -p 8000:8000 \
   --env-file .env \
-  -v $(pwd)/backend/resources/Data/event_driven_log:/app/backend/resources/Data/event_driven_log \
   -v $(pwd)/backend/resources/single_prompt_outputs:/app/backend/resources/single_prompt_outputs \
   statemachine-llm
 ```
@@ -173,22 +172,13 @@ docker-compose up --build
 
 ### For active development
 
-If you want to make code changes without rebuilding:
-
-1. Add a volume mount for live code updates in `docker-compose.yml`:
-   ```yaml
-   volumes:
-     - .:/app
-   ```
-
-2. The Chainlit `-w` flag enables auto-reload on file changes
-
-### Running tests in Docker
-
-Execute tests inside the running container:
-```bash
-docker-compose exec statemachine-llm python tests/run_all_tests.py
+If you want to make code changes without rebuilding, add a volume mount in `docker-compose.yml`:
+```yaml
+volumes:
+  - .:/app
 ```
+
+The backend uses uvicorn with `--reload`, so code changes are picked up automatically.
 
 ### Interactive shell access
 
@@ -223,9 +213,10 @@ your-workspace/
 │   ├── .env                    # Your API keys (create from .env.example)
 │   ├── Dockerfile              # Docker image definition
 │   ├── docker-compose.yml      # Orchestration config
-│   ├── app.py                  # Main application
+│   ├── server.py               # FastAPI backend
 │   ├── requirements.txt        # Python dependencies (includes -e ../mermaid-parser-py)
-│   └── backend/
+│   ├── backend/
+│   └── frontend/               # Next.js UI
 └── mermaid-parser-py/          # Sibling dependency repository
     ├── mermaid_parser/
     └── pyproject.toml
