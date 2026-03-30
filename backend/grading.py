@@ -117,7 +117,7 @@ def _run_single_grading_attempt(
         elif was_reordered:
             _append_log(
                 paths.get("llm_log_path"),
-                "Rows were reordered to match the ground-truth rubric order.\n",
+                "Immutable columns were auto-repaired to match the ground-truth rubric.\n",
             )
     else:
         expected_header = ", ".join(gt_fieldnames)
@@ -414,90 +414,48 @@ def _validate_completed_grading_rows(
     def _row_signature(row: dict[str, str]) -> tuple[str, ...]:
         return tuple(_clean_cell_value(row.get(col, "")) for col in immutable_columns)
 
-    # --- Reorder completed rows to match ground-truth order on immutable columns ---
-    gt_signatures = [_row_signature(row) for row in ground_truth_rows]
-    position_map: dict[tuple[str, ...], list[int]] = {}
-    for idx, sig in enumerate(gt_signatures):
-        position_map.setdefault(sig, []).append(idx)
+    # --- Positional verification: each row's immutable columns must match ground truth at the same index ---
+    mismatched_rows: list[str] = []
+    for idx, (gt_row, llm_row) in enumerate(zip(ground_truth_rows, completed_rows)):
+        gt_sig = _row_signature(gt_row)
+        llm_sig = _row_signature(llm_row)
+        if gt_sig != llm_sig:
+            label = _row_label(llm_row, immutable_columns, idx)
+            expected_label = _row_label(gt_row, immutable_columns, idx)
+            mismatched_rows.append(
+                f"row {idx + 1} (expected {', '.join(gt_sig)} but got {', '.join(llm_sig)})"
+            )
 
-    reorder_pairs: list[tuple[int, dict[str, str]]] = []
-    unmatched_llm: list[str] = []
-    was_reordered = False
-
-    for idx, row in enumerate(completed_rows):
-        sig = _row_signature(row)
-        if sig not in position_map or not position_map[sig]:
-            unmatched_llm.append(_row_label(row, immutable_columns, idx))
-            continue
-        pos = position_map[sig].pop(0)
-        if pos != idx:
-            was_reordered = True
-        reorder_pairs.append((pos, row))
-
-    if unmatched_llm:
-        error_details = {"unmatched_rows": unmatched_llm[:5]}
-        return (
-            False,
-            "Could not align rows to ground truth. "
-            f"Unmatched rows: {', '.join(unmatched_llm[:5])}. "
-            "Ensure immutable columns ("
-            + ", ".join(immutable_columns)
-            + ") stay identical and rows are not added or removed.",
-            completed_rows,
-            False,
-            error_details,
+    was_repaired = False
+    if mismatched_rows:
+        # Auto-repair: if most rows already match positionally, the LLM likely
+        # kept the correct order but mislabeled some Type/Element values.
+        matching_count = len(ground_truth_rows) - len(mismatched_rows)
+        repair_ratio = (
+            matching_count / len(ground_truth_rows) if ground_truth_rows else 0
         )
-
-    # If any ground-truth signatures remain unused, some rows are missing.
-    remaining_sigs = [(sig, idxs) for sig, idxs in position_map.items() if idxs]
-    if remaining_sigs:
-        missing_count = sum(len(idxs) for _, idxs in remaining_sigs)
-        missing_labels = []
-        for sig, idxs in remaining_sigs[:3]:
-            for gt_idx in idxs[:1]:
-                missing_labels.append(
-                    _row_label(ground_truth_rows[gt_idx], immutable_columns, gt_idx)
-                )
-        error_details = {"missing_rows": missing_labels, "missing_count": missing_count}
-        return (
-            False,
-            f"Missing {missing_count} row(s) compared to the ground truth sheet: "
-            + ", ".join(missing_labels)
-            + ". Do not add or remove rubric rows.",
-            completed_rows,
-            was_reordered,
-            error_details,
-        )
-
-    reorder_pairs.sort(key=lambda pair: pair[0])
-    reordered_rows = [row for _, row in reorder_pairs]
-
-    # --- Verify immutable columns haven't been modified ---
-    for idx, (gt_row, llm_row) in enumerate(
-        zip(ground_truth_rows, reordered_rows), start=1
-    ):
-        for col in immutable_columns:
-            gt_val = (gt_row.get(col, "") or "").strip()
-            llm_val = (llm_row.get(col, "") or "").strip()
-            if gt_val != llm_val:
-                error_details = {
-                    "row": idx,
-                    "column": col,
-                    "expected": gt_val,
-                    "received": llm_val,
-                }
-                return (
-                    False,
-                    f"Unexpected change in row {idx}, column '{col}'. "
-                    f"Expected '{gt_val}', received '{llm_val}'.",
-                    reordered_rows,
-                    was_reordered,
-                    error_details,
-                )
+        if repair_ratio >= 0.95:
+            for gt_row, comp_row in zip(ground_truth_rows, completed_rows):
+                for col in immutable_columns:
+                    comp_row[col] = gt_row[col]
+            was_repaired = True
+        else:
+            error_details = {"mismatched_rows": mismatched_rows[:5]}
+            return (
+                False,
+                "Immutable columns (Type, Element) do not match ground truth at the "
+                f"same row position. {', '.join(mismatched_rows[:5])}. "
+                "Ensure immutable columns ("
+                + ", ".join(immutable_columns)
+                + ") stay identical and rows are not reordered, added, or removed.",
+                completed_rows,
+                False,
+                error_details,
+            )
 
     # --- Validate grading values ---
     invalid_scores = []
-    for idx, row in enumerate(reordered_rows, start=1):
+    for idx, row in enumerate(completed_rows, start=1):
         if not score_col:
             break
         score_raw = (row.get(score_col, "") or "").strip()
@@ -540,12 +498,12 @@ def _validate_completed_grading_rows(
                 if len(invalid_scores) > 5
                 else ""
             ),
-            reordered_rows,
-            was_reordered,
+            completed_rows,
+            False,
             error_details,
         )
 
-    return True, "", reordered_rows, was_reordered, {}
+    return True, "", completed_rows, was_repaired, {}
 
 
 def _row_label(row: dict[str, str], immutable_columns: list[str], idx: int) -> str:
@@ -657,6 +615,12 @@ def run_automatic_grading(
 
         gt_fieldnames, gt_rows = _read_csv_rows(ground_truth_csv)
 
+        # Pre-compute immutable columns for retry prompts
+        _score_col = _pick_column(gt_fieldnames, ("grading", "rater"))
+        _notes_col = _pick_column(gt_fieldnames, ("notes", "justification", "comment"))
+        _mutable_set = {col for col in (_score_col, _notes_col) if col}
+        _immutable_cols = [col for col in gt_fieldnames if col not in _mutable_set]
+
         last_validation_error = ""
         last_error_details: dict = {}
         grading_response: Optional[str] = None
@@ -674,9 +638,32 @@ def run_automatic_grading(
                     last_validation_error
                     or "CSV did not match required header or rows."
                 )
+
+                specific_guidance = ""
+                if last_error_details.get("issue") in ("missing_rows", "extra_rows"):
+                    row_list = []
+                    for i, gt_row in enumerate(gt_rows, start=1):
+                        vals = [gt_row.get(col, "") for col in _immutable_cols]
+                        row_list.append(f"  Row {i}: {', '.join(vals)}")
+                    specific_guidance = (
+                        f"\nThe CSV must have exactly {len(gt_rows)} data rows (plus the header). "
+                        f"Here are all {len(gt_rows)} rows with their exact Type and Element values "
+                        "that you must preserve:\n" + "\n".join(row_list) + "\n\n"
+                    )
+                elif last_error_details.get("mismatched_rows"):
+                    specific_guidance = (
+                        "\nThe following rows had incorrect Type or Element values:\n"
+                        + "\n".join(
+                            f"  - {r}" for r in last_error_details["mismatched_rows"]
+                        )
+                        + "\nDo NOT modify the Type or Element columns. "
+                        "Copy them exactly from the grading sheet.\n\n"
+                    )
+
                 effective_prompt = (
                     f"{grading_prompt}\n\n"
                     f"IMPORTANT: Your previous attempt (attempt {attempt}) was rejected because: {retry_hint}\n"
+                    f"{specific_guidance}"
                     f"{retry_requirements}\n"
                     "Return a valid CSV only."
                 )
