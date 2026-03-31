@@ -1,7 +1,7 @@
 export interface Run {
   strategy:
     | "single_prompt"
-    | "two_shot_prompt"
+    | "two_stage_prompt"
     | "mermaid_compiler"
     | "automatic_grader";
   date: string;
@@ -30,9 +30,9 @@ export interface Artifacts {
   png: string | null;
   mmd: string | null;
   txt: string | null;
-  shot1_png?: string | null;
-  shot1_mmd?: string | null;
-  shot1_txt?: string | null;
+  stage1_png?: string | null;
+  stage1_mmd?: string | null;
+  stage1_txt?: string | null;
   llm_log: string | null;
   grading_prompt: string | null;
   grading_output: string | null;

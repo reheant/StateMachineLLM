@@ -58,7 +58,7 @@ interface Props {
   onGeneratingChange?: (v: boolean) => void;
 }
 
-type PromptStrategy = "single_prompt" | "two_shot_prompt";
+type PromptStrategy = "single_prompt" | "two_stage_prompt";
 
 type ProgressStep = {
   label: string;
@@ -165,24 +165,24 @@ function buildProgressSteps(
     ];
   };
 
-  if (strategy === "two_shot_prompt") {
-    const shot1Started =
-      /running shot 1|shot 1 raw llm response|shot 1: failed/.test(logText);
-    const shot1Mermaid = Boolean(artifacts?.shot1_mmd);
-    const shot1Image = Boolean(artifacts?.shot1_png);
-    const shot2Started =
-      /running shot 2|shot 2 raw llm response|shot 2: failed/.test(logText);
-    const shot2Mermaid = Boolean(artifacts?.mmd || artifacts?.txt);
+  if (strategy === "two_stage_prompt") {
+    const stage1Started =
+      /running stage 1|stage 1 raw llm response|stage 1: failed/.test(logText);
+    const stage1Mermaid = Boolean(artifacts?.stage1_mmd);
+    const stage1Image = Boolean(artifacts?.stage1_png);
+    const stage2Started =
+      /running stage 2|stage 2 raw llm response|stage 2: failed/.test(logText);
+    const stage2Mermaid = Boolean(artifacts?.mmd || artifacts?.txt);
     const finalImage = Boolean(artifacts?.png);
     const gradingSteps = buildGradingSteps(finalImage);
 
     return [
-      { label: "Shot 1 started", status: shot1Started ? "done" : "active" },
-      { label: "Shot 1 Mermaid generated", status: shot1Mermaid ? "done" : shot1Started ? "active" : "pending" },
-      { label: "Shot 1 image generated", status: shot1Image ? "done" : shot1Mermaid ? "active" : "pending" },
-      { label: "Shot 2 started", status: shot2Started ? "done" : shot1Image ? "active" : "pending" },
-      { label: "Shot 2 Mermaid generated", status: shot2Mermaid ? "done" : shot2Started ? "active" : "pending" },
-      { label: "Image generated", status: finalImage ? "done" : shot2Mermaid ? "active" : "pending" },
+      { label: "Stage 1 started", status: stage1Started ? "done" : "active" },
+      { label: "Stage 1 Mermaid generated", status: stage1Mermaid ? "done" : stage1Started ? "active" : "pending" },
+      { label: "Stage 1 image generated", status: stage1Image ? "done" : stage1Mermaid ? "active" : "pending" },
+      { label: "Stage 2 started", status: stage2Started ? "done" : stage1Image ? "active" : "pending" },
+      { label: "Stage 2 Mermaid generated", status: stage2Mermaid ? "done" : stage2Started ? "active" : "pending" },
+      { label: "Image generated", status: finalImage ? "done" : stage2Mermaid ? "active" : "pending" },
       ...gradingSteps,
     ];
   }
@@ -398,7 +398,7 @@ function findMatchingRun(
 
 export function RunForm({ onComplete, onHistoryRefresh, onGeneratingChange }: Props) {
   const [strategy, setStrategy] = useState<
-    "single_prompt" | "two_shot_prompt" | "mermaid_compiler" | "automatic_grader"
+    "single_prompt" | "two_stage_prompt" | "mermaid_compiler" | "automatic_grader"
   >("single_prompt");
   const [model, setModel] = useState("anthropic:claude-4-5-sonnet");
   const [inputTab, setInputTab] = useState<"example" | "custom">("example");
@@ -487,7 +487,7 @@ async function handleExampleChange(key: string) {
     setToast({ kind, message });
   }
 
-  function handleStrategyChange(next: "single_prompt" | "two_shot_prompt" | "mermaid_compiler" | "automatic_grader") {
+  function handleStrategyChange(next: "single_prompt" | "two_stage_prompt" | "mermaid_compiler" | "automatic_grader") {
     setStrategy(next);
     setMermaidError(null);
     setGenerationError(null);
@@ -515,7 +515,7 @@ async function handleExampleChange(key: string) {
     if (!desc || !name) return;
     if (inputTab === "example" && !exampleKey) return;
     const promptStrategy: PromptStrategy =
-      strategy === "two_shot_prompt" ? "two_shot_prompt" : "single_prompt";
+      strategy === "two_stage_prompt" ? "two_stage_prompt" : "single_prompt";
     const startedAt = Date.now();
 
     const controller = new AbortController();
@@ -1048,13 +1048,13 @@ async function handleExampleChange(key: string) {
 
   const canGenerate =
     !generating &&
-    (strategy === "single_prompt" || strategy === "two_shot_prompt") &&
+    (strategy === "single_prompt" || strategy === "two_stage_prompt") &&
     description.trim().length > 0 &&
     systemName.trim().length > 0;
   const canRender = !renderingMermaid && mermaidCode.trim().length > 0;
   const canAutoGrade =
     !gradingMermaid && mermaidCode.trim().length > 0 && gradingExampleKey.trim().length > 0;
-  const isPromptStrategy = strategy === "single_prompt" || strategy === "two_shot_prompt";
+  const isPromptStrategy = strategy === "single_prompt" || strategy === "two_stage_prompt";
   const autoGradingForcedOff = isPromptStrategy && inputTab === "custom";
 
   return (
@@ -1093,11 +1093,11 @@ async function handleExampleChange(key: string) {
           </div>
         </div>
       )}
-      <div className="flex flex-col px-6 py-10">
-      <div className="mx-auto w-full max-w-5xl flex flex-col gap-10">
+      <div className="flex flex-col px-4 py-6 sm:px-6 sm:py-10">
+      <div className="mx-auto w-full max-w-5xl flex flex-col gap-6 sm:gap-10">
         <div className="flex flex-col items-center gap-1.5 text-center">
-          <h1 className="text-5xl font-black tracking-tight bg-gradient-to-br from-orange-300 via-orange-400 to-orange-600 bg-clip-text text-transparent">Tracer</h1>
-          <p className="text-sm text-white/30">Generate a state machine diagram from any system description.</p>
+          <h1 className="text-3xl sm:text-5xl font-black tracking-tight bg-gradient-to-br from-orange-300 via-orange-400 to-orange-600 bg-clip-text text-transparent">Tracer</h1>
+          <p className="text-xs sm:text-sm text-white/30">Generate a state machine diagram from any system description.</p>
         </div>
 
         <div className="flex flex-col gap-10">
@@ -1108,10 +1108,10 @@ async function handleExampleChange(key: string) {
             <StepNumber n={1} />
             <span className="text-xs font-semibold uppercase tracking-widest text-white/30">Strategy</span>
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {([
               "single_prompt",
-              "two_shot_prompt",
+              "two_stage_prompt",
               "mermaid_compiler",
               "automatic_grader",
             ] as const).map((s) => (
@@ -1131,8 +1131,8 @@ async function handleExampleChange(key: string) {
                 )}>
                   {s === "single_prompt"
                     ? "Single Prompt"
-                    : s === "two_shot_prompt"
-                    ? "Two-Shot"
+                    : s === "two_stage_prompt"
+                    ? "Two-Stage"
                     : s === "mermaid_compiler"
                     ? "Mermaid Compiler"
                     : "Automatic Grader"}
@@ -1142,8 +1142,8 @@ async function handleExampleChange(key: string) {
                   strategy === s ? "text-orange-400/60" : "text-white/25"
                 )}>
                   {s === "single_prompt"
-                    ? "One-shot generation"
-                    : s === "two_shot_prompt"
+                    ? "One-stage generation"
+                    : s === "two_stage_prompt"
                     ? "Draft, then refine"
                     : s === "mermaid_compiler"
                     ? "Compile Mermaid directly"
@@ -1161,7 +1161,7 @@ async function handleExampleChange(key: string) {
             <span className="text-xs font-semibold uppercase tracking-widest text-white/30">Parameters</span>
           </div>
 
-          {(strategy === "single_prompt" || strategy === "two_shot_prompt" || strategy === "automatic_grader") && (
+          {(strategy === "single_prompt" || strategy === "two_stage_prompt" || strategy === "automatic_grader") && (
             <div className="flex items-center gap-2">
               <Select value={model} onValueChange={(v) => v && setModel(v)}>
                 <SelectTrigger className="h-11 w-full rounded-2xl border-white/[0.08] bg-white/[0.03] text-sm text-white/70 focus:ring-orange-500/20">
@@ -1239,7 +1239,7 @@ async function handleExampleChange(key: string) {
                 {inputTab === "example" && (
                   <div className="flex flex-col gap-3">
                     {examples.length > 0 && (
-                      <div className="grid grid-cols-3 gap-2">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
                         {examples.map((ex) => (
                           <button
                             key={ex.key}
@@ -1324,7 +1324,7 @@ async function handleExampleChange(key: string) {
               <p className="text-xs text-white/35">
                 Select one of {examples.length} available state machine descriptions as grading reference.
               </p>
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
                 {examples.map((ex) => (
                   <button
                     key={ex.key}
@@ -1425,7 +1425,7 @@ async function handleExampleChange(key: string) {
             </button>
             {generating && (
               <GeneratingProgress
-                strategy={strategy === "two_shot_prompt" ? "two_shot_prompt" : "single_prompt"}
+                strategy={strategy === "two_stage_prompt" ? "two_stage_prompt" : "single_prompt"}
                 logs={logs}
                 artifacts={progressArtifacts}
                 showAutoGradingStages={showAutoGradingStages}

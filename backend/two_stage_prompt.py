@@ -38,7 +38,7 @@ def _make_attempt_error(kind: str, message: str, attempt: int) -> dict:
     return {"kind": kind, "message": message, "attempt": attempt}
 
 
-def run_two_shot_prompt(
+def run_two_stage_prompt(
     system_prompt,
     model="anthropic/claude-3.5-sonnet",
     system_name=None,
@@ -46,11 +46,11 @@ def run_two_shot_prompt(
     example_key=None,
 ):
     """
-    Run the Two-Shot Prompt State Machine Framework.
+    Run the Two-Stage Prompt State Machine Framework.
 
-    Shot 1: LLM generates an initial Mermaid diagram from the system description.
-    Shot 2: LLM reviews its own output against known error patterns and produces
-            a corrected version, which is then rendered.
+    Stage 1: LLM generates an initial Mermaid diagram from the system description.
+    Stage 2: LLM reviews its own output against known error patterns and produces
+             a corrected version, which is then rendered.
 
     Args:
         system_prompt: The system description to generate a state machine for.
@@ -60,7 +60,7 @@ def run_two_shot_prompt(
         example_key: Optional key identifying which preset example is being used (e.g., 'printer_winter_2017')
 
     Returns:
-        bool: True if the shot 2 diagram rendered successfully, False otherwise.
+        bool: True if the stage 2 diagram rendered successfully, False otherwise.
     """
     if enable_auto_grading and not example_key:
         raise ValueError("example_key is required when automatic grading is enabled")
@@ -69,7 +69,7 @@ def run_two_shot_prompt(
 
     paths = setup_file_paths(
         os.path.dirname(__file__),
-        file_type="two_shot_prompt",
+        file_type="two_stage_prompt",
         system_name=system_name,
         model_name=model_short_name,
     )
@@ -100,7 +100,7 @@ def run_two_shot_prompt(
         system_prompt=system_prompt,
     )
 
-    print(f"Running Two-Shot Prompt Generation with {model}")
+    print(f"Running Two-Stage Prompt Generation with {model}")
 
     write_in_progress(paths)
 
@@ -112,7 +112,9 @@ def run_two_shot_prompt(
         if i > 0:
             print(f"Retrying (attempt {i+1}/{max_attempts})...")
 
-        result, attempt_error = process_two_shot_attempt(first_prompt, system_prompt, paths, model, i)
+        result, attempt_error = process_two_stage_attempt(
+            first_prompt, system_prompt, paths, model, i
+        )
 
         if result != "False":
             success = True
@@ -163,7 +165,7 @@ def run_two_shot_prompt(
     return success
 
 
-def process_two_shot_attempt(
+def process_two_stage_attempt(
     first_prompt: str,
     system_prompt: str,
     paths: dict,
@@ -171,7 +173,7 @@ def process_two_shot_attempt(
     attempt_index: int = 0,
 ) -> tuple[str, dict | None]:
     """
-    Execute one full two-shot attempt: initial generation followed by refinement.
+    Execute one full two-stage attempt: initial generation followed by refinement.
 
     Args:
         first_prompt: The fully assembled first-turn prompt (from build_single_prompt).
@@ -187,14 +189,14 @@ def process_two_shot_attempt(
     """
     attempt_num = attempt_index + 1
     try:
-        # --- Shot 1: Initial generation ---
-        print("Running Shot 1: Initial Mermaid generation")
+        # --- Stage 1: Initial generation ---
+        print("Running Stage 1: Initial Mermaid generation")
         try:
             first_answer = call_openrouter_llm(
                 first_prompt, max_tokens=15000, temperature=0.01, model=model
             )
         except Exception as e:
-            error_msg = f"Shot 1: LLM call failed: {str(e)}"
+            error_msg = f"Stage 1: LLM call failed: {str(e)}"
             print(error_msg)
             try:
                 with open(paths["llm_log_path"], "a") as f:
@@ -205,59 +207,65 @@ def process_two_shot_attempt(
 
         # Log raw response so extraction failures can be diagnosed
         with open(paths["llm_log_path"], "a") as f:
-            f.write(f"=== Shot 1 Raw LLM Response ===\n{first_answer}\n\n")
+            f.write(f"=== Stage 1 Raw LLM Response ===\n{first_answer}\n\n")
 
         try:
-            shot1_mermaid = mermaidCodeSearch(
+            stage1_mermaid = mermaidCodeSearch(
                 first_answer,
                 paths["generated_mermaid_code_path"],
                 writeFile=False,
             )
         except Exception as e:
-            error = "Shot 1: Failed to extract Mermaid code from LLM response"
+            error = "Stage 1: Failed to extract Mermaid code from LLM response"
             with open(paths["llm_log_path"], "a") as f:
                 f.write(f"{error}\nError: {str(e)}\n\n")
             print(f"{error}: {str(e)}")
-            return "False", _make_attempt_error("mermaid_extraction", f"{error}: {str(e)}", attempt_num)
+            return "False", _make_attempt_error(
+                "mermaid_extraction", f"{error}: {str(e)}", attempt_num
+            )
 
-        # Save shot 1 mermaid and render its diagram into a subfolder for comparison
-        shot1_dir = os.path.join(paths["log_base_dir"], "shot1")
-        os.makedirs(shot1_dir, exist_ok=True)
+        # Save stage 1 mermaid and render its diagram into a subfolder for comparison
+        stage1_dir = os.path.join(paths["log_base_dir"], "stage1")
+        os.makedirs(stage1_dir, exist_ok=True)
 
-        shot1_mmd_path = os.path.join(shot1_dir, "output_shot1.mmd")
-        with open(shot1_mmd_path, "w") as f:
-            f.write(shot1_mermaid)
+        stage1_mmd_path = os.path.join(stage1_dir, "output_stage1.mmd")
+        with open(stage1_mmd_path, "w") as f:
+            f.write(stage1_mermaid)
 
-        shot1_txt_path = os.path.join(shot1_dir, "output_shot1.txt")
-        with open(shot1_txt_path, "w") as f:
-            f.write(shot1_mermaid)
+        stage1_txt_path = os.path.join(stage1_dir, "output_stage1.txt")
+        with open(stage1_txt_path, "w") as f:
+            f.write(stage1_mermaid)
 
-        # Render shot 1 — must succeed before proceeding to shot 2
+        # Render stage 1 — must succeed before proceeding to stage 2
         try:
-            shot1_diagram_path = os.path.join(shot1_dir, "output_shot1")
+            stage1_diagram_path = os.path.join(stage1_dir, "output_stage1")
             success = create_single_prompt_gsm_diagram_with_sherpa(
-                shot1_mermaid, shot1_diagram_path
+                stage1_mermaid, stage1_diagram_path
             )
             if not success:
-                raise Exception("Shot 1 diagram rendering failed")
+                raise Exception("Stage 1 diagram rendering failed")
         except Exception as e:
             with open(paths["llm_log_path"], "a") as f:
-                f.write(f"Shot 1 rendering failed: {str(e)}\n\n")
-            print(f"Shot 1 rendering failed: {str(e)}")
-            return "False", _make_attempt_error("mermaid_compilation", f"Shot 1 rendering failed: {str(e)}", attempt_num)
+                f.write(f"Stage 1 rendering failed: {str(e)}\n\n")
+            print(f"Stage 1 rendering failed: {str(e)}")
+            return "False", _make_attempt_error(
+                "mermaid_compilation",
+                f"Stage 1 rendering failed: {str(e)}",
+                attempt_num,
+            )
 
         with open(paths["llm_log_path"], "a") as f:
-            f.write(f"=== Shot 1 (Initial) ===\n{shot1_mermaid}\n\n")
+            f.write(f"=== Stage 1 (Initial) ===\n{stage1_mermaid}\n\n")
 
-        # --- Shot 2: Refinement ---
-        print("Running Shot 2: Refinement")
+        # --- Stage 2: Refinement ---
+        print("Running Stage 2: Refinement")
         refinement_prompt = build_refinement_prompt(
-            shot1_mermaid, system_prompt, mermaid_syntax
+            stage1_mermaid, system_prompt, mermaid_syntax
         )
 
         with open(paths["llm_log_path"], "a") as f:
             f.write(
-                f"=== Shot 2 Refinement Prompt (sent to LLM) ===\n{refinement_prompt}\n\n"
+                f"=== Stage 2 Refinement Prompt (sent to LLM) ===\n{refinement_prompt}\n\n"
             )
 
         try:
@@ -265,7 +273,7 @@ def process_two_shot_attempt(
                 refinement_prompt, max_tokens=15000, temperature=0.3, model=model
             )
         except Exception as e:
-            error_msg = f"Shot 2: LLM call failed: {str(e)}"
+            error_msg = f"Stage 2: LLM call failed: {str(e)}"
             print(error_msg)
             try:
                 with open(paths["llm_log_path"], "a") as f:
@@ -275,26 +283,28 @@ def process_two_shot_attempt(
             return "False", _make_attempt_error("llm_call", error_msg, attempt_num)
 
         with open(paths["llm_log_path"], "a") as f:
-            f.write(f"=== Shot 2 Raw LLM Response ===\n{second_answer}\n\n")
+            f.write(f"=== Stage 2 Raw LLM Response ===\n{second_answer}\n\n")
 
         try:
-            shot2_mermaid = mermaidCodeSearch(
+            stage2_mermaid = mermaidCodeSearch(
                 second_answer, paths["generated_mermaid_code_path"]
             )
         except Exception as e:
-            error = "Shot 2: Failed to extract Mermaid code from LLM response"
+            error = "Stage 2: Failed to extract Mermaid code from LLM response"
             with open(paths["llm_log_path"], "a") as f:
                 f.write(f"{error}\nError: {str(e)}\n\n")
             print(f"{error}: {str(e)}")
-            return "False", _make_attempt_error("mermaid_extraction", f"{error}: {str(e)}", attempt_num)
+            return "False", _make_attempt_error(
+                "mermaid_extraction", f"{error}: {str(e)}", attempt_num
+            )
 
         with open(paths["llm_log_path"], "a") as f:
-            f.write(f"=== Shot 2 (Refined, Final) ===\n{shot2_mermaid}\n\n")
+            f.write(f"=== Stage 2 (Refined, Final) ===\n{stage2_mermaid}\n\n")
 
-        # --- Render shot 2 ---
+        # --- Render stage 2 ---
         try:
             success = create_single_prompt_gsm_diagram_with_sherpa(
-                shot2_mermaid, paths["diagram_file_path"]
+                stage2_mermaid, paths["diagram_file_path"]
             )
             if not success:
                 raise Exception("Diagram rendering failed")
@@ -311,7 +321,7 @@ def process_two_shot_attempt(
                     {
                         "error": str(e),
                         "traceback": full_traceback,
-                        "mermaid_code": shot2_mermaid,
+                        "mermaid_code": stage2_mermaid,
                     },
                     f,
                     indent=2,
@@ -321,23 +331,25 @@ def process_two_shot_attempt(
                 f.write(f"{error}\nError: {str(e)}\nTraceback:\n{full_traceback}\n\n")
 
             print(f"{error}: {str(e)}")
-            return "False", _make_attempt_error("mermaid_compilation", f"{error}: {str(e)}", attempt_num)
+            return "False", _make_attempt_error(
+                "mermaid_compilation", f"{error}: {str(e)}", attempt_num
+            )
 
         # Write the final Mermaid code in .txt form as well.
         with open(paths["log_file_path"], "w") as f:
-            f.write(shot2_mermaid)
+            f.write(stage2_mermaid)
 
-        final_txt_path = os.path.join(paths["log_base_dir"], "output_shot2.txt")
+        final_txt_path = os.path.join(paths["log_base_dir"], "output_stage2.txt")
         with open(final_txt_path, "w") as f:
-            f.write(shot2_mermaid)
+            f.write(stage2_mermaid)
 
-        return shot2_mermaid, None
+        return stage2_mermaid, None
 
     except Exception as e:
         import traceback
 
         full_traceback = traceback.format_exc()
-        error_msg = f"Unexpected error in two-shot attempt: {str(e)}\n{full_traceback}"
+        error_msg = f"Unexpected error in two-stage attempt: {str(e)}\n{full_traceback}"
         # Print to stderr so it reaches the terminal even when stdout is redirected
         print(error_msg, file=sys.stderr)
         print(error_msg)
@@ -346,4 +358,6 @@ def process_two_shot_attempt(
                 f.write(f"=== UNEXPECTED ERROR ===\n{error_msg}\n\n")
         except Exception:
             pass
-        return "False", _make_attempt_error("unexpected", f"Unexpected error: {str(e)}", attempt_num)
+        return "False", _make_attempt_error(
+            "unexpected", f"Unexpected error: {str(e)}", attempt_num
+        )
