@@ -765,6 +765,42 @@ def _create_single_prompt_gsm_diagram_with_sherpa_in_process(
                     }
                     for _parent_id, _child_bare in nested_initial_states.items():
                         _child_full = f"{_parent_id}_{_child_bare}"
+
+                        # For parallel composites, pytransitions does not
+                        # create an initial point node inside the cluster.
+                        # We must create one explicitly so the black dot
+                        # is visible.
+                        if _parent_id in parallel_composite_paths:
+                            _init_node = f"_initial_{_parent_id}"
+                            _parent_cluster = f"cluster_{_parent_id}"
+                            # Insert the point node inside the parent's
+                            # cluster subgraph (right after the subgraph
+                            # opening line).
+                            for _idx, _line in enumerate(new_body):
+                                if (
+                                    "subgraph" in _line
+                                    and re.search(
+                                        rf"subgraph\s+{re.escape(_parent_cluster)}\b",
+                                        _line,
+                                    )
+                                ):
+                                    new_body.insert(
+                                        _idx + 1,
+                                        f'\t\t"{_init_node}" [fillcolor=black color=black height=0.15 label="" shape=point width=0.15]',
+                                    )
+                                    break
+                            _child_cluster = f"cluster_{_child_full}"
+                            if _child_cluster in _cluster_names_set:
+                                new_body.append(
+                                    f'\t"{_init_node}" -> "{_child_full}" '
+                                    f'[headlabel="" lhead={_child_cluster}]'
+                                )
+                            else:
+                                new_body.append(
+                                    f'\t"{_init_node}" -> "{_child_full}" [headlabel=""]'
+                                )
+                            continue
+
                         _pat = re.compile(
                             rf'"?{re.escape(_parent_id)}"?\s*->\s*"?{re.escape(_child_full)}"?'
                         )
