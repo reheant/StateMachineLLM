@@ -84,7 +84,12 @@ def write_status(paths: dict, status: RunStatus) -> None:
     base = paths.get("log_base_dir")
     if not base:
         return
-    status.completed_at = status.completed_at or _now_iso()
+    if status.status in {
+        RunStatusValue.SUCCESS,
+        RunStatusValue.PARTIAL,
+        RunStatusValue.FAILED,
+    } and status.completed_at is None:
+        status.completed_at = _now_iso()
     dest = os.path.join(base, "status.json")
     try:
         with open(dest, "w", encoding="utf-8") as f:
