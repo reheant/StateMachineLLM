@@ -25,11 +25,7 @@ import backend.resources.state_machine_descriptions as sm_descriptions
 from backend.grading import run_automatic_grading
 from backend.errors import (
     read_status,
-    write_success,
-    write_failure,
     write_in_progress,
-    RunError,
-    ErrorType,
 )
 from backend.resources.util import setup_file_paths
 from backend.single_prompt import process_custom_mermaid, run_single_prompt
