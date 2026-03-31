@@ -32,7 +32,7 @@ from backend.errors import (
 )
 from backend.resources.util import setup_file_paths
 from backend.single_prompt import process_custom_mermaid, run_single_prompt
-from backend.two_shot_prompt import run_two_shot_prompt
+from backend.two_stage_prompt import run_two_stage_prompt
 
 # ---------------------------------------------------------------------------
 # App setup
@@ -189,7 +189,7 @@ def _scan_runs() -> list[dict]:
     runs = []
     for strategy in (
         "single_prompt",
-        "two_shot_prompt",
+        "two_stage_prompt",
         "mermaid_compiler",
         "automatic_grader",
     ):
@@ -351,9 +351,9 @@ def get_artifacts(folder: str = Query(...)):
         "png": None,
         "mmd": None,
         "txt": None,
-        "shot1_png": None,
-        "shot1_mmd": None,
-        "shot1_txt": None,
+        "stage1_png": None,
+        "stage1_mmd": None,
+        "stage1_txt": None,
         "llm_log": None,
         "grading_prompt": None,
         "grading_output": None,
@@ -385,15 +385,15 @@ def get_artifacts(folder: str = Query(...)):
         elif f.suffix == ".txt" and f.name != "LLM_log.txt":
             files["txt"] = str(f)
 
-    shot1_dir = path / "shot1"
-    if shot1_dir.is_dir():
-        for f in shot1_dir.iterdir():
+    stage1_dir = path / "stage1"
+    if stage1_dir.is_dir():
+        for f in stage1_dir.iterdir():
             if f.suffix == ".png":
-                files["shot1_png"] = str(f)
+                files["stage1_png"] = str(f)
             elif f.suffix == ".mmd":
-                files["shot1_mmd"] = str(f)
+                files["stage1_mmd"] = str(f)
             elif f.suffix == ".txt":
-                files["shot1_txt"] = str(f)
+                files["stage1_txt"] = str(f)
 
     return files
 
@@ -420,7 +420,7 @@ def serve_file(path: str = Query(...)):
 
 
 class GenerateRequest(BaseModel):
-    strategy: Literal["single_prompt", "two_shot_prompt"]
+    strategy: Literal["single_prompt", "two_stage_prompt"]
     model: str
     system_name: str
     description: str
@@ -509,7 +509,7 @@ def generate(req: GenerateRequest):
                         req.example_key,
                     )
                 else:
-                    success = run_two_shot_prompt(
+                    success = run_two_stage_prompt(
                         req.description,
                         openrouter_model,
                         req.system_name,

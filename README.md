@@ -13,7 +13,7 @@ AutoState automates the creation of UML State Machines from textual system descr
 ## Key Features
 
 - UML State Machine generation from natural language descriptions
-- Single-prompt and two-shot prompting techniques
+- Single-prompt and two-stage prompting techniques
 - Automatic grading using F1-scores (states, transitions, hierarchical states)
 - Interactive web UI with live diagram preview
 - Environmental impact tracking (CO2 per run)

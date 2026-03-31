@@ -17,7 +17,7 @@ services:
       - ./backend/resources/Data/event_driven_log:/app/backend/resources/Data/event_driven_log
       - ./backend/resources/single_prompt_log:/app/backend/resources/single_prompt_log
       - ./backend/resources/single_prompt_outputs:/app/backend/resources/single_prompt_outputs
-      - ./backend/resources/two_shot_prompt_outputs:/app/backend/resources/two_shot_prompt_outputs
+      - ./backend/resources/two_stage_prompt_outputs:/app/backend/resources/two_stage_prompt_outputs
       - ./backend/resources/mermaid_compiler_outputs:/app/backend/resources/mermaid_compiler_outputs
       - ./backend/resources/automatic_grader_outputs:/app/backend/resources/automatic_grader_outputs
       - ./backend/resources/event_driven_diagrams:/app/backend/resources/event_driven_diagrams

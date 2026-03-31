@@ -25,7 +25,6 @@ openrouter_api_key = os.environ.get("OPENROUTER_API_KEY")
 MERMAID_RENDER_LOCK = threading.Lock()
 
 
-
 def call_openrouter_llm(
     prompt, max_tokens=15000, temperature=0.7, model="anthropic/claude-3.5-sonnet"
 ):
@@ -171,7 +170,7 @@ def setup_file_paths(
     # For generation/compiler/grader runs, organize files in timestamped folders
     if file_type in (
         "single_prompt",
-        "two_shot_prompt",
+        "two_stage_prompt",
         "mermaid_compiler",
         "automatic_grader",
     ):
@@ -213,7 +212,11 @@ def setup_file_paths(
         os.makedirs(output_base_dir, exist_ok=True)
 
         # Generate file names (simpler since they're in a timestamped folder)
-        file_prefix = "output_shot2" if file_type == "two_shot_prompt" else f"output_{file_type}"
+        file_prefix = (
+            "output_stage2"
+            if file_type == "two_stage_prompt"
+            else f"output_{file_type}"
+        )
         log_file_name = f"{file_prefix}.txt"
 
         return {
@@ -230,10 +233,6 @@ def setup_file_paths(
             "grading_csv_path": os.path.join(output_base_dir, "grading_results.csv"),
             "grading_tsv_path": os.path.join(output_base_dir, "grading_results.tsv"),
         }
-
-
-
-
 
 
 def fix_hierarchical_state_transitions(graph):
@@ -472,7 +471,7 @@ def fix_hierarchical_state_transitions(graph):
                 if target_child_cluster:
                     extra_edges.append(
                         f'{indent}"{node_name}" -> {target_raw} '
-                        f'[lhead={target_child_cluster} constraint=false]'
+                        f"[lhead={target_child_cluster} constraint=false]"
                     )
                 else:
                     extra_edges.append(f'{indent}"{node_name}" -> {target_raw}')
@@ -665,7 +664,9 @@ def _create_single_prompt_gsm_diagram_with_sherpa_in_process(
                     gsm.sm.style_attributes.get("graph", {}).get("default", {}).copy()
                 )
                 gsm.sm.style_attributes.setdefault("node", {})["active"] = node_defaults
-                gsm.sm.style_attributes.setdefault("graph", {})["active"] = graph_defaults
+                gsm.sm.style_attributes.setdefault("graph", {})[
+                    "active"
+                ] = graph_defaults
             except Exception:
                 pass
 
@@ -689,7 +690,9 @@ def _create_single_prompt_gsm_diagram_with_sherpa_in_process(
                         if match:
                             subgraph_name = match.group(1)
                             indent_match = re.match(r"(\s*)", line)
-                            indent_level = len(indent_match.group(1)) if indent_match else 0
+                            indent_level = (
+                                len(indent_match.group(1)) if indent_match else 0
+                            )
                             current_subgraphs.append((subgraph_name, indent_level))
                             new_body.append(line)
                             i += 1
@@ -873,12 +876,14 @@ def create_single_prompt_gsm_diagram_with_sherpa(
     if result.stdout:
         print(result.stdout, end="" if result.stdout.endswith("\n") else "\n")
     if result.stderr:
-        print(result.stderr, file=sys.stderr, end="" if result.stderr.endswith("\n") else "\n")
+        print(
+            result.stderr,
+            file=sys.stderr,
+            end="" if result.stderr.endswith("\n") else "\n",
+        )
 
     if result.returncode == 0:
         return True
 
     print(f"Renderer subprocess failed with exit code {result.returncode}")
     return False
-
-

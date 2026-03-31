@@ -1,8 +1,8 @@
 """
-Refinement prompt template for the Two-Shot State Machine Framework.
+Refinement prompt template for the Two-Stage State Machine Framework.
 
 This is a self-contained single-turn prompt — it does not rely on any
-conversation history from shot 1. The LLM receives only what it needs to
+conversation history from stage 1. The LLM receives only what it needs to
 review and correct the generated diagram: the system description, the
 full custom Mermaid syntax rules, the previously generated Mermaid code,
 and the error checklist.
@@ -22,10 +22,10 @@ Follows the same Claude prompting best practices as single_prompt_template:
 
 
 def build_refinement_prompt(
-    first_shot_mermaid: str, system_prompt: str, mermaid_syntax: str
+    first_stage_mermaid: str, system_prompt: str, mermaid_syntax: str
 ) -> str:
     """
-    Build the self-contained refinement prompt for the 2-shot second call.
+    Build the self-contained refinement prompt for the 2-stage second call.
 
     This is sent as a fresh single-turn request — no conversation history
     is included. It gives the LLM exactly what it needs to review and
@@ -35,12 +35,12 @@ def build_refinement_prompt(
     the previously generated Mermaid code, and a targeted error checklist.
 
     Args:
-        first_shot_mermaid: The Mermaid code extracted from the LLM's first
-            response (output of mermaidCodeSearch on shot 1).
+        first_stage_mermaid: The Mermaid code extracted from the LLM's first
+            response (output of mermaidCodeSearch on stage 1).
         system_prompt: The original system description that was given to the
-            LLM in shot 1.
+            LLM in stage 1.
         mermaid_syntax: The full custom Mermaid syntax and modeling rules
-            string (same value passed to build_single_prompt in shot 1).
+            string (same value passed to build_single_prompt in stage 1).
 
     Returns:
         str: The fully assembled refinement prompt, ready to be sent as a
@@ -69,7 +69,7 @@ the downstream parser enforces mechanically.
 </mermaid_syntax>
 
 <previous_output>
-{first_shot_mermaid}
+{first_stage_mermaid}
 </previous_output>
 
 <common_errors>

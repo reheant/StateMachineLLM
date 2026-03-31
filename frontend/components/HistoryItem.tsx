@@ -12,12 +12,12 @@ interface Props {
 
 const STRATEGY_CONFIG: Record<string, { label: string; badge: string; accent: string }> = {
   single_prompt: {
-    label: "1-shot",
+    label: "1-stage",
     badge: "bg-orange-400/15 text-orange-300",
     accent: "bg-gradient-to-b from-orange-300 to-orange-500",
   },
-  two_shot_prompt: {
-    label: "2-shot",
+  two_stage_prompt: {
+    label: "2-stage",
     badge: "bg-sky-400/15 text-sky-300",
     accent: "bg-gradient-to-b from-sky-300 to-sky-500",
   },
