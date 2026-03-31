@@ -41,9 +41,11 @@ function cleanName(raw: string): string {
 }
 
 export function HistoryItem({ run, selected, isNew, onClick }: Props) {
-  const config = STRATEGY_CONFIG[run.strategy] ?? { label: run.strategy, badge: "bg-white/[0.06] text-white/30", accent: "bg-white/20" };
+  const config = STRATEGY_CONFIG[run.strategy] ?? { label: run.strategy, badge: "bg-white/[0.06] text-white/30", accent: "bg-gradient-to-b from-white/20 to-white/10" };
   const modelShort = run.model.split(":").pop()?.replace(/-/g, " ") ?? run.model;
   const displayName = cleanName(run.system);
+  const isFailed = run.run_status === "failed";
+  const isPartial = run.run_status === "partial";
 
   return (
     <button
@@ -58,7 +60,7 @@ export function HistoryItem({ run, selected, isNew, onClick }: Props) {
       {/* Left strategy accent — always visible, brighter when selected */}
       <span className={cn(
         "absolute left-0 top-2.5 bottom-2.5 w-[3px] rounded-full transition-opacity",
-        config.accent,
+        isFailed ? "bg-gradient-to-b from-red-400 to-red-600" : isPartial ? "bg-gradient-to-b from-amber-400 to-amber-600" : config.accent,
         selected ? "opacity-100" : "opacity-30 group-hover:opacity-50"
       )} />
 
@@ -70,6 +72,16 @@ export function HistoryItem({ run, selected, isNew, onClick }: Props) {
           {displayName}
         </span>
         <div className="flex shrink-0 items-center gap-1 pt-0.5">
+          {(isFailed || isPartial) && (
+            <span className={cn(
+              "rounded-md px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide ring-1",
+              isFailed
+                ? "bg-red-500/20 text-red-400 ring-red-500/30"
+                : "bg-amber-500/20 text-amber-400 ring-amber-500/30"
+            )}>
+              {isFailed ? "Failed" : "Partial"}
+            </span>
+          )}
           {isNew && (
             <span className="animate-pulse rounded-md bg-red-500/25 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-red-400 ring-1 ring-red-500/40">
               New

@@ -127,6 +127,10 @@ Before producing the final answer, verify all of the following:
 - every other row uses only 0, 0.5, or 1
 </rule_9>
 
+<rule_10>
+When writing in the "notes/justification" column, do not use special characters that could break CSV parsing, such as unescaped quotes or newlines. Ensure all content in a cell is on a single line.
+</rule_10>
+
 <output_requirement>
 Return only the final CSV.
 Do not include markdown.

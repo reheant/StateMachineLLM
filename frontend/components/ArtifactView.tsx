@@ -8,7 +8,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { ChevronDown, Plus } from "lucide-react";
+import { AlertTriangle, ChevronDown, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface Props {
@@ -216,6 +216,59 @@ export function ArtifactView({ run, onNewRun }: Props) {
         </div>
       ) : (
         <div className="flex flex-1 flex-col gap-5 overflow-auto p-10">
+
+          {/* Error / partial-failure banner */}
+          {artifacts.status &&
+            (artifacts.status.status === "failed" ||
+              artifacts.status.status === "partial") && (
+              <div
+                className={cn(
+                  "flex items-start gap-3 rounded-2xl border px-5 py-4",
+                  artifacts.status.status === "failed"
+                    ? "border-red-500/25 bg-red-500/10"
+                    : "border-amber-500/25 bg-amber-500/10"
+                )}
+              >
+                <AlertTriangle
+                  className={cn(
+                    "mt-0.5 h-5 w-5 shrink-0",
+                    artifacts.status.status === "failed"
+                      ? "text-red-400"
+                      : "text-amber-400"
+                  )}
+                />
+                <div className="flex flex-col gap-1">
+                  <p
+                    className={cn(
+                      "text-sm font-semibold",
+                      artifacts.status.status === "failed"
+                        ? "text-red-300"
+                        : "text-amber-300"
+                    )}
+                  >
+                    {artifacts.status.status === "failed"
+                      ? "Run failed"
+                      : "Grading issue"}
+                  </p>
+                  <p className="text-sm leading-relaxed text-white/50">
+                    {artifacts.status.error?.message ??
+                      "An error occurred during this run."}
+                  </p>
+                  {(() => {
+                    const err = artifacts.status.error;
+                    if (!err || !err.type) return null;
+                    const attempts = err.attempts ?? 0;
+                    return (
+                      <span className="mt-1 w-fit rounded-md bg-white/[0.06] px-2 py-0.5 font-mono text-[10px] text-white/30">
+                        {err.type}
+                        {attempts > 0 &&
+                          ` · ${attempts} attempt${attempts === 1 ? "" : "s"}`}
+                      </span>
+                    );
+                  })()}
+                </div>
+              </div>
+            )}
 
           {/* Diagram */}
           {artifacts.png && (

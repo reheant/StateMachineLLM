@@ -23,6 +23,10 @@ from pydantic import BaseModel
 
 import backend.resources.state_machine_descriptions as sm_descriptions
 from backend.grading import run_automatic_grading
+from backend.errors import (
+    read_status,
+    write_in_progress,
+)
 from backend.resources.util import setup_file_paths
 from backend.single_prompt import process_custom_mermaid, run_single_prompt
 from backend.two_shot_prompt import run_two_shot_prompt
@@ -204,6 +208,11 @@ def _scan_runs() -> list[dict]:
                         has_png = any(time_dir.glob("*.png"))
                         date_fmt = date_dir.name.replace("_", "-")
                         time_fmt = time_dir.name.replace("_", ":")
+                        status_val = None
+                        if (time_dir / "status.json").exists():
+                            full_status = read_status(str(time_dir))
+                            if full_status:
+                                status_val = full_status.get("status")
                         runs.append(
                             {
                                 "strategy": strategy,
@@ -213,6 +222,7 @@ def _scan_runs() -> list[dict]:
                                 "system": system_dir.name,
                                 "folder": str(time_dir),
                                 "has_png": has_png,
+                                "run_status": status_val,
                                 "sort_key": f"{date_dir.name}_{time_dir.name}",
                             }
                         )
@@ -289,6 +299,7 @@ def _find_latest_run_folder(
 # API routes
 # ---------------------------------------------------------------------------
 
+
 @app.get("/health")
 def healthcheck():
     return {"status": "ok"}
@@ -346,6 +357,7 @@ def get_artifacts(folder: str = Query(...)):
         "ground_truth_csv": None,
         "grading_csv": None,
         "grading_tsv": None,
+        "status": None,
     }
 
     for f in path.iterdir():
@@ -365,6 +377,8 @@ def get_artifacts(folder: str = Query(...)):
             files["grading_csv"] = str(f)
         elif f.name == "grading_results.tsv":
             files["grading_tsv"] = str(f)
+        elif f.name == "status.json":
+            files["status"] = read_status(str(path))
         elif f.suffix == ".txt" and f.name != "LLM_log.txt":
             files["txt"] = str(f)
 
@@ -519,7 +533,15 @@ def generate(req: GenerateRequest):
             if not folder:
                 q.put(("error", "Generation finished without a fresh output folder."))
                 return
-            q.put(("complete", {"folder": folder}))
+
+            # Read status.json to include in the complete event
+            status = read_status(folder)
+            complete_payload = {"folder": folder}
+            if status:
+                complete_payload["status"] = status.get("status", "success")
+                if status.get("error"):
+                    complete_payload["error"] = status["error"]
+            q.put(("complete", complete_payload))
         except BaseException as exc:
             tb = traceback.format_exc().strip()
             if tb:
@@ -569,12 +591,18 @@ def render_mermaid(req: MermaidRequest):
         req.system_name,
         file_type="mermaid_compiler",
     )
-    if not success:
-        raise HTTPException(
-            status_code=422,
-            detail="Mermaid rendering failed. Check your diagram syntax.",
-        )
     folder = _find_latest_run_folder("mermaid_compiler")
+    if not success:
+        detail: dict = {
+            "message": "Mermaid rendering failed. Check your diagram syntax.",
+            "error_type": "mermaid_compilation",
+        }
+        if folder:
+            detail["folder"] = folder
+            status = read_status(folder)
+            if status:
+                detail["status"] = status
+        raise HTTPException(status_code=422, detail=detail)
     if not folder:
         raise HTTPException(
             status_code=500, detail="Could not locate rendered output folder."
@@ -609,19 +637,66 @@ def automatic_grade(req: AutomaticGraderRequest):
     with open(paths["generated_mermaid_code_path"], "w") as f:
         f.write(req.mermaid_code.strip())
 
-    run_automatic_grading(
-        student_mermaid_code=req.mermaid_code.strip(),
-        system_prompt=system_prompt,
-        system_name=req.example_key,
-        model=openrouter_model,
-        paths=paths,
-        base_dir=str(backend_dir),
-        example_key=req.example_key,
-    )
+    write_in_progress(paths)
+
+    try:
+        run_automatic_grading(
+            student_mermaid_code=req.mermaid_code.strip(),
+            system_prompt=system_prompt,
+            system_name=req.example_key,
+            model=openrouter_model,
+            paths=paths,
+            base_dir=str(backend_dir),
+            example_key=req.example_key,
+        )
+    except FileNotFoundError as exc:
+        raise HTTPException(
+            status_code=404,
+            detail={"message": str(exc), "error_type": "grading_validation"},
+        ) from exc
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=422,
+            detail={"message": str(exc), "error_type": "grading_validation"},
+        ) from exc
+    except RuntimeError as exc:
+        # Grading ran but validation failed after retries.
+        # The folder exists with fallback artifacts — return it with error info
+        # so the frontend can show the failure state with context.
+        folder = _find_latest_run_folder("automatic_grader")
+        status = read_status(folder) if folder else None
+        raise HTTPException(
+            status_code=422,
+            detail={
+                "message": str(exc),
+                "error_type": (
+                    status["error"]["type"]
+                    if status and status.get("error")
+                    else "grading_validation"
+                ),
+                "folder": folder,
+                "status": status,
+            },
+        ) from exc
+    except Exception as exc:  # Final guard so the UI can show a toast
+        folder = _find_latest_run_folder("automatic_grader")
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "message": "Automatic grading failed. Check the grading_output.txt log for details.",
+                "error_type": "unexpected",
+                "folder": folder,
+            },
+        ) from exc
 
     folder = _find_latest_run_folder("automatic_grader")
     if not folder:
         raise HTTPException(
-            status_code=500, detail="Could not locate grading output folder."
+            status_code=500,
+            detail={
+                "message": "Could not locate grading output folder.",
+                "error_type": "unexpected",
+            },
         )
-    return {"folder": folder}
+    status = read_status(folder)
+    return {"folder": folder, "status": status}

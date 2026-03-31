@@ -10,6 +10,20 @@ export interface Run {
   system: string;
   folder: string;
   has_png: boolean;
+  run_status?: "in_progress" | "success" | "partial" | "failed" | null;
+}
+
+export interface RunError {
+  type: string;
+  message: string;
+  details: Record<string, unknown>;
+  attempts: number;
+}
+
+export interface RunStatus {
+  status: "in_progress" | "success" | "partial" | "failed";
+  error: RunError | null;
+  completed_at: string | null;
 }
 
 export interface Artifacts {
@@ -25,6 +39,7 @@ export interface Artifacts {
   ground_truth_csv: string | null;
   grading_csv: string | null;
   grading_tsv: string | null;
+  status: RunStatus | null;
 }
 
 export interface Example {

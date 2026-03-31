@@ -27,6 +27,14 @@ from resources.n_shot_examples_single_prompt_mermaid import (
 )
 from resources.prompts.single_prompt.single_prompt_template import build_single_prompt
 from grading import run_automatic_grading
+from errors import (
+    ErrorType,
+    RunError,
+    write_success,
+    write_failure,
+    write_partial,
+    write_in_progress,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -158,14 +166,17 @@ def run_single_prompt(
 
     print(f"Running Single Prompt Generation with {model}")
 
+    write_in_progress(paths)
+
     success = False
     max_attempts = 3
+    attempt_errors: list[dict] = []
 
     for i in range(max_attempts):
         if i > 0:
             print(f"Retrying (attempt {i+1}/{max_attempts})...")
 
-        result = process_mermaid_attempt_openrouter(i, prompt, paths, model)
+        result, attempt_error = process_mermaid_attempt_openrouter(i, prompt, paths, model)
 
         if result != "False":
             success = True
@@ -181,21 +192,44 @@ def run_single_prompt(
                         example_key=example_key,
                     )
                 except Exception as e:
+                    # Generation succeeded but grading failed — mark as partial.
                     print(f"Automatic grading failed: {str(e)}")
+                    error = RunError(
+                        type=ErrorType.GRADING_VALIDATION,
+                        message=f"Automatic grading failed: {str(e)}",
+                    )
+                    write_partial(paths, error)
             else:
                 print("Automatic grading disabled")
+                write_success(paths)
             break
-        elif i < max_attempts - 1:
-            print(f"Attempt failed, retrying...")
         else:
-            print(f"All attempts failed")
+            if attempt_error:
+                attempt_errors.append(attempt_error)
+            if i < max_attempts - 1:
+                print(f"Attempt failed, retrying...")
+            else:
+                print(f"All attempts failed")
+                # Use the last attempt's error type if available.
+                last_error_type = ErrorType.GENERATION
+                if attempt_errors:
+                    last_kind = attempt_errors[-1].get("kind", "")
+                    if last_kind == "mermaid_compilation":
+                        last_error_type = ErrorType.MERMAID_COMPILATION
+                error = RunError(
+                    type=last_error_type,
+                    message="All generation attempts failed.",
+                    details={"attempt_errors": attempt_errors},
+                    attempts=max_attempts,
+                )
+                write_failure(paths, error)
 
     return success
 
 
 def process_mermaid_attempt_openrouter(
     i: int, prompt: str, paths: dict, model: str = "anthropic/claude-3.5-sonnet"
-) -> str:
+) -> tuple[str, dict | None]:
     """
     Process a single attempt at generating and processing Mermaid code using OpenRouter
     Args:
@@ -204,13 +238,22 @@ def process_mermaid_attempt_openrouter(
         paths: Dictionary containing file paths
         model: OpenRouter model to use
     Returns:
-        str: Generated Mermaid code if successful, "False" otherwise
+        tuple: (mermaid_code, error_info)
+            - mermaid_code: Generated Mermaid code if successful, "False" otherwise
+            - error_info: dict with 'kind' and 'message' on failure, None on success
     """
     try:
         # Call LLM
-        answer = call_openrouter_llm(
-            prompt, max_tokens=15000, temperature=0.01, model=model
-        )
+        try:
+            answer = call_openrouter_llm(
+                prompt, max_tokens=15000, temperature=0.01, model=model
+            )
+        except Exception as e:
+            error_msg = f"LLM call failed: {str(e)}"
+            print(error_msg)
+            with open(paths["log_file_path"], "a") as file:
+                file.write(f"{error_msg}\n\n")
+            return "False", {"kind": "llm_call", "message": error_msg, "attempt": i + 1}
 
         # Extract Mermaid code
         try:
@@ -222,7 +265,7 @@ def process_mermaid_attempt_openrouter(
             with open(paths["log_file_path"], "a") as file:
                 file.write(f"{error}\nError: {str(e)}\n\n")
             print(f"{error}: {str(e)}")
-            return "False"
+            return "False", {"kind": "mermaid_extraction", "message": f"{error}: {str(e)}", "attempt": i + 1}
 
         # Log generated code
         with open(paths["log_file_path"], "a") as file:
@@ -262,14 +305,15 @@ def process_mermaid_attempt_openrouter(
                 )
 
             print(f"{error}: {str(e)}")
-            return "False"
+            return "False", {"kind": "mermaid_compilation", "message": f"{error}: {str(e)}", "attempt": i + 1}
 
         # Success
-        return generated_mermaid_code
+        return generated_mermaid_code, None
 
     except Exception as e:
-        print(f"Unexpected error in attempt {i}: {str(e)}")
-        return "False"
+        error_msg = f"Unexpected error in attempt {i}: {str(e)}"
+        print(error_msg)
+        return "False", {"kind": "unexpected", "message": error_msg, "attempt": i + 1}
 
 
 def run_test_entry_exit_annotations():
@@ -423,9 +467,15 @@ def process_custom_mermaid(
         if success:
             diagram_output = paths["diagram_file_path"] + ".png"
             print(f"🖼️  Diagram saved: {diagram_output}")
+            write_success(paths)
             return (True, diagram_output)
         else:
             print("Rendering returned False")
+            error = RunError(
+                type=ErrorType.MERMAID_COMPILATION,
+                message="Mermaid rendering failed. Check your diagram syntax.",
+            )
+            write_failure(paths, error)
             return (False, None)
 
     except Exception as e:
@@ -433,6 +483,11 @@ def process_custom_mermaid(
         import traceback
 
         traceback.print_exc()
+        error = RunError(
+            type=ErrorType.MERMAID_COMPILATION,
+            message=f"Mermaid compilation error: {str(e)}",
+        )
+        write_failure(paths, error)
         return (False, None)
 
 
