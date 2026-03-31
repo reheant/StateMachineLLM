@@ -74,11 +74,14 @@ function hasGradingArtifacts(artifacts: Artifacts | null): boolean {
 }
 
 // Poll until grading finishes. Return TSV artifacts when ready or an error message if grading failed.
+// Gives up after maxWaitMs (default 2 minutes) to avoid hanging the UI forever.
 async function waitForGradingCompletion(
   folder: string,
-  intervalMs = 1200
+  intervalMs = 1200,
+  maxWaitMs = 2 * 60 * 1000
 ): Promise<{ artifacts: Artifacts | null; errorMessage: string | null }> {
-  while (true) {
+  const deadline = Date.now() + maxWaitMs;
+  while (Date.now() < deadline) {
     try {
       const artifacts = await fetchArtifacts(folder);
 
@@ -112,6 +115,8 @@ async function waitForGradingCompletion(
 
     await new Promise((resolve) => setTimeout(resolve, intervalMs));
   }
+  // Timed out — return the last known state.
+  return { artifacts: null, errorMessage: "Automatic grading timed out. Check the run in History for results." };
 }
 
 function buildProgressSteps(
@@ -409,6 +414,12 @@ export function RunForm({ onComplete, onHistoryRefresh, onGeneratingChange }: Pr
   const [showAutoGradingStages, setShowAutoGradingStages] = useState(false);
   const [toast, setToast] = useState<ToastState | null>(null);
 
+  // Generation error state — persists after failure so the user can see what went wrong.
+  const [generationError, setGenerationError] = useState<{
+    message: string;
+    logs: string[];
+  } | null>(null);
+
   // Mermaid sandbox state
   const [mermaidCode, setMermaidCode] = useState("");
   const [mermaidSystemName, setMermaidSystemName] = useState("");
@@ -479,6 +490,7 @@ async function handleExampleChange(key: string) {
   function handleStrategyChange(next: "single_prompt" | "two_shot_prompt" | "mermaid_compiler" | "automatic_grader") {
     setStrategy(next);
     setMermaidError(null);
+    setGenerationError(null);
     if (next !== "automatic_grader") {
       setGradingExampleKey("");
     }
@@ -494,6 +506,7 @@ async function handleExampleChange(key: string) {
     setLogs([]);
     setProgressArtifacts(null);
     setShowAutoGradingStages(false);
+    setGenerationError(null);
   }
 
   async function handleGenerate() {
@@ -511,6 +524,7 @@ async function handleExampleChange(key: string) {
     setGenerating(true);
     setLogs([]);
     setProgressArtifacts(null);
+    setGenerationError(null);
 
     const isManualCustomInput = inputTab === "custom";
     const shouldEnableAutoGrading = !isManualCustomInput && enableAutoGrading;
@@ -534,7 +548,13 @@ async function handleExampleChange(key: string) {
       abortRef.current = null;
       setProgressArtifacts(null);
       setShowAutoGradingStages(false);
-      setLogs((l) => [...l, message]);
+      setLogs((prev) => {
+        const allLogs = [...prev, message];
+        // Persist the error + collected logs so the user can see them
+        // even after the progress panel disappears.
+        setGenerationError({ message, logs: allLogs });
+        return allLogs;
+      });
       setGenerating(false);
     };
 
@@ -714,7 +734,41 @@ async function handleExampleChange(key: string) {
             return;
           } else if (eventType === "error") {
             sawTerminalEvent = true;
-            failRun(`Error: ${data}`);
+            // The server may send a structured JSON payload with a folder
+            // reference, or a plain string for legacy/simple errors.
+            let errorPayload: { message?: string; folder?: string; status?: string; error?: { message?: string } } | null = null;
+            try {
+              errorPayload = JSON.parse(data);
+            } catch {
+              // Plain string error — handled below.
+            }
+
+            if (errorPayload?.folder) {
+              // A run folder exists — navigate to it so the user sees
+              // the error banner and any partial artifacts in ArtifactView.
+              const errorMsg =
+                errorPayload.error?.message ??
+                errorPayload.message ??
+                "Generation failed.";
+              const run: Run = {
+                strategy: promptStrategy,
+                model,
+                system: name,
+                folder: errorPayload.folder,
+                date: new Date().toISOString().slice(0, 10),
+                time: new Date().toTimeString().slice(0, 8),
+                has_png: false,
+                run_status: "failed",
+              };
+              pushToast(errorMsg);
+              completeRun(run);
+            } else {
+              const errorMsg =
+                errorPayload?.error?.message ??
+                errorPayload?.message ??
+                data;
+              failRun(`Error: ${errorMsg}`);
+            }
             return;
           }
         }
@@ -1312,6 +1366,43 @@ async function handleExampleChange(key: string) {
             </p>
           )}
         </div>{/* end Parameters */}
+
+        {/* Generation failure card — shown after a prompt generation fails so
+            the user sees the error instead of a silently-reset form. */}
+        {generationError && !generating && isPromptStrategy && (
+          <div className="overflow-hidden rounded-2xl border border-red-500/25 bg-red-500/10 shadow-lg shadow-red-500/5">
+            <div className="flex items-center gap-2 border-b border-red-500/15 px-4 py-3">
+              <AlertTriangle className="h-4 w-4 text-red-400" />
+              <span className="text-[10px] font-bold uppercase tracking-widest text-red-400/70">Generation Failed</span>
+              <button
+                onClick={() => setGenerationError(null)}
+                className="ml-auto rounded-full p-1 text-white/30 transition-colors hover:bg-white/10 hover:text-white/80"
+                aria-label="Dismiss error"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            </div>
+            <div className="px-4 py-3">
+              <p className="text-sm leading-relaxed text-red-300/80">{generationError.message}</p>
+            </div>
+            {generationError.logs.length > 1 && (
+              <details className="border-t border-red-500/10">
+                <summary className="cursor-pointer px-4 py-2 text-[11px] font-medium text-white/30 hover:text-white/50 transition-colors">
+                  Show logs ({generationError.logs.length} lines)
+                </summary>
+                <ScrollArea className="max-h-44 px-3 pb-3">
+                  <div className="flex flex-col gap-0.5">
+                    {generationError.logs.map((line, i) => (
+                      <p key={i} className="font-mono text-[10px] leading-relaxed text-red-300/40 break-all">
+                        <span className="mr-1.5 text-white/15">›</span>{line}
+                      </p>
+                    ))}
+                  </div>
+                </ScrollArea>
+              </details>
+            )}
+          </div>
+        )}
 
         {isPromptStrategy && (
           <>

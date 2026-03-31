@@ -354,8 +354,19 @@ export function ArtifactView({ run, onNewRun }: Props) {
           )}
 
           {!artifacts.png && !artifacts.mmd && !artifacts.txt && !artifacts.llm_log && !artifacts.grading_prompt && !artifacts.grading_output && !artifacts.ground_truth_csv && !artifacts.grading_csv && !artifacts.grading_tsv && (
-            <div className="flex flex-1 items-center justify-center rounded-2xl border border-white/[0.06] bg-white/[0.02] py-20">
-              <p className="text-sm text-white/20">No artifacts found.</p>
+            <div className="flex flex-1 flex-col items-center justify-center gap-3 rounded-2xl border border-white/[0.06] bg-white/[0.02] py-20">
+              {artifacts.status &&
+                (artifacts.status.status === "failed" ||
+                  artifacts.status.status === "partial") ? (
+                <>
+                  <AlertTriangle className="h-6 w-6 text-red-400/50" />
+                  <p className="text-sm text-white/30">
+                    This run failed before producing output artifacts.
+                  </p>
+                </>
+              ) : (
+                <p className="text-sm text-white/20">No artifacts found.</p>
+              )}
             </div>
           )}
         </div>

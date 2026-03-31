@@ -26,6 +26,9 @@ from backend.grading import run_automatic_grading
 from backend.errors import (
     read_status,
     write_in_progress,
+    RunError,
+    ErrorType,
+    write_failure,
 )
 from backend.resources.util import setup_file_paths
 from backend.single_prompt import process_custom_mermaid, run_single_prompt
@@ -344,7 +347,7 @@ def get_artifacts(folder: str = Query(...)):
     if not path.is_dir():
         raise HTTPException(status_code=404, detail="Folder not found")
 
-    files: dict[str, str | None] = {
+    files: dict[str, str | dict | None] = {
         "png": None,
         "mmd": None,
         "txt": None,
@@ -516,7 +519,33 @@ def generate(req: GenerateRequest):
             writer.flush()
             log_handler.flush()
             if not success:
-                q.put(("error", "Generation failed before producing artifacts."))
+                # Try to find the folder so the UI can still show the
+                # error banner + whatever partial artifacts were created.
+                model_short_name = (
+                    openrouter_model.split("/")[-1]
+                    if "/" in openrouter_model
+                    else openrouter_model
+                )
+                fail_folder = _find_latest_run_folder(
+                    req.strategy,
+                    system_name=req.system_name,
+                    model_name=model_short_name,
+                    since=request_started_at,
+                )
+                fail_status = read_status(fail_folder) if fail_folder else None
+                error_payload: dict = {
+                    "message": "Generation failed.",
+                }
+                if fail_folder:
+                    error_payload["folder"] = fail_folder
+                if fail_status:
+                    error_payload["status"] = fail_status.get("status", "failed")
+                    if fail_status.get("error"):
+                        error_payload["error"] = fail_status["error"]
+                        error_payload["message"] = fail_status["error"].get(
+                            "message", error_payload["message"]
+                        )
+                q.put(("error", error_payload))
                 return
 
             model_short_name = (
@@ -548,7 +577,28 @@ def generate(req: GenerateRequest):
                 for line in tb.splitlines():
                     if line.strip():
                         q.put(("progress", line))
-            q.put(("error", str(exc)))
+            # Try to locate the run folder so the UI can display
+            # the error banner alongside any partial artifacts.
+            model_short_name = (
+                openrouter_model.split("/")[-1]
+                if "/" in openrouter_model
+                else openrouter_model
+            )
+            exc_folder = _find_latest_run_folder(
+                req.strategy,
+                system_name=req.system_name,
+                model_name=model_short_name,
+                since=request_started_at,
+            )
+            exc_payload: dict = {"message": str(exc)}
+            if exc_folder:
+                exc_payload["folder"] = exc_folder
+                exc_status = read_status(exc_folder)
+                if exc_status:
+                    exc_payload["status"] = exc_status.get("status", "failed")
+                    if exc_status.get("error"):
+                        exc_payload["error"] = exc_status["error"]
+            q.put(("error", exc_payload))
         finally:
             writer.flush()
             log_handler.flush()

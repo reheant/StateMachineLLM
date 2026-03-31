@@ -7,12 +7,18 @@ succeeded (generation OK but grading failed), or fully failed.
 
 from __future__ import annotations
 
+import contextlib
 import json
+import logging
 import os
+import tempfile
+import tempfile
 from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Optional
+
+logger = logging.getLogger(__name__)
 
 
 # ---------------------------------------------------------------------------
@@ -80,7 +86,12 @@ def _now_iso() -> str:
 
 
 def write_status(paths: dict, status: RunStatus) -> None:
-    """Write ``status.json`` into the run folder indicated by *paths*."""
+    """Write ``status.json`` into the run folder indicated by *paths*.
+
+    Uses atomic write (temp file + ``os.replace``) so readers never see
+    a partially-written file.  ``completed_at`` is only set for terminal
+    states (success / partial / failed).
+    """
     base = paths.get("log_base_dir")
     if not base:
         return
@@ -92,10 +103,17 @@ def write_status(paths: dict, status: RunStatus) -> None:
         status.completed_at = _now_iso()
     dest = os.path.join(base, "status.json")
     try:
-        with open(dest, "w", encoding="utf-8") as f:
-            json.dump(status.to_dict(), f, indent=2)
-    except OSError:
-        pass  # best-effort
+        fd, tmp = tempfile.mkstemp(dir=base, prefix=".status_", suffix=".tmp")
+        try:
+            with os.fdopen(fd, "w", encoding="utf-8") as f:
+                json.dump(status.to_dict(), f, indent=2)
+            os.replace(tmp, dest)
+        except BaseException:
+            with contextlib.suppress(OSError):
+                os.unlink(tmp)
+            raise
+    except OSError as exc:
+        logger.warning("Failed to write status.json to %s: %s", dest, exc)
 
 
 def read_status(folder: str) -> Optional[dict[str, Any]]:
