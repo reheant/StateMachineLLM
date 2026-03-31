@@ -254,13 +254,18 @@ export function ArtifactView({ run, onNewRun }: Props) {
                     {artifacts.status.error?.message ??
                       "An error occurred during this run."}
                   </p>
-                  {artifacts.status.error?.type && (
-                    <span className="mt-1 w-fit rounded-md bg-white/[0.06] px-2 py-0.5 font-mono text-[10px] text-white/30">
-                      {artifacts.status.error.type}
-                      {artifacts.status.error.attempts > 0 &&
-                        ` · ${artifacts.status.error.attempts} attempt${artifacts.status.error.attempts === 1 ? "" : "s"}`}
-                    </span>
-                  )}
+                  {(() => {
+                    const err = artifacts.status.error;
+                    if (!err || !err.type) return null;
+                    const attempts = err.attempts ?? 0;
+                    return (
+                      <span className="mt-1 w-fit rounded-md bg-white/[0.06] px-2 py-0.5 font-mono text-[10px] text-white/30">
+                        {err.type}
+                        {attempts > 0 &&
+                          ` · ${attempts} attempt${attempts === 1 ? "" : "s"}`}
+                      </span>
+                    );
+                  })()}
                 </div>
               </div>
             )}
