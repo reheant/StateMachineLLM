@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { fetchArtifacts, imageUrl, fileUrl } from "@/lib/api";
 import type { Run, Artifacts } from "@/lib/types";
 import {
@@ -8,8 +8,51 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { AlertTriangle, ChevronDown, Plus } from "lucide-react";
+import { AlertTriangle, ChevronDown, Plus, X } from "lucide-react";
 import { cn } from "@/lib/utils";
+
+function Lightbox({ src, alt, onClose }: { src: string; alt: string; onClose: () => void }) {
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, [onClose]);
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
+      onClick={onClose}
+    >
+      <button
+        onClick={onClose}
+        className="absolute top-4 right-4 rounded-full bg-white/10 p-2 text-white hover:bg-white/20 transition-colors"
+      >
+        <X className="h-5 w-5" />
+      </button>
+      <img
+        src={src}
+        alt={alt}
+        className="max-h-[90vh] max-w-[95vw] rounded-xl object-contain shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      />
+    </div>
+  );
+}
+
+function ZoomableImage({ src, alt, className }: { src: string; alt: string; className?: string }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <img
+        src={src}
+        alt={alt}
+        className={cn(className, "cursor-zoom-in")}
+        onClick={() => setOpen(true)}
+      />
+      {open && <Lightbox src={src} alt={alt} onClose={() => setOpen(false)} />}
+    </>
+  );
+}
 
 interface Props {
   run: Run;
@@ -171,27 +214,27 @@ export function ArtifactView({ run, onNewRun }: Props) {
   return (
     <div className="flex flex-col bg-background">
       {/* Header */}
-      <div className="relative overflow-hidden border-b border-white/[0.06] px-10 py-10">
+      <div className="relative overflow-hidden border-b border-white/[0.06] px-4 py-6 sm:px-10 sm:py-10">
         <div className="pointer-events-none absolute -top-16 right-1/4 h-56 w-72 rounded-full bg-orange-500/8 blur-3xl" />
         <div className="pointer-events-none absolute bottom-0 left-1/3 h-24 w-48 rounded-full bg-orange-500/6 blur-2xl" />
-        <div className="relative flex items-start justify-between gap-6">
-          <div className="flex items-start gap-5">
+        <div className="relative flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
+          <div className="flex items-start gap-4 sm:gap-5 min-w-0">
             {/* Logo mark */}
-            <div className="mt-1 flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-orange-400 via-orange-500 to-orange-600 shadow-xl shadow-orange-500/25">
-              <svg viewBox="0 0 32 32" fill="none" className="h-6 w-6" aria-hidden="true">
+            <div className="mt-1 flex h-9 w-9 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-orange-400 via-orange-500 to-orange-600 shadow-xl shadow-orange-500/25">
+              <svg viewBox="0 0 32 32" fill="none" className="h-5 w-5 sm:h-6 sm:w-6" aria-hidden="true">
                 <path d="M22 4L28 10L11 27H5V21L22 4Z" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" fill="white" fillOpacity="0.15" />
                 <path d="M18 8L24 14" stroke="white" strokeWidth="2.5" strokeLinecap="round" />
               </svg>
             </div>
-            <div>
+            <div className="min-w-0">
               <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-orange-400/70">
                 Tracer · Result
               </p>
-              <h1 className="mt-1 text-3xl font-bold tracking-tight text-white">{run.system}</h1>
-              <p className="mt-1.5 text-sm text-white/30">{run.date} · {run.time}</p>
+              <h1 className="mt-1 text-xl sm:text-3xl font-bold tracking-tight text-white truncate">{run.system}</h1>
+              <p className="mt-1.5 text-xs sm:text-sm text-white/30">{run.date} · {run.time}</p>
             </div>
           </div>
-          <div className="flex items-center gap-2 pt-1">
+          <div className="flex flex-wrap items-center gap-2 sm:pt-1 shrink-0">
             <span className="rounded-lg border border-white/[0.08] bg-white/[0.04] px-3 py-1.5 text-xs font-medium text-white/40">
               {strategyLabel}
             </span>
@@ -215,7 +258,7 @@ export function ArtifactView({ run, onNewRun }: Props) {
           <p className="text-sm text-white/25">Loading…</p>
         </div>
       ) : (
-        <div className="flex flex-1 flex-col gap-5 overflow-auto p-10">
+        <div className="flex flex-1 flex-col gap-5 overflow-auto p-4 sm:p-10">
 
           {/* Error / partial-failure banner */}
           {artifacts.status &&
@@ -273,7 +316,7 @@ export function ArtifactView({ run, onNewRun }: Props) {
           {/* Diagram */}
           {artifacts.png && (
             <div className="overflow-hidden rounded-2xl border border-white/[0.07] bg-white/[0.02] shadow-2xl shadow-black/50 ring-1 ring-white/[0.04]">
-              <img
+              <ZoomableImage
                 src={imageUrl(artifacts.png)}
                 alt={`${run.system} state machine`}
                 className="w-full"
@@ -292,7 +335,7 @@ export function ArtifactView({ run, onNewRun }: Props) {
               {isTwoStage && artifacts.stage1_png && (
                 <CollapsibleSection title="Stage 1 diagram" badge=".png">
                   <div className="overflow-hidden rounded-xl border border-white/[0.06] bg-black/20">
-                    <img
+                    <ZoomableImage
                       src={imageUrl(artifacts.stage1_png)}
                       alt={`${run.system} stage 1 state machine`}
                       className="w-full"

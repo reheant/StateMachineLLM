@@ -90,7 +90,7 @@ export function AppSidebar({ selectedRun, onSelectRun, onNewRun, refreshToken, l
           <p className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-white/25">
             History
           </p>
-          <div className="flex gap-1.5">
+          <div className="flex flex-col sm:flex-wrap sm:flex-row gap-1.5">
             {([
               { value: "all",              label: "All",    active: "bg-white/10 text-white/80",           inactive: "text-white/35" },
               { value: "single_prompt",    label: "1-stage", active: "bg-orange-400/20 text-orange-300 ring-1 ring-orange-400/20", inactive: "text-orange-400/40 hover:text-orange-300/70" },
@@ -102,7 +102,7 @@ export function AppSidebar({ selectedRun, onSelectRun, onNewRun, refreshToken, l
                 key={opt.value}
                 onClick={() => setStrategyFilter(opt.value)}
                 className={cn(
-                  "flex-1 rounded-lg px-2 py-1.5 text-[11px] font-semibold transition-all",
+                  "rounded-lg px-2.5 py-1.5 text-[11px] font-semibold transition-all",
                   strategyFilter === opt.value ? opt.active : opt.inactive
                 )}
               >

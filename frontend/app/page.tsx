@@ -83,8 +83,8 @@ function CompletionToast({ run, onView, onDismiss }: { run: Run; onView: () => v
 }
 
 function FloatingTrigger() {
-  const { open } = useSidebar();
-  if (open) return null;
+  const { open, isMobile, openMobile } = useSidebar();
+  if (isMobile ? openMobile : open) return null;
   return (
     <div className="absolute top-3 left-3 z-50">
       <SidebarTrigger className="h-8 w-8 rounded-lg border border-white/[0.08] bg-white/[0.04] text-white/40 hover:text-white/70 transition-colors" />

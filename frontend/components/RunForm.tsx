@@ -1093,11 +1093,11 @@ async function handleExampleChange(key: string) {
           </div>
         </div>
       )}
-      <div className="flex flex-col px-6 py-10">
-      <div className="mx-auto w-full max-w-5xl flex flex-col gap-10">
+      <div className="flex flex-col px-4 py-6 sm:px-6 sm:py-10">
+      <div className="mx-auto w-full max-w-5xl flex flex-col gap-6 sm:gap-10">
         <div className="flex flex-col items-center gap-1.5 text-center">
-          <h1 className="text-5xl font-black tracking-tight bg-gradient-to-br from-orange-300 via-orange-400 to-orange-600 bg-clip-text text-transparent">Tracer</h1>
-          <p className="text-sm text-white/30">Generate a state machine diagram from any system description.</p>
+          <h1 className="text-3xl sm:text-5xl font-black tracking-tight bg-gradient-to-br from-orange-300 via-orange-400 to-orange-600 bg-clip-text text-transparent">Tracer</h1>
+          <p className="text-xs sm:text-sm text-white/30">Generate a state machine diagram from any system description.</p>
         </div>
 
         <div className="flex flex-col gap-10">
@@ -1108,7 +1108,7 @@ async function handleExampleChange(key: string) {
             <StepNumber n={1} />
             <span className="text-xs font-semibold uppercase tracking-widest text-white/30">Strategy</span>
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {([
               "single_prompt",
               "two_stage_prompt",
@@ -1239,7 +1239,7 @@ async function handleExampleChange(key: string) {
                 {inputTab === "example" && (
                   <div className="flex flex-col gap-3">
                     {examples.length > 0 && (
-                      <div className="grid grid-cols-3 gap-2">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
                         {examples.map((ex) => (
                           <button
                             key={ex.key}
@@ -1324,7 +1324,7 @@ async function handleExampleChange(key: string) {
               <p className="text-xs text-white/35">
                 Select one of {examples.length} available state machine descriptions as grading reference.
               </p>
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
                 {examples.map((ex) => (
                   <button
                     key={ex.key}
