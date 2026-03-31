@@ -1,0 +1,2136 @@
+{
+  "Automatic Bread Maker": {
+    "week_feb_28": {
+      "1_step": {
+        "Human": {
+          "overall": {
+            "precision": 1.0,
+            "recall": 0.7604166667,
+            "f1": 0.8639053254
+          },
+          "by_category": {
+            "Composite State": {
+              "precision": 1.0,
+              "recall": 0.8333333333,
+              "f1": 0.9090909091
+            },
+            "State": {
+              "precision": 1.0,
+              "recall": 0.875,
+              "f1": 0.9333333333
+            },
+            "Transition": {
+              "precision": 1.0,
+              "recall": 0.8611111111,
+              "f1": 0.9253731343
+            },
+            "Action": {
+              "precision": 1.0,
+              "recall": 0.5,
+              "f1": 0.6666666667
+            },
+            "Region": {
+              "precision": null,
+              "recall": null,
+              "f1": null
+            },
+            "History State": {
+              "precision": null,
+              "recall": 0.0,
+              "f1": null
+            },
+            "Guard": {
+              "precision": 1.0,
+              "recall": 0.75,
+              "f1": 0.8571428571
+            }
+          }
+        },
+        "LLM": {
+          "overall": {
+            "precision": 1.0,
+            "recall": 0.6770833333,
+            "f1": 0.8074534161
+          },
+          "by_category": {
+            "Composite State": {
+              "precision": 1.0,
+              "recall": 0.8333333333,
+              "f1": 0.9090909091
+            },
+            "State": {
+              "precision": 1.0,
+              "recall": 0.6666666667,
+              "f1": 0.8
+            },
+            "Transition": {
+              "precision": 1.0,
+              "recall": 0.7777777778,
+              "f1": 0.875
+            },
+            "Action": {
+              "precision": 1.0,
+              "recall": 0.4,
+              "f1": 0.5714285714
+            },
+            "Region": {
+              "precision": null,
+              "recall": null,
+              "f1": null
+            },
+            "History State": {
+              "precision": null,
+              "recall": 0.0,
+              "f1": null
+            },
+            "Guard": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            }
+          }
+        }
+      }
+    },
+    "week_mar_16": {
+      "2_step": {
+        "Human": {
+          "overall": {
+            "precision": 1.0,
+            "recall": 0.875,
+            "f1": 0.9333333333
+          },
+          "by_category": {
+            "Composite State": {
+              "precision": 1.0,
+              "recall": 0.8333333333,
+              "f1": 0.9090909091
+            },
+            "State": {
+              "precision": 1.0,
+              "recall": 0.8333333333,
+              "f1": 0.9090909091
+            },
+            "Transition": {
+              "precision": 1.0,
+              "recall": 0.8888888889,
+              "f1": 0.9411764706
+            },
+            "Action": {
+              "precision": 1.0,
+              "recall": 0.9,
+              "f1": 0.9473684211
+            },
+            "Region": {
+              "precision": null,
+              "recall": null,
+              "f1": null
+            },
+            "History State": {
+              "precision": 1.0,
+              "recall": 0.5,
+              "f1": 0.6666666667
+            },
+            "Guard": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            }
+          }
+        },
+        "LLM": {
+          "overall": {
+            "precision": 1.0,
+            "recall": 0.71875,
+            "f1": 0.8363636364
+          },
+          "by_category": {
+            "Composite State": {
+              "precision": 1.0,
+              "recall": 0.8333333333,
+              "f1": 0.9090909091
+            },
+            "State": {
+              "precision": 1.0,
+              "recall": 0.6666666667,
+              "f1": 0.8
+            },
+            "Transition": {
+              "precision": 1.0,
+              "recall": 0.7777777778,
+              "f1": 0.875
+            },
+            "Action": {
+              "precision": 1.0,
+              "recall": 0.7,
+              "f1": 0.8235294118
+            },
+            "Region": {
+              "precision": null,
+              "recall": null,
+              "f1": null
+            },
+            "History State": {
+              "precision": null,
+              "recall": 0.0,
+              "f1": null
+            },
+            "Guard": {
+              "precision": 1.0,
+              "recall": 0.75,
+              "f1": 0.8571428571
+            }
+          }
+        }
+      }
+    },
+    "week_mar_4": {
+      "2_step": {
+        "Human": {
+          "overall": {
+            "precision": 1.0,
+            "recall": 0.71875,
+            "f1": 0.8363636364
+          },
+          "by_category": {
+            "Composite State": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            "State": {
+              "precision": 1.0,
+              "recall": 0.6666666667,
+              "f1": 0.8
+            },
+            "Transition": {
+              "precision": 1.0,
+              "recall": 0.6944444444,
+              "f1": 0.8196721311
+            },
+            "Action": {
+              "precision": 1.0,
+              "recall": 0.7,
+              "f1": 0.8235294118
+            },
+            "Region": {
+              "precision": null,
+              "recall": null,
+              "f1": null
+            },
+            "History State": {
+              "precision": null,
+              "recall": 0.0,
+              "f1": null
+            },
+            "Guard": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            }
+          }
+        },
+        "LLM": {
+          "overall": {
+            "precision": 1.0,
+            "recall": 0.71875,
+            "f1": 0.8363636364
+          },
+          "by_category": {
+            "Composite State": {
+              "precision": 1.0,
+              "recall": 0.8333333333,
+              "f1": 0.9090909091
+            },
+            "State": {
+              "precision": 1.0,
+              "recall": 0.6666666667,
+              "f1": 0.8
+            },
+            "Transition": {
+              "precision": 1.0,
+              "recall": 0.7777777778,
+              "f1": 0.875
+            },
+            "Action": {
+              "precision": 1.0,
+              "recall": 0.6,
+              "f1": 0.75
+            },
+            "Region": {
+              "precision": null,
+              "recall": null,
+              "f1": null
+            },
+            "History State": {
+              "precision": null,
+              "recall": 0.0,
+              "f1": null
+            },
+            "Guard": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            }
+          }
+        }
+      }
+    }
+  },
+  "Chess Clock": {
+    "week_feb_28": {
+      "1_step": {
+        "Human": {
+          "overall": {
+            "precision": 1.0,
+            "recall": 0.5777777778,
+            "f1": 0.7323943662
+          },
+          "by_category": {
+            "Composite State": {
+              "precision": 1.0,
+              "recall": 0.8333333333,
+              "f1": 0.9090909091
+            },
+            "State": {
+              "precision": 1.0,
+              "recall": 0.6923076923,
+              "f1": 0.8181818182
+            },
+            "Transition": {
+              "precision": 1.0,
+              "recall": 0.6428571429,
+              "f1": 0.7826086957
+            },
+            "Action": {
+              "precision": 1.0,
+              "recall": 0.5625,
+              "f1": 0.72
+            },
+            "Region": {
+              "precision": null,
+              "recall": 0.0,
+              "f1": null
+            },
+            "History State": {
+              "precision": null,
+              "recall": 1.0,
+              "f1": null
+            },
+            "Guard": {
+              "precision": null,
+              "recall": 0.0,
+              "f1": null
+            }
+          }
+        },
+        "LLM": {
+          "overall": {
+            "precision": 0.9090909091,
+            "recall": 0.4651162791,
+            "f1": 0.6153846154
+          },
+          "by_category": {
+            "Composite State": {
+              "precision": 1.0,
+              "recall": 0.8333333333,
+              "f1": 0.9090909091
+            },
+            "State": {
+              "precision": 0.8823529412,
+              "recall": 0.625,
+              "f1": 0.7317073171
+            },
+            "Transition": {
+              "precision": 1.0,
+              "recall": 0.6923076923,
+              "f1": 0.8181818182
+            },
+            "Action": {
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": null
+            },
+            "Region": {
+              "precision": null,
+              "recall": 0.0,
+              "f1": null
+            },
+            "History State": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            "Guard": {
+              "precision": null,
+              "recall": 0.0,
+              "f1": null
+            }
+          }
+        }
+      }
+    },
+    "week_mar_16": {
+      "2_step": {
+        "Human": {
+          "overall": {
+            "precision": 1.0,
+            "recall": 0.9,
+            "f1": 0.9473684211
+          },
+          "by_category": {
+            "Composite State": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            "State": {
+              "precision": 1.0,
+              "recall": 0.8846153846,
+              "f1": 0.9387755102
+            },
+            "Transition": {
+              "precision": 1.0,
+              "recall": 0.8571428571,
+              "f1": 0.9230769231
+            },
+            "Action": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            "Region": {
+              "precision": 1.0,
+              "recall": 0.5,
+              "f1": 0.6666666667
+            },
+            "History State": {
+              "precision": null,
+              "recall": 1.0,
+              "f1": null
+            },
+            "Guard": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            }
+          }
+        },
+        "LLM": {
+          "overall": {
+            "precision": 0.9076923077,
+            "recall": 0.6860465116,
+            "f1": 0.7814569536
+          },
+          "by_category": {
+            "Composite State": {
+              "precision": 1.0,
+              "recall": 0.8333333333,
+              "f1": 0.9090909091
+            },
+            "State": {
+              "precision": 0.8,
+              "recall": 0.6666666667,
+              "f1": 0.7272727273
+            },
+            "Transition": {
+              "precision": 1.0,
+              "recall": 0.6153846154,
+              "f1": 0.7619047619
+            },
+            "Action": {
+              "precision": 0.8888888889,
+              "recall": 1.0,
+              "f1": 0.9411764706
+            },
+            "Region": {
+              "precision": null,
+              "recall": 0.0,
+              "f1": null
+            },
+            "History State": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            "Guard": {
+              "precision": 1.0,
+              "recall": 0.5,
+              "f1": 0.6666666667
+            }
+          }
+        }
+      }
+    },
+    "week_mar_4": {
+      "2_step": {
+        "Human": {
+          "overall": {
+            "precision": 0.9759036145,
+            "recall": 0.9,
+            "f1": 0.936416185
+          },
+          "by_category": {
+            "Composite State": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            "State": {
+              "precision": 1.0,
+              "recall": 0.8461538462,
+              "f1": 0.9166666667
+            },
+            "Transition": {
+              "precision": 0.9230769231,
+              "recall": 0.8571428571,
+              "f1": 0.8888888889
+            },
+            "Action": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            "Region": {
+              "precision": 1.0,
+              "recall": 0.75,
+              "f1": 0.8571428571
+            },
+            "History State": {
+              "precision": null,
+              "recall": 1.0,
+              "f1": null
+            },
+            "Guard": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            }
+          }
+        },
+        "LLM": {
+          "overall": {
+            "precision": 1.0,
+            "recall": 0.6046511628,
+            "f1": 0.7536231884
+          },
+          "by_category": {
+            "Composite State": {
+              "precision": 1.0,
+              "recall": 0.8333333333,
+              "f1": 0.9090909091
+            },
+            "State": {
+              "precision": 1.0,
+              "recall": 0.7916666667,
+              "f1": 0.8837209302
+            },
+            "Transition": {
+              "precision": 1.0,
+              "recall": 0.7692307692,
+              "f1": 0.8695652174
+            },
+            "Action": {
+              "precision": 1.0,
+              "recall": 0.125,
+              "f1": 0.2222222222
+            },
+            "Region": {
+              "precision": null,
+              "recall": 0.0,
+              "f1": null
+            },
+            "History State": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            "Guard": {
+              "precision": 1.0,
+              "recall": 0.5,
+              "f1": 0.6666666667
+            }
+          }
+        }
+      }
+    }
+  },
+  "Dishwasher": {
+    "week_feb_28": {
+      "1_step": {
+        "Human": {
+          "overall": {
+            "precision": 1.0,
+            "recall": 0.5744680851,
+            "f1": 0.7297297297
+          },
+          "by_category": {
+            "Composite State": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            "State": {
+              "precision": 1.0,
+              "recall": 0.75,
+              "f1": 0.8571428571
+            },
+            "Transition": {
+              "precision": 1.0,
+              "recall": 0.5526315789,
+              "f1": 0.7118644068
+            },
+            "Action": {
+              "precision": 1.0,
+              "recall": 0.5714285714,
+              "f1": 0.7272727273
+            },
+            "Region": {
+              "precision": 1.0,
+              "recall": 0.25,
+              "f1": 0.4
+            },
+            "History State": {
+              "precision": null,
+              "recall": 0.0,
+              "f1": null
+            },
+            "Guard": {
+              "precision": 1.0,
+              "recall": 0.25,
+              "f1": 0.4
+            }
+          }
+        },
+        "LLM": {
+          "overall": {
+            "precision": 0.9032258065,
+            "recall": 0.5957446809,
+            "f1": 0.7179487179
+          },
+          "by_category": {
+            "Composite State": {
+              "precision": 1.0,
+              "recall": 0.5,
+              "f1": 0.6666666667
+            },
+            "State": {
+              "precision": 0.8888888889,
+              "recall": 0.6666666667,
+              "f1": 0.7619047619
+            },
+            "Transition": {
+              "precision": 0.9259259259,
+              "recall": 0.6578947368,
+              "f1": 0.7692307692
+            },
+            "Action": {
+              "precision": 1.0,
+              "recall": 0.6428571429,
+              "f1": 0.7826086957
+            },
+            "Region": {
+              "precision": null,
+              "recall": 0.0,
+              "f1": null
+            },
+            "History State": {
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": null
+            },
+            "Guard": {
+              "precision": 1.0,
+              "recall": 0.5,
+              "f1": 0.6666666667
+            }
+          }
+        }
+      }
+    },
+    "week_mar_16": {
+      "2_step": {
+        "Human": {
+          "overall": {
+            "precision": 1.0,
+            "recall": 0.7234042553,
+            "f1": 0.8395061728
+          },
+          "by_category": {
+            "Composite State": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            "State": {
+              "precision": 1.0,
+              "recall": 0.75,
+              "f1": 0.8571428571
+            },
+            "Transition": {
+              "precision": 1.0,
+              "recall": 0.7105263158,
+              "f1": 0.8307692308
+            },
+            "Action": {
+              "precision": 1.0,
+              "recall": 0.7857142857,
+              "f1": 0.88
+            },
+            "Region": {
+              "precision": 1.0,
+              "recall": 0.5,
+              "f1": 0.6666666667
+            },
+            "History State": {
+              "precision": null,
+              "recall": 0.0,
+              "f1": null
+            },
+            "Guard": {
+              "precision": 1.0,
+              "recall": 0.75,
+              "f1": 0.8571428571
+            }
+          }
+        },
+        "LLM": {
+          "overall": {
+            "precision": 1.0,
+            "recall": 0.5744680851,
+            "f1": 0.7297297297
+          },
+          "by_category": {
+            "Composite State": {
+              "precision": 1.0,
+              "recall": 0.5,
+              "f1": 0.6666666667
+            },
+            "State": {
+              "precision": 1.0,
+              "recall": 0.6666666667,
+              "f1": 0.8
+            },
+            "Transition": {
+              "precision": 1.0,
+              "recall": 0.6052631579,
+              "f1": 0.7540983607
+            },
+            "Action": {
+              "precision": 1.0,
+              "recall": 0.6428571429,
+              "f1": 0.7826086957
+            },
+            "Region": {
+              "precision": null,
+              "recall": 0.0,
+              "f1": null
+            },
+            "History State": {
+              "precision": null,
+              "recall": 0.0,
+              "f1": null
+            },
+            "Guard": {
+              "precision": 1.0,
+              "recall": 0.5,
+              "f1": 0.6666666667
+            }
+          }
+        }
+      }
+    },
+    "week_mar_4": {
+      "2_step": {
+        "Human": {
+          "overall": {
+            "precision": 0.9777777778,
+            "recall": 0.9361702128,
+            "f1": 0.9565217391
+          },
+          "by_category": {
+            "Composite State": {
+              "precision": 0.6666666667,
+              "recall": 1.0,
+              "f1": 0.8
+            },
+            "State": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            "Transition": {
+              "precision": 1.0,
+              "recall": 0.9473684211,
+              "f1": 0.972972973
+            },
+            "Action": {
+              "precision": 1.0,
+              "recall": 0.8571428571,
+              "f1": 0.9230769231
+            },
+            "Region": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            "History State": {
+              "precision": 1.0,
+              "recall": 0.5,
+              "f1": 0.6666666667
+            },
+            "Guard": {
+              "precision": 1.0,
+              "recall": 0.875,
+              "f1": 0.9333333333
+            }
+          }
+        },
+        "LLM": {
+          "overall": {
+            "precision": 1.0,
+            "recall": 0.6063829787,
+            "f1": 0.7549668874
+          },
+          "by_category": {
+            "Composite State": {
+              "precision": 1.0,
+              "recall": 0.5,
+              "f1": 0.6666666667
+            },
+            "State": {
+              "precision": 1.0,
+              "recall": 0.6666666667,
+              "f1": 0.8
+            },
+            "Transition": {
+              "precision": 1.0,
+              "recall": 0.6315789474,
+              "f1": 0.7741935484
+            },
+            "Action": {
+              "precision": 1.0,
+              "recall": 0.7142857143,
+              "f1": 0.8333333333
+            },
+            "Region": {
+              "precision": null,
+              "recall": 0.0,
+              "f1": null
+            },
+            "History State": {
+              "precision": 1.0,
+              "recall": 0.5,
+              "f1": 0.6666666667
+            },
+            "Guard": {
+              "precision": 1.0,
+              "recall": 0.5,
+              "f1": 0.6666666667
+            }
+          }
+        }
+      }
+    }
+  },
+  "Spa Manager": {
+    "week_feb_28": {
+      "1_step": {
+        "Human": {
+          "overall": {
+            "precision": 1.0,
+            "recall": 0.9659090909,
+            "f1": 0.9826589595
+          },
+          "by_category": {
+            "Composite State": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            "State": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            "Transition": {
+              "precision": 1.0,
+              "recall": 0.9,
+              "f1": 0.9473684211
+            },
+            "Action": {
+              "precision": null,
+              "recall": null,
+              "f1": null
+            },
+            "Region": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            "History State": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            "Guard": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            }
+          }
+        },
+        "LLM": {
+          "overall": {
+            "precision": 1.0,
+            "recall": 0.9545454545,
+            "f1": 0.976744186
+          },
+          "by_category": {
+            "Composite State": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            "State": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            "Transition": {
+              "precision": 1.0,
+              "recall": 0.9666666667,
+              "f1": 0.9830508475
+            },
+            "Action": {
+              "precision": null,
+              "recall": null,
+              "f1": null
+            },
+            "Region": {
+              "precision": 1.0,
+              "recall": 0.8,
+              "f1": 0.8888888889
+            },
+            "History State": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            "Guard": {
+              "precision": 1.0,
+              "recall": 0.875,
+              "f1": 0.9333333333
+            }
+          }
+        }
+      }
+    },
+    "week_mar_16": {
+      "2_step": {
+        "Human": {
+          "overall": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "by_category": {
+            "Composite State": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            "State": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            "Transition": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            "Action": {
+              "precision": null,
+              "recall": null,
+              "f1": null
+            },
+            "Region": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            "History State": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            "Guard": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            }
+          }
+        },
+        "LLM": {
+          "overall": {
+            "precision": 0.956043956,
+            "recall": 0.9886363636,
+            "f1": 0.9720670391
+          },
+          "by_category": {
+            "Composite State": {
+              "precision": 0.75,
+              "recall": 1.0,
+              "f1": 0.8571428571
+            },
+            "State": {
+              "precision": 0.9411764706,
+              "recall": 1.0,
+              "f1": 0.9696969697
+            },
+            "Transition": {
+              "precision": 1.0,
+              "recall": 0.9666666667,
+              "f1": 0.9830508475
+            },
+            "Action": {
+              "precision": null,
+              "recall": null,
+              "f1": null
+            },
+            "Region": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            "History State": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            "Guard": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            }
+          }
+        }
+      }
+    },
+    "week_mar_4": {
+      "2_step": {
+        "Human": {
+          "overall": {
+            "precision": 1.0,
+            "recall": 0.9659090909,
+            "f1": 0.9826589595
+          },
+          "by_category": {
+            "Composite State": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            "State": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            "Transition": {
+              "precision": 1.0,
+              "recall": 0.9666666667,
+              "f1": 0.9830508475
+            },
+            "Action": {
+              "precision": null,
+              "recall": null,
+              "f1": null
+            },
+            "Region": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            "History State": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            "Guard": {
+              "precision": 1.0,
+              "recall": 0.75,
+              "f1": 0.8571428571
+            }
+          }
+        },
+        "LLM": {
+          "overall": {
+            "precision": 0.9340659341,
+            "recall": 0.9659090909,
+            "f1": 0.9497206704
+          },
+          "by_category": {
+            "Composite State": {
+              "precision": 0.75,
+              "recall": 1.0,
+              "f1": 0.8571428571
+            },
+            "State": {
+              "precision": 0.9393939394,
+              "recall": 0.96875,
+              "f1": 0.9538461538
+            },
+            "Transition": {
+              "precision": 1.0,
+              "recall": 0.9666666667,
+              "f1": 0.9830508475
+            },
+            "Action": {
+              "precision": null,
+              "recall": null,
+              "f1": null
+            },
+            "Region": {
+              "precision": 0.8333333333,
+              "recall": 1.0,
+              "f1": 0.9090909091
+            },
+            "History State": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            "Guard": {
+              "precision": 1.0,
+              "recall": 0.875,
+              "f1": 0.9333333333
+            }
+          }
+        }
+      }
+    }
+  },
+  "Thermonix": {
+    "week_feb_28": {
+      "1_step": {
+        "Human": {
+          "overall": {
+            "precision": 1.0,
+            "recall": 0.5697674419,
+            "f1": 0.7259259259
+          },
+          "by_category": {
+            "Composite State": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            "State": {
+              "precision": 1.0,
+              "recall": 0.8181818182,
+              "f1": 0.9
+            },
+            "Transition": {
+              "precision": 1.0,
+              "recall": 0.5882352941,
+              "f1": 0.7407407407
+            },
+            "Action": {
+              "precision": 1.0,
+              "recall": 0.3333333333,
+              "f1": 0.5
+            },
+            "Region": {
+              "precision": null,
+              "recall": null,
+              "f1": null
+            },
+            "History State": {
+              "precision": null,
+              "recall": 0.0,
+              "f1": null
+            },
+            "Guard": {
+              "precision": 1.0,
+              "recall": 0.3571428571,
+              "f1": 0.5263157895
+            }
+          }
+        },
+        "LLM": {
+          "overall": {
+            "precision": 0.9259259259,
+            "recall": 0.5813953488,
+            "f1": 0.7142857143
+          },
+          "by_category": {
+            "Composite State": {
+              "precision": 0.5,
+              "recall": 1.0,
+              "f1": 0.6666666667
+            },
+            "State": {
+              "precision": 1.0,
+              "recall": 0.8636363636,
+              "f1": 0.9268292683
+            },
+            "Transition": {
+              "precision": 1.0,
+              "recall": 0.5294117647,
+              "f1": 0.6923076923
+            },
+            "Action": {
+              "precision": 0.6666666667,
+              "recall": 0.3333333333,
+              "f1": 0.4444444444
+            },
+            "Region": {
+              "precision": null,
+              "recall": null,
+              "f1": null
+            },
+            "History State": {
+              "precision": null,
+              "recall": 0.0,
+              "f1": null
+            },
+            "Guard": {
+              "precision": 1.0,
+              "recall": 0.5,
+              "f1": 0.6666666667
+            }
+          }
+        }
+      }
+    },
+    "week_mar_16": {
+      "2_step": {
+        "Human": {
+          "overall": {
+            "precision": 1.0,
+            "recall": 0.6279069767,
+            "f1": 0.7714285714
+          },
+          "by_category": {
+            "Composite State": {
+              "precision": null,
+              "recall": 0.0,
+              "f1": null
+            },
+            "State": {
+              "precision": 1.0,
+              "recall": 0.8181818182,
+              "f1": 0.9
+            },
+            "Transition": {
+              "precision": 1.0,
+              "recall": 0.8235294118,
+              "f1": 0.9032258065
+            },
+            "Action": {
+              "precision": 1.0,
+              "recall": 0.1666666667,
+              "f1": 0.2857142857
+            },
+            "Region": {
+              "precision": null,
+              "recall": null,
+              "f1": null
+            },
+            "History State": {
+              "precision": null,
+              "recall": 0.0,
+              "f1": null
+            },
+            "Guard": {
+              "precision": 1.0,
+              "recall": 0.4285714286,
+              "f1": 0.6
+            }
+          }
+        },
+        "LLM": {
+          "overall": {
+            "precision": 0.9285714286,
+            "recall": 0.6046511628,
+            "f1": 0.7323943662
+          },
+          "by_category": {
+            "Composite State": {
+              "precision": 0.0,
+              "recall": 0.0,
+              "f1": null
+            },
+            "State": {
+              "precision": 1.0,
+              "recall": 0.9545454545,
+              "f1": 0.976744186
+            },
+            "Transition": {
+              "precision": 0.9310344828,
+              "recall": 0.7941176471,
+              "f1": 0.8571428571
+            },
+            "Action": {
+              "precision": null,
+              "recall": 0.0,
+              "f1": null
+            },
+            "Region": {
+              "precision": null,
+              "recall": null,
+              "f1": null
+            },
+            "History State": {
+              "precision": null,
+              "recall": 0.0,
+              "f1": null
+            },
+            "Guard": {
+              "precision": 1.0,
+              "recall": 0.2857142857,
+              "f1": 0.4444444444
+            }
+          }
+        }
+      }
+    },
+    "week_mar_4": {
+      "2_step": {
+        "Human": {
+          "overall": {
+            "precision": 1.0,
+            "recall": 0.7906976744,
+            "f1": 0.8831168831
+          },
+          "by_category": {
+            "Composite State": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            "State": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            "Transition": {
+              "precision": 1.0,
+              "recall": 0.8823529412,
+              "f1": 0.9375
+            },
+            "Action": {
+              "precision": 1.0,
+              "recall": 0.6666666667,
+              "f1": 0.8
+            },
+            "Region": {
+              "precision": null,
+              "recall": null,
+              "f1": null
+            },
+            "History State": {
+              "precision": null,
+              "recall": 0.0,
+              "f1": null
+            },
+            "Guard": {
+              "precision": 1.0,
+              "recall": 0.4285714286,
+              "f1": 0.6
+            }
+          }
+        },
+        "LLM": {
+          "overall": {
+            "precision": 0.9322033898,
+            "recall": 0.6395348837,
+            "f1": 0.7586206897
+          },
+          "by_category": {
+            "Composite State": {
+              "precision": 0.5,
+              "recall": 1.0,
+              "f1": 0.6666666667
+            },
+            "State": {
+              "precision": 0.9166666667,
+              "recall": 1.0,
+              "f1": 0.9565217391
+            },
+            "Transition": {
+              "precision": 1.0,
+              "recall": 0.7352941176,
+              "f1": 0.8474576271
+            },
+            "Action": {
+              "precision": null,
+              "recall": 0.0,
+              "f1": null
+            },
+            "Region": {
+              "precision": null,
+              "recall": null,
+              "f1": null
+            },
+            "History State": {
+              "precision": null,
+              "recall": 0.0,
+              "f1": null
+            },
+            "Guard": {
+              "precision": 1.0,
+              "recall": 0.4285714286,
+              "f1": 0.6
+            }
+          }
+        }
+      }
+    }
+  },
+  "Train Automation System": {
+    "week_feb_28": {
+      "1_step": {
+        "Human": {
+          "overall": {
+            "precision": 1.0,
+            "recall": 0.6,
+            "f1": 0.75
+          },
+          "by_category": {
+            "Composite State": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            "State": {
+              "precision": 1.0,
+              "recall": 0.5882352941,
+              "f1": 0.7407407407
+            },
+            "Transition": {
+              "precision": 1.0,
+              "recall": 0.5,
+              "f1": 0.6666666667
+            },
+            "Action": {
+              "precision": 1.0,
+              "recall": 0.7083333333,
+              "f1": 0.8292682927
+            },
+            "Region": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            "History State": {
+              "precision": null,
+              "recall": 0.0,
+              "f1": null
+            },
+            "Guard": {
+              "precision": 1.0,
+              "recall": 0.5357142857,
+              "f1": 0.6976744186
+            }
+          }
+        },
+        "LLM": {
+          "overall": {
+            "precision": 0.9154929577,
+            "recall": 0.4642857143,
+            "f1": 0.6161137441
+          },
+          "by_category": {
+            "Composite State": {
+              "precision": 1.0,
+              "recall": 0.5,
+              "f1": 0.6666666667
+            },
+            "State": {
+              "precision": 0.8095238095,
+              "recall": 0.5,
+              "f1": 0.6181818182
+            },
+            "Transition": {
+              "precision": 1.0,
+              "recall": 0.5,
+              "f1": 0.6666666667
+            },
+            "Action": {
+              "precision": 0.75,
+              "recall": 0.25,
+              "f1": 0.375
+            },
+            "Region": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            "History State": {
+              "precision": null,
+              "recall": 0.0,
+              "f1": null
+            },
+            "Guard": {
+              "precision": 1.0,
+              "recall": 0.4285714286,
+              "f1": 0.6
+            }
+          }
+        }
+      }
+    },
+    "week_mar_16": {
+      "2_step": {
+        "Human": {
+          "overall": {
+            "precision": 1.0,
+            "recall": 0.8428571429,
+            "f1": 0.9147286822
+          },
+          "by_category": {
+            "Composite State": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            "State": {
+              "precision": 1.0,
+              "recall": 0.8529411765,
+              "f1": 0.9206349206
+            },
+            "Transition": {
+              "precision": 1.0,
+              "recall": 0.875,
+              "f1": 0.9333333333
+            },
+            "Action": {
+              "precision": 1.0,
+              "recall": 0.7916666667,
+              "f1": 0.8837209302
+            },
+            "Region": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            "History State": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            "Guard": {
+              "precision": 1.0,
+              "recall": 0.75,
+              "f1": 0.8571428571
+            }
+          }
+        },
+        "LLM": {
+          "overall": {
+            "precision": 1.0,
+            "recall": 0.5142857143,
+            "f1": 0.679245283
+          },
+          "by_category": {
+            "Composite State": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            "State": {
+              "precision": 1.0,
+              "recall": 0.3823529412,
+              "f1": 0.5531914894
+            },
+            "Transition": {
+              "precision": 1.0,
+              "recall": 0.5,
+              "f1": 0.6666666667
+            },
+            "Action": {
+              "precision": 1.0,
+              "recall": 0.375,
+              "f1": 0.5454545455
+            },
+            "Region": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            "History State": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            "Guard": {
+              "precision": 1.0,
+              "recall": 0.5714285714,
+              "f1": 0.7272727273
+            }
+          }
+        }
+      }
+    },
+    "week_mar_4": {
+      "2_step": {
+        "Human": {
+          "overall": {
+            "precision": 0.94,
+            "recall": 0.6714285714,
+            "f1": 0.7833333333
+          },
+          "by_category": {
+            "Composite State": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            "State": {
+              "precision": 0.9333333333,
+              "recall": 0.8235294118,
+              "f1": 0.875
+            },
+            "Transition": {
+              "precision": 0.9166666667,
+              "recall": 0.55,
+              "f1": 0.6875
+            },
+            "Action": {
+              "precision": 1.0,
+              "recall": 0.7083333333,
+              "f1": 0.8292682927
+            },
+            "Region": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            "History State": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            "Guard": {
+              "precision": 0.8666666667,
+              "recall": 0.4642857143,
+              "f1": 0.6046511628
+            }
+          }
+        },
+        "LLM": {
+          "overall": {
+            "precision": 1.0,
+            "recall": 0.4642857143,
+            "f1": 0.6341463415
+          },
+          "by_category": {
+            "Composite State": {
+              "precision": 1.0,
+              "recall": 0.5,
+              "f1": 0.6666666667
+            },
+            "State": {
+              "precision": 1.0,
+              "recall": 0.5294117647,
+              "f1": 0.6923076923
+            },
+            "Transition": {
+              "precision": 1.0,
+              "recall": 0.425,
+              "f1": 0.5964912281
+            },
+            "Action": {
+              "precision": 1.0,
+              "recall": 0.4583333333,
+              "f1": 0.6285714286
+            },
+            "Region": {
+              "precision": 1.0,
+              "recall": 0.75,
+              "f1": 0.8571428571
+            },
+            "History State": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            "Guard": {
+              "precision": 1.0,
+              "recall": 0.3214285714,
+              "f1": 0.4864864865
+            }
+          }
+        }
+      }
+    }
+  },
+  "printer": {
+    "week_feb_28": {
+      "1_step": {
+        "Human": {
+          "overall": {
+            "precision": 1.0,
+            "recall": 0.6973684211,
+            "f1": 0.8217054264
+          },
+          "by_category": {
+            "Composite State": {
+              "precision": 1.0,
+              "recall": 0.5,
+              "f1": 0.6666666667
+            },
+            "State": {
+              "precision": 1.0,
+              "recall": 0.8888888889,
+              "f1": 0.9411764706
+            },
+            "Transition": {
+              "precision": 1.0,
+              "recall": 0.6470588235,
+              "f1": 0.7857142857
+            },
+            "Action": {
+              "precision": null,
+              "recall": 0.0,
+              "f1": null
+            },
+            "Region": {
+              "precision": null,
+              "recall": null,
+              "f1": null
+            },
+            "History State": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            "Guard": {
+              "precision": 1.0,
+              "recall": 0.9166666667,
+              "f1": 0.9565217391
+            }
+          }
+        },
+        "LLM": {
+          "overall": {
+            "precision": 0.9523809524,
+            "recall": 0.5263157895,
+            "f1": 0.6779661017
+          },
+          "by_category": {
+            "Composite State": {
+              "precision": 1.0,
+              "recall": 0.5,
+              "f1": 0.6666666667
+            },
+            "State": {
+              "precision": 0.8666666667,
+              "recall": 0.7222222222,
+              "f1": 0.7878787879
+            },
+            "Transition": {
+              "precision": 1.0,
+              "recall": 0.4411764706,
+              "f1": 0.612244898
+            },
+            "Action": {
+              "precision": null,
+              "recall": 0.0,
+              "f1": null
+            },
+            "Region": {
+              "precision": null,
+              "recall": null,
+              "f1": null
+            },
+            "History State": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            "Guard": {
+              "precision": 1.0,
+              "recall": 0.6666666667,
+              "f1": 0.8
+            }
+          }
+        }
+      }
+    },
+    "week_mar_16": {
+      "2_step": {
+        "Human": {
+          "overall": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0
+          },
+          "by_category": {
+            "Composite State": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            "State": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            "Transition": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            "Action": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            "Region": {
+              "precision": null,
+              "recall": null,
+              "f1": null
+            },
+            "History State": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            "Guard": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            }
+          }
+        },
+        "LLM": {
+          "overall": {
+            "precision": 1.0,
+            "recall": 0.7567567568,
+            "f1": 0.8615384615
+          },
+          "by_category": {
+            "Composite State": {
+              "precision": 1.0,
+              "recall": 0.75,
+              "f1": 0.8571428571
+            },
+            "State": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            "Transition": {
+              "precision": 1.0,
+              "recall": 0.8529411765,
+              "f1": 0.9206349206
+            },
+            "Action": {
+              "precision": null,
+              "recall": 0.0,
+              "f1": null
+            },
+            "Region": {
+              "precision": null,
+              "recall": null,
+              "f1": null
+            },
+            "History State": {
+              "precision": null,
+              "recall": 0.0,
+              "f1": null
+            },
+            "Guard": {
+              "precision": 1.0,
+              "recall": 0.6666666667,
+              "f1": 0.8
+            }
+          }
+        }
+      }
+    },
+    "week_mar_4": {
+      "2_step": {
+        "Human": {
+          "overall": {
+            "precision": 0.9736842105,
+            "recall": 1.0,
+            "f1": 0.9866666667
+          },
+          "by_category": {
+            "Composite State": {
+              "precision": 0.6666666667,
+              "recall": 1.0,
+              "f1": 0.8
+            },
+            "State": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            "Transition": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            "Action": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            "Region": {
+              "precision": null,
+              "recall": null,
+              "f1": null
+            },
+            "History State": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            "Guard": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            }
+          }
+        },
+        "LLM": {
+          "overall": {
+            "precision": 1.0,
+            "recall": 0.5810810811,
+            "f1": 0.735042735
+          },
+          "by_category": {
+            "Composite State": {
+              "precision": 1.0,
+              "recall": 0.75,
+              "f1": 0.8571428571
+            },
+            "State": {
+              "precision": 1.0,
+              "recall": 0.75,
+              "f1": 0.8571428571
+            },
+            "Transition": {
+              "precision": 1.0,
+              "recall": 0.5588235294,
+              "f1": 0.7169811321
+            },
+            "Action": {
+              "precision": null,
+              "recall": 0.0,
+              "f1": null
+            },
+            "Region": {
+              "precision": null,
+              "recall": null,
+              "f1": null
+            },
+            "History State": {
+              "precision": 1.0,
+              "recall": 0.5,
+              "f1": 0.6666666667
+            },
+            "Guard": {
+              "precision": 1.0,
+              "recall": 0.6666666667,
+              "f1": 0.8
+            }
+          }
+        }
+      }
+    }
+  },
+  "SSC7": {
+    "week_mar_16": {
+      "2_step": {
+        "Human": {
+          "overall": {
+            "precision": 1.0,
+            "recall": 0.8939393939,
+            "f1": 0.944
+          },
+          "by_category": {
+            "Composite State": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            "State": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            "Transition": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 0.8333333333
+            },
+            "Action": {
+              "precision": 1.0,
+              "recall": 0.7142857143,
+              "f1": null
+            },
+            "Region": {
+              "precision": null,
+              "recall": null,
+              "f1": null
+            },
+            "History State": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            "Guard": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": null
+            }
+          }
+        },
+        "LLM": {
+          "overall": {
+            "precision": 0.936,
+            "recall": 0.8863636364,
+            "f1": 0.9105058366
+          },
+          "by_category": {
+            "Composite State": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            "State": {
+              "precision": 0.8181818182,
+              "recall": 1.0,
+              "f1": 0.9
+            },
+            "Transition": {
+              "precision": 0.9574468085,
+              "recall": 0.9782608696,
+              "f1": 0.9677419355
+            },
+            "Action": {
+              "precision": 0.935483871,
+              "recall": 0.6904761905,
+              "f1": 0.7945205479
+            },
+            "Region": {
+              "precision": null,
+              "recall": null,
+              "f1": null
+            },
+            "History State": {
+              "precision": 1.0,
+              "recall": 0.5,
+              "f1": 0.6666666667
+            },
+            "Guard": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            }
+          }
+        }
+      }
+    }
+  },
+  "Wumple": {
+    "week_mar_16": {
+      "2_step": {
+        "Human": {
+          "overall": {
+            "precision": 0.9760479042,
+            "recall": 0.7546296296,
+            "f1": 0.8511749347
+          },
+          "by_category": {
+            "Composite State": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            "State": {
+              "precision": 1.0,
+              "recall": 0.9375,
+              "f1": 0.9677419355
+            },
+            "Transition": {
+              "precision": 1.0,
+              "recall": 0.9324324324,
+              "f1": 0.965034965
+            },
+            "Action": {
+              "precision": 1.0,
+              "recall": 0.5972222222,
+              "f1": 0.747826087
+            },
+            "Region": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            "History State": {
+              "precision": 0.3333333333,
+              "recall": 1.0,
+              "f1": 0.5
+            },
+            "Guard": {
+              "precision": null,
+              "recall": 0.0,
+              "f1": null
+            }
+          }
+        },
+        "LLM": {
+          "overall": {
+            "precision": 1.0,
+            "recall": 0.6481481481,
+            "f1": 0.7865168539
+          },
+          "by_category": {
+            "Composite State": {
+              "precision": 1.0,
+              "recall": 0.8,
+              "f1": 0.8888888889
+            },
+            "State": {
+              "precision": 1.0,
+              "recall": 0.9375,
+              "f1": 0.9677419355
+            },
+            "Transition": {
+              "precision": 1.0,
+              "recall": 0.8918918919,
+              "f1": 0.9428571429
+            },
+            "Action": {
+              "precision": 1.0,
+              "recall": 0.1805555556,
+              "f1": 0.3058823529
+            },
+            "Region": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            "History State": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0
+            },
+            "Guard": {
+              "precision": 1.0,
+              "recall": 0.3333333333,
+              "f1": 0.5
+            }
+          }
+        }
+      }
+    }
+  }
+}
