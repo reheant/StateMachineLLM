@@ -1015,7 +1015,14 @@ async function handleExampleChange(key: string) {
                 : "border-white/[0.12] bg-white/[0.08] shadow-black/40"
             )}
           >
-            <span className="mt-0.5 rounded-full bg-red-500/15 p-1.5 text-red-300">
+            <span
+              className={cn(
+                "mt-0.5 rounded-full p-1.5",
+                toast.kind === "error"
+                  ? "bg-red-500/15 text-red-300"
+                  : "bg-white/10 text-white/60"
+              )}
+            >
               <AlertTriangle className="h-4 w-4" />
             </span>
             <div className="flex-1 space-y-1">
