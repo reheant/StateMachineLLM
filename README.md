@@ -1,141 +1,73 @@
-# AutoState: State Machine-Driven LLM Framework for UML Modeling Automation
+# AutoState: LLM-Based UML State Machine Generator
 
-## Library Overview
+AutoState automates the creation of UML State Machines from textual system descriptions using Large Language Models. It uses structured prompting techniques and an automatic F1-score grading system to evaluate output quality.
 
-This library aims to automate the creation of UML State Machines using Large Language Models (LLMs) through an innovative State Machine Framework (SMF). The primary goal is to streamline the model-driven engineering process by reducing the time and expertise required to generate accurate UML state machines from textual system descriptions.
+## Technologies
 
-## Motivation
-
-Traditional methods of creating state machines using LLMs often suffer from:
-- Hallucinations and inaccurate modeling
-- Lack of structured approach to complex modeling tasks
-- Time-consuming and expertise-intensive processes
-
-Our solution embeds a state machine within the LLM decision-making process to:
-- Reduce hallucinations
-- Break down complex tasks into manageable subtasks
-- Provide a more structured approach to software modeling
-
-## Technologies Used
-
-- **Programming Languages:**
-  - Python, TypeScript
-
-- **Libraries and Frameworks:**
-  - Sherpa (LLM task automation library)
-  - Chainlit (Web UI framework — legacy)
-  - **Tracer** (Next.js 16 + React 19 web UI — current)
-  - FastAPI (Backend API server)
-  - AI suite (Unified interface to multiple Generative AI providers)
-  - Mermaid (Diagram generation)
-
-- **Development Tools:**
-  - VSCode
+- **Backend:** Python, FastAPI, Sherpa (LLM task automation)
+- **Frontend:** Next.js 16, React 19, Tailwind CSS, shadcn/ui
+- **LLM Access:** OpenRouter (unified API for Claude, GPT-4, Llama, etc.)
+- **Diagram Parsing:** mermaid-parser-py (sibling dependency)
+- **Diagram Rendering:** Mermaid, Graphviz
 
 ## Key Features
 
-- Automated UML State Machine Generation
-- Multiple Prompting Techniques
-  - Zero-shot
-  - One-shot
-  - Two-shot
-  - Three-shot
-  - Chain-of-Thought Prompting
-- Interactive Web UI
-- Customizable State Machine Generation
-- Performance Evaluation using F1-Scores
+- UML State Machine generation from natural language descriptions
+- Single-prompt and two-shot prompting techniques
+- Automatic grading using F1-scores (states, transitions, hierarchical states)
+- Interactive web UI with live diagram preview
+- Environmental impact tracking (CO2 per run)
 
-## Installation and Setup
+## Setup
 
-### 🐳 Docker Setup (Recommended)
+### Docker (Recommended)
 
-**For the easiest setup that works across all platforms**, use Docker:
+Both repos must be cloned as sibling directories:
+
+```
+your-workspace/
+├── StateMachineLLM/
+└── mermaid-parser-py/
+```
 
 ```bash
-# Create workspace and clone both repositories
 mkdir autostate-workspace && cd autostate-workspace
-
-# Clone main repository
 git clone https://github.com/reheant/StateMachineLLM.git
-
-# Clone mermaid-parser dependency (required as sibling directory)
 git clone https://github.com/YOUR-ORG/mermaid-parser-py.git
 
-# Configure and run
 cd StateMachineLLM
 cp .env.example .env
-# Edit .env and add your API keys
+# Add your OPENROUTER_API_KEY to .env
 
-# Build and run with Docker
 docker-compose up --build
 ```
 
-Then open http://localhost:8000 in your browser.
+Open http://localhost:3000 in your browser.
 
-📖 **See [DOCKER_SETUP.md](DOCKER_SETUP.md) for detailed Docker instructions and troubleshooting.**
+See [DOCKER_SETUP.md](DOCKER_SETUP.md) for detailed instructions and troubleshooting.
 
 ---
 
-### Manual Installation
+### Manual Setup
 
-#### Prerequisites
-
-- Python 3.11 (required for some dependencies)
-- API Key for the LLM you will use
-
-#### Setup
-
-#### For macOS:
+**Prerequisites:** Python 3.11, Node.js 18+, GraphViz
 
 ```bash
-# Clone the repository
+# Install GraphViz
+brew install graphviz          # macOS
+sudo apt install graphviz      # Ubuntu/Debian
+
+# Clone both repos as siblings
 git clone https://github.com/reheant/StateMachineLLM.git
+git clone https://github.com/YOUR-ORG/mermaid-parser-py.git
 
-# Verify Python is installed
-python3 --version
-
-# Enter the directory
 cd StateMachineLLM
+cp .env.example .env
+# Add your OPENROUTER_API_KEY to .env
 
-# Download dependencies (use python3 -m pip to ensure correct version)
+# Install Python dependencies
 python3 -m pip install -r requirements.txt
 
-# If you encounter Pydantic compatibility issues, run:
-python3 -m pip install --upgrade pydantic==2.8.2
-
-# Launch UI
-chainlit run app.py -w
-```
-
-#### For Windows:
-
-```bash
-# Clone the repository
-git clone https://github.com/ECSE458-Multi-Agent-LLM/llm
-
-# Verify Python is installed
-python3 --version
-pip --version
-
-# Enter the directory
-cd llm
-
-# Download dependencies
-pip install -r requirements.txt
-
-# Configure virtual environment
-mv .env.example to .env
-export OPENAI_API_KEY='your-api-key'
-
-# Launch UI
-chainlit run app.py -w
-```
-
-### Tracer Frontend (Current UI)
-
-The Next.js web UI lives in `frontend/`. It requires the FastAPI backend running on port 8000.
-
-```bash
 # Terminal 1 — backend
 uvicorn server:app --reload --port 8000
 
@@ -145,62 +77,24 @@ npm install
 npm run dev
 ```
 
-Then open **http://localhost:3000** in your browser.
+Open http://localhost:3000 in your browser.
 
-> See [`frontend/README.md`](frontend/README.md) for full frontend documentation.
+See [OPENROUTER_SETUP.md](OPENROUTER_SETUP.md) for API key setup and available models.
 
 ---
 
-### Chainlit UI (Legacy)
-
-The original Chainlit interface is still available:
-
-```bash
-chainlit run app.py -w
-```
-
-Then open **http://localhost:8000** in your browser.
-
-
-## Usage
-
-```python
-# change the description to your use case in event_driven_smf.py or simple_linear_smf.py
-description = desired description
-if __name__ == "__main__":
-    run_simple_linear_smf() # or run_event_driven_smf() 
-# Choose your required LLM in the terminal
-```
-
 ## Performance Metrics
 
-Our framework has achieved:
-- States F1-Score: Up to 0.94
-- Transitions F1-Score: Up to 0.69
-- Hierarchical States F1-Score: Up to 0.67
-
-## Ethical Considerations
-
-We are committed to:
-- Minimizing bias in generated models
-- Ensuring transparency in AI-generated outputs
-- Providing clear documentation of generation processes
-- Creating an assistive tool, not a replacement for human engineering
+- States F1-Score: up to 0.94
+- Transitions F1-Score: up to 0.69
+- Hierarchical States F1-Score: up to 0.67
 
 ## License
 
 MIT License
 
-## Contributing
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
 ## Contact
 
-Project Link: [https://github.com/ECSE458-Multi-Agent-LLM/llm](https://github.com/ECSE458-Multi-Agent-LLM/llm)
+Project Link: [https://github.com/reheant/StateMachineLLM](https://github.com/reheant/StateMachineLLM)
 
 Advisor: gunter.mussbacher@mcgill.ca

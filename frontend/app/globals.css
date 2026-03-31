@@ -47,6 +47,14 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
+@layer base {
+  button, a, label, select,
+  [role="button"], [role="switch"], [role="tab"], [role="option"],
+  [tabindex]:not([tabindex="-1"]) {
+    cursor: pointer;
+  }
+}
+
 :root {
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);

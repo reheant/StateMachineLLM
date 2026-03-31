@@ -8,15 +8,9 @@ sys.path.append(os.path.dirname(__file__))
 sys.path.append(os.path.join(os.path.dirname(__file__), "resources"))
 
 from resources.util import (
-    call_llm,
     call_openrouter_llm,
     setup_file_paths,
-    process_umple_attempt,
-    umpleCodeProcessing,
-    umpleCodeSearch,
-    graphVizGeneration,
     mermaidCodeSearch,
-    mermaidDiagramGeneration,
     create_single_prompt_gsm_diagram_with_sherpa,
 )
 from resources.prompts.single_prompt.custom_mermaid_syntax import mermaid_syntax

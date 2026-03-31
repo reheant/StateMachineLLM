@@ -1,6 +1,6 @@
-# OpenRouter Setup for Single Prompt Technique
+# OpenRouter Setup
 
-The single prompt technique now uses OpenRouter instead of direct OpenAI/Claude APIs. This allows you to access multiple models through a single API key.
+The backend uses OpenRouter to access LLMs, giving you a single API key for Claude, GPT-4, Llama, and more.
 
 ## Setup Instructions
 
@@ -55,17 +55,12 @@ The single prompt technique now uses OpenRouter instead of direct OpenAI/Claude 
    - `meta-llama/llama-3.2-3b-instruct`
    - `google/gemini-pro-1.5`
 
-6. **Usage:**
+6. **Start the backend:**
    ```bash
-   cd backend
-   python single_prompt.py
+   uvicorn server:app --reload --port 8000
    ```
-
-   The single prompt technique will now use OpenRouter instead of the main app's LLM configuration.
 
 ## Notes
 
-- This change only affects the `single_prompt.py` file
-- The main `app.py` still uses the original aisuite configuration
 - OpenRouter provides unified access to multiple AI models through a single API
 - Billing is handled through OpenRouter's pricing structure
