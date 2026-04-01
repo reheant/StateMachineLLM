@@ -1,7 +1,7 @@
 {
   "Automatic Bread Maker": {
     "week_feb_28": {
-      "1_step": {
+      "1_stage": {
         "Human": {
           "overall": {
             "precision": 1.0,
@@ -89,11 +89,23 @@
               "f1": 1.0
             }
           }
+        },
+        "weighted_cohens_kappa": {
+          "overall": 0.7674418605,
+          "by_category": {
+            "Composite State": 1.0,
+            "State": 0.5517241379,
+            "Transition": 0.7747035573,
+            "Action": null,
+            "Region": null,
+            "History State": null,
+            "Guard": 0.5454545455
+          }
         }
       }
     },
     "week_mar_16": {
-      "2_step": {
+      "2_stage": {
         "Human": {
           "overall": {
             "precision": 1.0,
@@ -181,11 +193,23 @@
               "f1": 0.8571428571
             }
           }
+        },
+        "weighted_cohens_kappa": {
+          "overall": 0.6806039489,
+          "by_category": {
+            "Composite State": 1.0,
+            "State": 0.6486486486,
+            "Transition": 0.6885245902,
+            "Action": null,
+            "Region": null,
+            "History State": 0.0,
+            "Guard": 0.5454545455
+          }
         }
       }
     },
     "week_mar_4": {
-      "2_step": {
+      "2_stage": {
         "Human": {
           "overall": {
             "precision": 1.0,
@@ -273,13 +297,25 @@
               "f1": 1.0
             }
           }
+        },
+        "weighted_cohens_kappa": {
+          "overall": 0.8833097595,
+          "by_category": {
+            "Composite State": 0.7142857143,
+            "State": 1.0,
+            "Transition": 0.8143322476,
+            "Action": null,
+            "Region": null,
+            "History State": null,
+            "Guard": 1.0
+          }
         }
       }
     }
   },
   "Chess Clock": {
     "week_feb_28": {
-      "1_step": {
+      "1_stage": {
         "Human": {
           "overall": {
             "precision": 1.0,
@@ -367,11 +403,23 @@
               "f1": null
             }
           }
+        },
+        "weighted_cohens_kappa": {
+          "overall": 0.6107784431,
+          "by_category": {
+            "Composite State": 1.0,
+            "State": 0.5962732919,
+            "Transition": 0.7169811321,
+            "Action": null,
+            "Region": null,
+            "History State": 1.0,
+            "Guard": null
+          }
         }
       }
     },
     "week_mar_16": {
-      "2_step": {
+      "2_stage": {
         "Human": {
           "overall": {
             "precision": 1.0,
@@ -459,11 +507,23 @@
               "f1": 0.6666666667
             }
           }
+        },
+        "weighted_cohens_kappa": {
+          "overall": 1.0,
+          "by_category": {
+            "Composite State": null,
+            "State": 1.0,
+            "Transition": 1.0,
+            "Action": null,
+            "Region": 1.0,
+            "History State": null,
+            "Guard": null
+          }
         }
       }
     },
     "week_mar_4": {
-      "2_step": {
+      "2_stage": {
         "Human": {
           "overall": {
             "precision": 0.9759036145,
@@ -551,13 +611,25 @@
               "f1": 0.6666666667
             }
           }
+        },
+        "weighted_cohens_kappa": {
+          "overall": 0.8813131313,
+          "by_category": {
+            "Composite State": null,
+            "State": 1.0,
+            "Transition": 0.7575757576,
+            "Action": null,
+            "Region": 1.0,
+            "History State": null,
+            "Guard": null
+          }
         }
       }
     }
   },
   "Dishwasher": {
     "week_feb_28": {
-      "1_step": {
+      "1_stage": {
         "Human": {
           "overall": {
             "precision": 1.0,
@@ -645,11 +717,23 @@
               "f1": 0.6666666667
             }
           }
+        },
+        "weighted_cohens_kappa": {
+          "overall": 0.4813338166,
+          "by_category": {
+            "Composite State": 0.4,
+            "State": 0.25,
+            "Transition": 0.6029850746,
+            "Action": null,
+            "Region": 0.0,
+            "History State": 0.0,
+            "Guard": 0.5454545455
+          }
         }
       }
     },
     "week_mar_16": {
-      "2_step": {
+      "2_stage": {
         "Human": {
           "overall": {
             "precision": 1.0,
@@ -737,11 +821,23 @@
               "f1": 0.6666666667
             }
           }
+        },
+        "weighted_cohens_kappa": {
+          "overall": 0.7024793388,
+          "by_category": {
+            "Composite State": 0.4,
+            "State": 0.8311688312,
+            "Transition": 0.7872340426,
+            "Action": null,
+            "Region": 0.0,
+            "History State": null,
+            "Guard": 0.6153846154
+          }
         }
       }
     },
     "week_mar_4": {
-      "2_step": {
+      "2_stage": {
         "Human": {
           "overall": {
             "precision": 0.9777777778,
@@ -829,13 +925,25 @@
               "f1": 0.6666666667
             }
           }
+        },
+        "weighted_cohens_kappa": {
+          "overall": 0.3529411765,
+          "by_category": {
+            "Composite State": 0.0,
+            "State": 0.2352941176,
+            "Transition": 0.2682926829,
+            "Action": null,
+            "Region": 0.0,
+            "History State": 1.0,
+            "Guard": 0.4444444444
+          }
         }
       }
     }
   },
   "Spa Manager": {
     "week_feb_28": {
-      "1_step": {
+      "1_stage": {
         "Human": {
           "overall": {
             "precision": 1.0,
@@ -923,11 +1031,23 @@
               "f1": 0.9333333333
             }
           }
+        },
+        "weighted_cohens_kappa": {
+          "overall": 0.819020582,
+          "by_category": {
+            "Composite State": 1.0,
+            "State": 1.0,
+            "Transition": 0.4285714286,
+            "Action": null,
+            "Region": 1.0,
+            "History State": 1.0,
+            "Guard": 0.7368421053
+          }
         }
       }
     },
     "week_mar_16": {
-      "2_step": {
+      "2_stage": {
         "Human": {
           "overall": {
             "precision": 1.0,
@@ -1015,11 +1135,23 @@
               "f1": 1.0
             }
           }
+        },
+        "weighted_cohens_kappa": {
+          "overall": 0.7725245317,
+          "by_category": {
+            "Composite State": null,
+            "State": 0.0,
+            "Transition": 0.7837837838,
+            "Action": null,
+            "Region": 1.0,
+            "History State": 1.0,
+            "Guard": 1.0
+          }
         }
       }
     },
     "week_mar_4": {
-      "2_step": {
+      "2_stage": {
         "Human": {
           "overall": {
             "precision": 1.0,
@@ -1107,13 +1239,25 @@
               "f1": 0.9333333333
             }
           }
+        },
+        "weighted_cohens_kappa": {
+          "overall": 0.6688311688,
+          "by_category": {
+            "Composite State": 0.0,
+            "State": -0.04081632653,
+            "Transition": 1.0,
+            "Action": null,
+            "Region": null,
+            "History State": 1.0,
+            "Guard": 0.7619047619
+          }
         }
       }
     }
   },
   "Thermonix": {
     "week_feb_28": {
-      "1_step": {
+      "1_stage": {
         "Human": {
           "overall": {
             "precision": 1.0,
@@ -1201,11 +1345,23 @@
               "f1": 0.6666666667
             }
           }
+        },
+        "weighted_cohens_kappa": {
+          "overall": 0.6597277822,
+          "by_category": {
+            "Composite State": 0.0,
+            "State": 0.49,
+            "Transition": 0.4444444444,
+            "Action": null,
+            "Region": null,
+            "History State": null,
+            "Guard": 0.7333333333
+          }
         }
       }
     },
     "week_mar_16": {
-      "2_step": {
+      "2_stage": {
         "Human": {
           "overall": {
             "precision": 1.0,
@@ -1293,11 +1449,23 @@
               "f1": 0.4444444444
             }
           }
+        },
+        "weighted_cohens_kappa": {
+          "overall": 0.7564935065,
+          "by_category": {
+            "Composite State": 0.0,
+            "State": null,
+            "Transition": 0.7476635514,
+            "Action": null,
+            "Region": null,
+            "History State": null,
+            "Guard": 0.6666666667
+          }
         }
       }
     },
     "week_mar_4": {
-      "2_step": {
+      "2_stage": {
         "Human": {
           "overall": {
             "precision": 1.0,
@@ -1385,13 +1553,25 @@
               "f1": 0.6
             }
           }
+        },
+        "weighted_cohens_kappa": {
+          "overall": 0.4230072464,
+          "by_category": {
+            "Composite State": 0.0,
+            "State": null,
+            "Transition": 0.262295082,
+            "Action": null,
+            "Region": null,
+            "History State": null,
+            "Guard": 0.0
+          }
         }
       }
     }
   },
   "Train Automation System": {
     "week_feb_28": {
-      "1_step": {
+      "1_stage": {
         "Human": {
           "overall": {
             "precision": 1.0,
@@ -1479,11 +1659,23 @@
               "f1": 0.6
             }
           }
+        },
+        "weighted_cohens_kappa": {
+          "overall": 0.2482245519,
+          "by_category": {
+            "Composite State": 0.4,
+            "State": 0.1052631579,
+            "Transition": -0.1170212766,
+            "Action": null,
+            "Region": 1.0,
+            "History State": null,
+            "Guard": 0.1333333333
+          }
         }
       }
     },
     "week_mar_16": {
-      "2_step": {
+      "2_stage": {
         "Human": {
           "overall": {
             "precision": 1.0,
@@ -1571,11 +1763,23 @@
               "f1": 0.7272727273
             }
           }
+        },
+        "weighted_cohens_kappa": {
+          "overall": 0.4177169607,
+          "by_category": {
+            "Composite State": 1.0,
+            "State": 0.2340425532,
+            "Transition": 0.2588235294,
+            "Action": null,
+            "Region": 1.0,
+            "History State": 1.0,
+            "Guard": 0.6231155779
+          }
         }
       }
     },
     "week_mar_4": {
-      "2_step": {
+      "2_stage": {
         "Human": {
           "overall": {
             "precision": 0.94,
@@ -1663,13 +1867,25 @@
               "f1": 0.4864864865
             }
           }
+        },
+        "weighted_cohens_kappa": {
+          "overall": 0.5119453925,
+          "by_category": {
+            "Composite State": 0.4,
+            "State": 0.1264367816,
+            "Transition": 0.6711409396,
+            "Action": null,
+            "Region": 0.5454545455,
+            "History State": 1.0,
+            "Guard": 0.5945945946
+          }
         }
       }
     }
   },
   "printer": {
     "week_feb_28": {
-      "1_step": {
+      "1_stage": {
         "Human": {
           "overall": {
             "precision": 1.0,
@@ -1757,11 +1973,23 @@
               "f1": 0.8
             }
           }
+        },
+        "weighted_cohens_kappa": {
+          "overall": 0.5581395349,
+          "by_category": {
+            "Composite State": 1.0,
+            "State": -0.2173913043,
+            "Transition": 0.46,
+            "Action": null,
+            "Region": null,
+            "History State": 1.0,
+            "Guard": 0.487804878
+          }
         }
       }
     },
     "week_mar_16": {
-      "2_step": {
+      "2_stage": {
         "Human": {
           "overall": {
             "precision": 1.0,
@@ -1849,11 +2077,23 @@
               "f1": 0.8
             }
           }
+        },
+        "weighted_cohens_kappa": {
+          "overall": 0.4974619289,
+          "by_category": {
+            "Composite State": 0.6666666667,
+            "State": null,
+            "Transition": 0.3918918919,
+            "Action": null,
+            "Region": null,
+            "History State": 0.0,
+            "Guard": 0.3636363636
+          }
         }
       }
     },
     "week_mar_4": {
-      "2_step": {
+      "2_stage": {
         "Human": {
           "overall": {
             "precision": 0.9736842105,
@@ -1941,13 +2181,25 @@
               "f1": 0.8
             }
           }
+        },
+        "weighted_cohens_kappa": {
+          "overall": 0.262195122,
+          "by_category": {
+            "Composite State": 0.0,
+            "State": 0.0,
+            "Transition": 0.1233766234,
+            "Action": null,
+            "Region": null,
+            "History State": 0.5,
+            "Guard": 0.3636363636
+          }
         }
       }
     }
   },
   "SSC7": {
     "week_mar_16": {
-      "2_step": {
+      "2_stage": {
         "Human": {
           "overall": {
             "precision": 1.0,
@@ -2035,13 +2287,25 @@
               "f1": 1.0
             }
           }
+        },
+        "weighted_cohens_kappa": {
+          "overall": 0.7399361022,
+          "by_category": {
+            "Composite State": 1.0,
+            "State": 0.0,
+            "Transition": -0.02857142857,
+            "Action": null,
+            "Region": null,
+            "History State": 0.5,
+            "Guard": 1.0
+          }
         }
       }
     }
   },
   "Wumple": {
     "week_mar_16": {
-      "2_step": {
+      "2_stage": {
         "Human": {
           "overall": {
             "precision": 0.9760479042,
@@ -2128,6 +2392,18 @@
               "recall": 0.3333333333,
               "f1": 0.5
             }
+          }
+        },
+        "weighted_cohens_kappa": {
+          "overall": 0.5426941788,
+          "by_category": {
+            "Composite State": 0.5714285714,
+            "State": 0.5535714286,
+            "Transition": 0.6701388889,
+            "Action": null,
+            "Region": 1.0,
+            "History State": 0.0,
+            "Guard": 0.0
           }
         }
       }

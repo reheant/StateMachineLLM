@@ -37,6 +37,13 @@ def empty_block():
     }
 
 
+def empty_kappa_block():
+    return {
+        "overall": None,
+        "by_category": OrderedDict((category, None) for category in CATEGORY_ORDER),
+    }
+
+
 def parse_shared_strings(workbook_zip):
     try:
         root = ET.fromstring(workbook_zip.read("xl/sharedStrings.xml"))
@@ -77,6 +84,10 @@ def sheet_values(workbook_zip, sheet_path):
 
 
 def metrics_sheet_path(workbook_zip):
+    return named_sheet_path(workbook_zip, "Metrics")
+
+
+def named_sheet_path(workbook_zip, sheet_name):
     workbook_root = ET.fromstring(workbook_zip.read("xl/workbook.xml"))
     rels_root = ET.fromstring(workbook_zip.read("xl/_rels/workbook.xml.rels"))
     rel_targets = {
@@ -86,11 +97,11 @@ def metrics_sheet_path(workbook_zip):
     }
 
     for sheet in workbook_root.find("a:sheets", NS).findall("a:sheet", NS):
-        if sheet.attrib["name"] == "Metrics":
+        if sheet.attrib["name"] == sheet_name:
             rel_id = sheet.attrib["{http://schemas.openxmlformats.org/officeDocument/2006/relationships}id"]
             return rel_targets[rel_id]
 
-    raise ValueError("Metrics sheet not found")
+    raise ValueError(f"{sheet_name} sheet not found")
 
 
 def state_machine_name(workbook_zip):
@@ -130,10 +141,51 @@ def normalize_category(raw_value):
 def infer_stage(folder_name):
     lowered = folder_name.lower()
     if any(token in lowered for token in ("1 shot", "1-step", "1 step")):
-        return "1_step"
+        return "1_stage"
     if any(token in lowered for token in ("2 shot", "2-step", "2 step")):
-        return "2_step"
+        return "2_stage"
     raise ValueError(f"Could not infer stage from folder name: {folder_name}")
+
+
+def parse_kappa_value(value):
+    if value is None:
+        return None
+
+    text = str(value).strip()
+    if not text or text.lower() == "not available" or text.startswith("#"):
+        return None
+
+    return float(text)
+
+
+def parse_weighted_cohens_kappa(workbook_zip):
+    values = sheet_values(workbook_zip, named_sheet_path(workbook_zip, "Weighted Cohens Kappa"))
+    result = empty_kappa_block()
+    current_category = None
+
+    max_row = 0
+    for cell_ref in values:
+        digits = "".join(ch for ch in cell_ref if ch.isdigit())
+        if digits:
+            max_row = max(max_row, int(digits))
+
+    for row in range(1, max_row + 1):
+        section_label = values.get(f"F{row}")
+        if section_label == "Confusion Matrix":
+            current_category = "overall"
+        elif isinstance(section_label, str) and section_label.startswith("Confusion Matrix (") and section_label.endswith(")"):
+            current_category = normalize_category(section_label[len("Confusion Matrix (") : -1])
+
+        if values.get(f"V{row}") != "Cohen's Kappa":
+            continue
+
+        kappa_value = parse_kappa_value(values.get(f"W{row}"))
+        if current_category == "overall":
+            result["overall"] = kappa_value
+        elif current_category in result["by_category"]:
+            result["by_category"][current_category] = kappa_value
+
+    return result
 
 
 def infer_week(folder_name):
@@ -148,6 +200,7 @@ def infer_week(folder_name):
 def parse_metrics_file(path):
     with zipfile.ZipFile(path) as workbook_zip:
         values = sheet_values(workbook_zip, metrics_sheet_path(workbook_zip))
+        weighted_cohens_kappa = parse_weighted_cohens_kappa(workbook_zip)
         block_labels = {1: values.get("A1", ""), 2: values.get("A12", "")}
         role_map = {1: "Human", 2: "LLM"}
 
@@ -179,7 +232,7 @@ def parse_metrics_file(path):
 
             result[role_map[index]] = block
 
-        return state_machine_name(workbook_zip), result
+        return state_machine_name(workbook_zip), result, weighted_cohens_kappa
 
 
 def build_summary(folder):
@@ -188,10 +241,16 @@ def build_summary(folder):
     summary = OrderedDict()
 
     for workbook in sorted(folder.glob("*.xlsx")):
-        name, metrics = parse_metrics_file(workbook)
+        name, metrics, weighted_cohens_kappa = parse_metrics_file(workbook)
         summary.setdefault(name, OrderedDict())
         summary[name].setdefault(week, OrderedDict())
-        summary[name][week][stage] = metrics
+        summary[name][week][stage] = OrderedDict(
+            [
+                ("Human", metrics["Human"]),
+                ("LLM", metrics["LLM"]),
+                ("weighted_cohens_kappa", weighted_cohens_kappa),
+            ]
+        )
 
     return summary
 

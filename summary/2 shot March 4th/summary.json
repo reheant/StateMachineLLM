@@ -1,7 +1,7 @@
 {
   "Automatic Bread Maker": {
     "week_mar_4": {
-      "2_step": {
+      "2_stage": {
         "Human": {
           "overall": {
             "precision": 1.0,
@@ -89,13 +89,25 @@
               "f1": 1.0
             }
           }
+        },
+        "weighted_cohens_kappa": {
+          "overall": 0.8833097595,
+          "by_category": {
+            "Composite State": 0.7142857143,
+            "State": 1.0,
+            "Transition": 0.8143322476,
+            "Action": null,
+            "Region": null,
+            "History State": null,
+            "Guard": 1.0
+          }
         }
       }
     }
   },
   "Chess Clock": {
     "week_mar_4": {
-      "2_step": {
+      "2_stage": {
         "Human": {
           "overall": {
             "precision": 0.9759036145,
@@ -183,13 +195,25 @@
               "f1": 0.6666666667
             }
           }
+        },
+        "weighted_cohens_kappa": {
+          "overall": 0.8813131313,
+          "by_category": {
+            "Composite State": null,
+            "State": 1.0,
+            "Transition": 0.7575757576,
+            "Action": null,
+            "Region": 1.0,
+            "History State": null,
+            "Guard": null
+          }
         }
       }
     }
   },
   "Dishwasher": {
     "week_mar_4": {
-      "2_step": {
+      "2_stage": {
         "Human": {
           "overall": {
             "precision": 0.9777777778,
@@ -277,13 +301,25 @@
               "f1": 0.6666666667
             }
           }
+        },
+        "weighted_cohens_kappa": {
+          "overall": 0.3529411765,
+          "by_category": {
+            "Composite State": 0.0,
+            "State": 0.2352941176,
+            "Transition": 0.2682926829,
+            "Action": null,
+            "Region": 0.0,
+            "History State": 1.0,
+            "Guard": 0.4444444444
+          }
         }
       }
     }
   },
   "printer": {
     "week_mar_4": {
-      "2_step": {
+      "2_stage": {
         "Human": {
           "overall": {
             "precision": 0.9736842105,
@@ -371,13 +407,25 @@
               "f1": 0.8
             }
           }
+        },
+        "weighted_cohens_kappa": {
+          "overall": 0.262195122,
+          "by_category": {
+            "Composite State": 0.0,
+            "State": 0.0,
+            "Transition": 0.1233766234,
+            "Action": null,
+            "Region": null,
+            "History State": 0.5,
+            "Guard": 0.3636363636
+          }
         }
       }
     }
   },
   "Spa Manager": {
     "week_mar_4": {
-      "2_step": {
+      "2_stage": {
         "Human": {
           "overall": {
             "precision": 1.0,
@@ -465,13 +513,25 @@
               "f1": 0.9333333333
             }
           }
+        },
+        "weighted_cohens_kappa": {
+          "overall": 0.6688311688,
+          "by_category": {
+            "Composite State": 0.0,
+            "State": -0.04081632653,
+            "Transition": 1.0,
+            "Action": null,
+            "Region": null,
+            "History State": 1.0,
+            "Guard": 0.7619047619
+          }
         }
       }
     }
   },
   "Thermonix": {
     "week_mar_4": {
-      "2_step": {
+      "2_stage": {
         "Human": {
           "overall": {
             "precision": 1.0,
@@ -559,13 +619,25 @@
               "f1": 0.6
             }
           }
+        },
+        "weighted_cohens_kappa": {
+          "overall": 0.4230072464,
+          "by_category": {
+            "Composite State": 0.0,
+            "State": null,
+            "Transition": 0.262295082,
+            "Action": null,
+            "Region": null,
+            "History State": null,
+            "Guard": 0.0
+          }
         }
       }
     }
   },
   "Train Automation System": {
     "week_mar_4": {
-      "2_step": {
+      "2_stage": {
         "Human": {
           "overall": {
             "precision": 0.94,
@@ -652,6 +724,18 @@
               "recall": 0.3214285714,
               "f1": 0.4864864865
             }
+          }
+        },
+        "weighted_cohens_kappa": {
+          "overall": 0.5119453925,
+          "by_category": {
+            "Composite State": 0.4,
+            "State": 0.1264367816,
+            "Transition": 0.6711409396,
+            "Action": null,
+            "Region": 0.5454545455,
+            "History State": 1.0,
+            "Guard": 0.5945945946
           }
         }
       }
