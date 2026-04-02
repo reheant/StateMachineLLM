@@ -847,6 +847,38 @@ def _create_single_prompt_gsm_diagram_with_sherpa_in_process(
                         f'\t"{node_name}" [style=invis width=0 height=0 label=""]'
                     )
 
+                # Hide initial point nodes for composite states that have no
+                # [*] --> child in the mermaid source.  pytransitions always
+                # creates a visible black-dot point node inside cluster_X_root
+                # for every composite X, even when no initial state was declared.
+                # We keep the node (it serves as an edge anchor for ltail) but
+                # make it invisible.
+                _composites_with_initial = set(nested_initial_states.keys())
+                _in_root_sg = False
+                _hide_current = False
+                for _bi in range(len(new_body)):
+                    _line = new_body[_bi]
+                    _root_match = re.search(
+                        r"subgraph\s+cluster_(\S+)_root\b", _line
+                    )
+                    if _root_match:
+                        _composite_name = _root_match.group(1)
+                        _in_root_sg = True
+                        _hide_current = _composite_name not in _composites_with_initial
+                        continue
+                    if _in_root_sg and _line.strip() == "}":
+                        _in_root_sg = False
+                        _hide_current = False
+                        continue
+                    if _in_root_sg and _hide_current and "shape=point" in _line:
+                        _node_match = re.match(r"(\s*)(\S+)\s*\[", _line)
+                        if _node_match:
+                            _indent = _node_match.group(1)
+                            _nname = _node_match.group(2)
+                            new_body[_bi] = (
+                                f'{_indent}{_nname} [style=invis width=0 height=0 label=""]'
+                            )
+
                 graph.body = new_body
             except Exception as e:
                 print(f"Warning: Could not add initial state markers: {e}")
