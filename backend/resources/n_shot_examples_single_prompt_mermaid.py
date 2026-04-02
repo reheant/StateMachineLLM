@@ -346,7 +346,7 @@ n_shot_examples = {
             
             state Cook
             Chop --> Cook : next [choppingTimeDone && !moreIngredientsRequired()] / setCookingSpeedAndTime()
-            Cook --> PromptToAdd : afterChoppingTime [moreIngredientsRequired
+            Cook --> PromptToAdd : afterChoppingTime [moreIngredientsRequired()] / setIngredients()
             
             state Ready
             Cook --> Ready : afterCookingTime [!moreIngredientsRequired]
