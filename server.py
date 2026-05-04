@@ -60,7 +60,6 @@ PROFILE_TO_OPENROUTER: dict[str, str] = {
     "anthropic/claude-4.5-sonnet": "anthropic/claude-4.5-sonnet",
     "google/gemini-3.1-pro-preview": "google/gemini-3.1-pro-preview",
     "openai/gpt-5.5": "openai/gpt-5.5",
-    "x-ai/grok-4.3": "x-ai/grok-4.3",
     "deepseek/deepseek-v4-pro": "deepseek/deepseek-v4-pro",
 }
 

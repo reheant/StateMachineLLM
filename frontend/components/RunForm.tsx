@@ -27,9 +27,6 @@ const MODELS: Record<string, { label: string; value: string }[]> = {
   OpenAI: [
     { label: "GPT-5.5", value: "openai/gpt-5.5" },
   ],
-  "xAI": [
-    { label: "Grok 4.3", value: "x-ai/grok-4.3" },
-  ],
   DeepSeek: [
     { label: "DeepSeek V4 Pro", value: "deepseek/deepseek-v4-pro" },
   ],
