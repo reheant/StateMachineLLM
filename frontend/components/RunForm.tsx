@@ -19,31 +19,19 @@ import { cn } from "@/lib/utils";
 
 const MODELS: Record<string, { label: string; value: string }[]> = {
   Anthropic: [
-    { label: "Claude 4.5 Sonnet", value: "anthropic:claude-4-5-sonnet" },
-    { label: "Claude 3.5 Sonnet", value: "anthropic:claude-3-5-sonnet-20241022" },
-    { label: "Claude Sonnet 4", value: "anthropic:claude-sonnet-4" },
-  ],
-  OpenAI: [
-    { label: "GPT-4o", value: "openai:gpt-4o" },
-    { label: "GPT-4o Mini", value: "openai:gpt-4o-mini" },
-    { label: "GPT-4 Turbo", value: "openai:gpt-4-turbo" },
-    { label: "o1", value: "openai:o1" },
-    { label: "o1 Mini", value: "openai:o1-mini" },
+    { label: "Claude 4.5 Sonnet", value: "anthropic/claude-4.5-sonnet" },
   ],
   Google: [
-    { label: "Gemini 2.0 Flash Exp", value: "google:gemini-2-0-flash-exp" },
-    { label: "Gemini 1.5 Pro", value: "google:gemini-1-5-pro-001" },
-    { label: "Gemini 1.5 Flash", value: "google:gemini-1-5-flash" },
+    { label: "Gemini 3.1 Pro Preview", value: "google/gemini-3.1-pro-preview" },
   ],
-  Meta: [
-    { label: "Llama 3.3 70B", value: "meta:llama-3-3-70b-instruct" },
-    { label: "Llama 3.1 405B", value: "meta:llama-3-1-405b-instruct" },
-    { label: "Llama 3.1 70B", value: "meta:llama-3-1-70b-instruct" },
-    { label: "Llama 3.2 3B", value: "meta:llama-3-2-3b-instruct" },
+  OpenAI: [
+    { label: "GPT-5.5", value: "openai/gpt-5.5" },
   ],
-  Qwen: [
-    { label: "QwQ 32B", value: "qwen:qwq-32b" },
-    { label: "Qwen 2.5 72B", value: "qwen:qwen-2-5-72b-instruct" },
+  "xAI": [
+    { label: "Grok 4.3", value: "x-ai/grok-4.3" },
+  ],
+  DeepSeek: [
+    { label: "DeepSeek V4 Pro", value: "deepseek/deepseek-v4-pro" },
   ],
 };
 
@@ -400,7 +388,7 @@ export function RunForm({ onComplete, onHistoryRefresh, onGeneratingChange }: Pr
   const [strategy, setStrategy] = useState<
     "single_prompt" | "two_stage_prompt" | "mermaid_compiler" | "automatic_grader"
   >("single_prompt");
-  const [model, setModel] = useState("anthropic:claude-4-5-sonnet");
+  const [model, setModel] = useState("google/gemini-3.1-pro-preview");
   const [inputTab, setInputTab] = useState<"example" | "custom">("example");
   const [exampleKey, setExampleKey] = useState("");
   const [gradingExampleKey, setGradingExampleKey] = useState("");

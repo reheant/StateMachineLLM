@@ -57,23 +57,11 @@ RESOURCES_DIR = BASE_DIR / "backend" / "resources"
 # Keys match app.py chat profile names (provider:model-id format)
 # Values are OpenRouter model strings
 PROFILE_TO_OPENROUTER: dict[str, str] = {
-    "anthropic:claude-4-5-sonnet": "anthropic/claude-4.5-sonnet",
-    "anthropic:claude-3-5-sonnet-20241022": "anthropic/claude-3.5-sonnet",
-    "anthropic:claude-sonnet-4": "anthropic/claude-sonnet-4",
-    "openai:gpt-4o": "openai/gpt-4o",
-    "openai:gpt-4o-mini": "openai/gpt-4o-mini",
-    "openai:gpt-4-turbo": "openai/gpt-4-turbo",
-    "openai:o1": "openai/o1",
-    "openai:o1-mini": "openai/o1-mini",
-    "google:gemini-2-0-flash-exp": "google/gemini-2.0-flash-exp",
-    "google:gemini-1-5-pro-001": "google/gemini-pro-1.5",
-    "google:gemini-1-5-flash": "google/gemini-flash-1.5",
-    "meta:llama-3-3-70b-instruct": "meta-llama/llama-3.3-70b-instruct",
-    "meta:llama-3-1-405b-instruct": "meta-llama/llama-3.1-405b-instruct",
-    "meta:llama-3-1-70b-instruct": "meta-llama/llama-3.1-70b-instruct",
-    "meta:llama-3-2-3b-instruct": "meta-llama/llama-3.2-3b-instruct",
-    "qwen:qwq-32b": "qwen/qwq-32b",
-    "qwen:qwen-2-5-72b-instruct": "qwen/qwen-2.5-72b-instruct",
+    "anthropic/claude-4.5-sonnet": "anthropic/claude-4.5-sonnet",
+    "google/gemini-3.1-pro-preview": "google/gemini-3.1-pro-preview",
+    "openai/gpt-5.5": "openai/gpt-5.5",
+    "x-ai/grok-4.3": "x-ai/grok-4.3",
+    "deepseek/deepseek-v4-pro": "deepseek/deepseek-v4-pro",
 }
 
 # ---------------------------------------------------------------------------
@@ -663,7 +651,7 @@ def render_mermaid(req: MermaidRequest):
 class AutomaticGraderRequest(BaseModel):
     mermaid_code: str
     example_key: str
-    model: str = "anthropic:claude-4-5-sonnet"
+    model: str = "google/gemini-3.1-pro-preview"
 
 
 @app.post("/api/automatic-grade")
