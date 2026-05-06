@@ -42,24 +42,52 @@ def call_openrouter_llm(
         "X-Title": "StateMachineLLM Single Prompt",
     }
 
+    # For Gemini thinking models, add an explicit instruction to keep reasoning short.
+    # Gemini 3.x embeds chain-of-thought as <thinking> tags directly in the content field.
+    # Without guidance it can consume the entire token budget on reasoning and produce no
+    # Mermaid output.  A prompt-level constraint is the only reliable lever available
+    # through OpenRouter (provider-specific API parameters are not forwarded).
+    system_prompt = (
+        "You are an AI assistant specialized in generating state machines using "
+        "Mermaid stateDiagram-v2 syntax. Analyze problem descriptions and generate "
+        "complete UML state machines with states, transitions, guards, actions, "
+        "hierarchical states, parallel regions, and history states."
+    )
+    if "gemini" in model.lower():
+        system_prompt += (
+            " Keep any internal reasoning very brief (a short bullet list is enough). "
+            "Spend the majority of your response on the actual Mermaid diagram."
+        )
+
     data = {
         "model": model,
         "messages": [
-            {
-                "role": "system",
-                "content": "You are an AI assistant specialized in generating state machines using Mermaid stateDiagram-v2 syntax. Analyze problem descriptions and generate complete UML state machines with states, transitions, guards, actions, hierarchical states, parallel regions, and history states.",
-            },
+            {"role": "system", "content": system_prompt},
             {"role": "user", "content": prompt},
         ],
         "temperature": temperature,
         "max_tokens": max_tokens,
     }
 
-    response = requests.post(url, headers=headers, json=data)
+    # Hard timeout so a slow model can't hang the server indefinitely.
+    response = requests.post(url, headers=headers, json=data, timeout=180)
 
     if response.status_code == 200:
         result = response.json()
-        return result["choices"][0]["message"]["content"]
+        message = result["choices"][0]["message"]
+        content = message.get("content")
+        if content is None:
+            # Some DeepSeek / reasoning models return null content and put their
+            # output in a separate reasoning field.  Fall back to it so the rest
+            # of the pipeline receives a usable string.
+            content = message.get("reasoning_content") or message.get("reasoning")
+        if not content:
+            # Surface the raw response so it is easy to diagnose in LLM_log.txt.
+            raise Exception(
+                f"OpenRouter returned null/empty content for model '{model}'. "
+                f"Full response: {response.text[:500]}"
+            )
+        return content
     else:
         raise Exception(
             f"OpenRouter API call failed with status {response.status_code}: {response.text}"
@@ -777,12 +805,9 @@ def _create_single_prompt_gsm_diagram_with_sherpa_in_process(
                             # cluster subgraph (right after the subgraph
                             # opening line).
                             for _idx, _line in enumerate(new_body):
-                                if (
-                                    "subgraph" in _line
-                                    and re.search(
-                                        rf"subgraph\s+{re.escape(_parent_cluster)}\b",
-                                        _line,
-                                    )
+                                if "subgraph" in _line and re.search(
+                                    rf"subgraph\s+{re.escape(_parent_cluster)}\b",
+                                    _line,
                                 ):
                                     new_body.insert(
                                         _idx + 1,
@@ -858,9 +883,7 @@ def _create_single_prompt_gsm_diagram_with_sherpa_in_process(
                 _hide_current = False
                 for _bi in range(len(new_body)):
                     _line = new_body[_bi]
-                    _root_match = re.search(
-                        r"subgraph\s+cluster_(\S+)_root\b", _line
-                    )
+                    _root_match = re.search(r"subgraph\s+cluster_(\S+)_root\b", _line)
                     if _root_match:
                         _composite_name = _root_match.group(1)
                         _in_root_sg = True
