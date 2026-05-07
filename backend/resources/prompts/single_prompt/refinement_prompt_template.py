@@ -270,34 +270,34 @@ re-enter that composite so they target `H` instead of the composite itself.
 
 <examples>
 <example type="incorrect – suffixed history state name">
-    state Running {{{{
+    state Running {{
         state PhaseA
         state PhaseB
         state H_Run
         [*] --> PhaseA
-    }}}}
+    }}
     Paused --> H_Run : continue
     ← parser breaks: H_Run becomes composite H with child Run
 </example>
 
 <example type="incorrect – history state declared but no transition targets it">
-    state Running {{{{
+    state Running {{
         state PhaseA
         state PhaseB
         state H
         [*] --> PhaseA
-    }}}}
+    }}
     Paused --> Running : continue
     ← H is declared but the re-entry transition still targets Running, not H
 </example>
 
 <example type="correct – history state declared and re-entry targets H">
-    state Running {{{{
+    state Running {{
         state PhaseA
         state PhaseB
         state H
         [*] --> PhaseA
-    }}}}
+    }}
     Paused --> H : continue    ← re-entry now targets H inside Running
 </example>
 </examples>

@@ -81,10 +81,10 @@ Syntax:
     end note
 
 <example>
-    state WashCycle {{
+    state WashCycle {
         [*] --> WaterIntake
         WaterIntake --> Washing : tankFull
-    }}
+    }
 
     note right of WashCycle
         entry / lockDoor()
@@ -115,23 +115,23 @@ each region exactly as you would at the top level.
 <example>
     stateDiagram-v2
     [*] --> ParallelController
-    state ParallelController {{
-        region RegionA {{
+    state ParallelController {
+        region RegionA {
             state Substate1
             state Substate2
             [*] --> Substate1
             Substate1 --> Substate2 : event1
-        }}
-        region RegionWithComposite {{
+        }
+        region RegionWithComposite {
             [*] --> CompositeState
-            state CompositeState {{
+            state CompositeState {
                 state Substate3
                 state Substate4
                 [*] --> Substate3
                 Substate3 --> Substate4 : event2
-            }}
-        }}
-    }}
+            }
+        }
+    }
 </example>
 </parallel_regions>
 
@@ -144,7 +144,7 @@ Use a composite state when:
 - Re-entry must resume the last active substate (pair with a history state).
 - The flat model becomes too complex to read.
 
-Syntax: `state CompositeName {{ ... }}`
+Syntax: `state CompositeName { ... }`
 Declare substates and an initial pseudostate inside the braces.
 
 Typically, a composite state will have a history state to enable resuming the last active substate on re-entry, but this is not strictly required if the system's behavior does not demand it. If a history state is included, follow the rules in the <history_states> section.
@@ -164,16 +164,16 @@ Rules - each violation causes a parse or semantic error:
 <example>
     stateDiagram-v2
     [*] --> Device
-    state Device {{
+    state Device {
         state Idle
-        state Active {{
+        state Active {
             state Step1
             state Step2
             [*] --> Step1
             Step1 --> Step2 : next
-        }}
+        }
         Idle --> Active : start
-    }}
+    }
 
     note right of Active
         entry / startTimer()
@@ -204,13 +204,13 @@ Rules - violations produce incorrect re-entry behavior or parse errors:
     [*] --> Outside
     state Outside
     state Composite
-    state Composite {{
+    state Composite {
         state A
         state B
         state H
         [*] --> A
         A --> B : toB
-    }}
+    }
     Composite --> H : reenter / resumeAction
     Outside --> Composite : enter
 </example>
@@ -220,13 +220,13 @@ Rules - violations produce incorrect re-entry behavior or parse errors:
     [*] --> Outside
     state Outside
     state Composite
-    state Composite {{
+    state Composite {
         state A
         state B
         state H
         [*] --> A
         A --> B : toB
-    }}
+    }
     Outside --> H : reenter
     Outside --> Composite : enter
 </example>
@@ -235,12 +235,12 @@ Rules - violations produce incorrect re-entry behavior or parse errors:
     stateDiagram-v2
     [*] --> Outside
     Outside --> Composite : enter
-    state Composite {{
+    state Composite {
         state A
         state H
         [*] --> A
         A --> H : illegal / bad    ← substates must never target the history state
-    }}
+    }
 </example>
 </examples>
 </history_states>
