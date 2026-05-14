@@ -70,7 +70,7 @@ def call_openrouter_llm(
     }
 
     # Hard timeout so a slow model can't hang the server indefinitely.
-    response = requests.post(url, headers=headers, json=data, timeout=180)
+    response = requests.post(url, headers=headers, json=data, timeout=300)
 
     if response.status_code == 200:
         result = response.json()
